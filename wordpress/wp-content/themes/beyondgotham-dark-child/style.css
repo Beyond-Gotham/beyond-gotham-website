@@ -1,22 +1,70 @@
 /*
  Theme Name: BeyondGotham Dark (Child)
  Theme URI: https://beyond-gotham.com
- Description: Dark child theme based on FreeNews – designed for investigative & editorial reporting.
+ Description: Dark editorial Child Theme auf Basis von FreeNews.
  Author: Beyond Gotham
  Template: freenews
- Version: 0.1.0
+ Version: 0.2.0
  Text Domain: beyondgotham-dark-child
 */
-:root {
-  --bg: #0f1115;
-  --fg: #e7eaee;
-  --muted: #a9b0bb;
-  --accent: #33d1ff;
+
+/* Farb-Tokens */
+:root{
+  --bg:#0f1115;       /* Haupt-Hintergrund */
+  --bg-2:#141924;     /* Panels / Header */
+  --bg-3:#0b0e14;     /* Tiefer Hintergrund */
+  --fg:#e7eaee;       /* Text hell */
+  --muted:#a9b0bb;    /* Sekundärtext */
+  --line:#1c212b;     /* Linien/Border */
+  --accent:#33d1ff;   /* Beyond_Gotham Akzent */
+  --accent-2:#1aa5d1; /* Hover */
 }
-body {
-  background: var(--bg);
-  color: var(--fg);
+
+/* Global */
+html,body{background:var(--bg); color:var(--fg);}
+a{color:var(--accent); text-decoration:none;}
+a:hover{color:var(--accent-2);}
+
+/* Header / Topbar / Navigation */
+#tophead, .top-header, .site-header, #masthead, .main-header, .site-branding{background:var(--bg-2)!important;}
+.main-navigation ul li a{color:var(--fg);}
+.main-navigation ul li a:hover,
+.main-navigation .current-menu-item>a{color:var(--accent);}
+
+/* Suche im Banner */
+.search-form .search-field{background:var(--bg-3); color:var(--fg); border:1px solid var(--line);}
+.search-form .search-submit{background:var(--accent); border:none; color:#001018;}
+.search-form .search-submit:hover{filter:brightness(1.05);}
+
+/* Breaking/Flash News Leiste */
+#breaking-news, .ticker-wrapper{background:var(--bg-2); border-color:var(--line);}
+#breaking-news a{color:var(--accent);}
+
+/* Cards/Listen/Widgets */
+.widget, .widget-area .widget,
+.entry-header, .entry-meta, .entry-footer,
+.blog-post, .post, .post-content,
+#secondary .widget, .home .featured-posts,
+.main-content .page, .tabbed .tabs{background:var(--bg-2); color:var(--fg); border-color:var(--line);}
+.widget-title, .entry-title a{color:var(--fg);}
+.entry-title a:hover{color:var(--accent);}
+
+/* Kategorie-Badges */
+.cat-links a, .post-categories a,
+.label, .post-date{background:var(--bg-3); color:var(--fg)!important; border:1px solid var(--line);}
+
+/* Buttons */
+button, .btn, .button, input[type=submit], .more-link{
+  background:var(--accent); color:#001018; border:none;
 }
-a {
-  color: var(--accent);
+button:hover, .btn:hover, .button:hover, input[type=submit]:hover, .more-link:hover{
+  filter:brightness(1.05);
 }
+
+/* Footer */
+.site-footer{background:var(--bg-3); color:var(--muted);}
+.site-footer a{color:var(--accent);}
+
+/* Feinheiten */
+hr{border-color:var(--line);}
+.wp-caption-text, figcaption{color:var(--muted);}
