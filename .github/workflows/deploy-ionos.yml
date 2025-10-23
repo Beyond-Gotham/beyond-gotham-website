@@ -1,0 +1,50 @@
+
+---
+
+### `.github/workflows/deploy-ionos.yml`
+```yaml
+name: Deploy to IONOS (Theme + Demo)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        working-directory: app-demo-infoterminal
+        run: npm ci
+
+      - name: Build demo
+        working-directory: app-demo-infoterminal
+        run: npm run build
+
+      - name: Prepare upload tree
+        run: |
+          mkdir -p upload/wp-content/themes/beyondgotham-dark-child
+          mkdir -p upload/infoterminal/demo
+          rsync -a wordpress/wp-content/themes/beyondgotham-dark-child/ upload/wp-content/themes/beyondgotham-dark-child/
+          rsync -a app-demo-infoterminal/dist/ upload/infoterminal/demo/
+
+      - name: SFTP Deploy
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          server: ${{ secrets.IONOS_SFTP_HOST }}
+          port: ${{ secrets.IONOS_SFTP_PORT }}
+          username: ${{ secrets.IONOS_SFTP_USER }}
+          password: ${{ secrets.IONOS_SFTP_PASSWORD }}
+          local_path: "upload/*"
+          remote_path: "${{ secrets.IONOS_REMOTE_PATH }}"
+          sftpArgs: "-o StrictHostKeyChecking=no"
