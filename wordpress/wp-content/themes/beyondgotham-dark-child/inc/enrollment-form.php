@@ -1,20 +1,31 @@
 <?php
 /**
- * Kurs-Anmeldeformular
- * Shortcode: [bg_course_enrollment course_id="123"]
+ * Enrollment form shortcode and AJAX handling.
+ *
+ * @package BeyondGothamDarkChild
  */
 
-// ============================================
-// SHORTCODE REGISTRIERUNG
-// ============================================
+defined('ABSPATH') || exit;
+
+// -----------------------------------------------------------------------------
+// Shortcode
+// -----------------------------------------------------------------------------
+
+add_shortcode('bg_course_enrollment', 'bg_course_enrollment_shortcode');
+/**
+ * Render enrollment form shortcode.
+ *
+ * @param array $atts Shortcode attributes.
+ * @return string
+ */
 function bg_course_enrollment_shortcode($atts) {
     $atts = shortcode_atts([
         'course_id' => get_the_ID(),
-    ], $atts);
+    ], $atts, 'bg_course_enrollment');
 
-    $course_id = intval($atts['course_id']);
+    $course_id = absint($atts['course_id']);
 
-    if (!$course_id || get_post_type($course_id) !== 'bg_course') {
+    if (!$course_id || 'bg_course' !== get_post_type($course_id)) {
         return '<p class="bg-enrollment-message">' . esc_html__('Kurs nicht gefunden.', 'beyondgotham-dark-child') . '</p>';
     }
 
@@ -22,233 +33,214 @@ function bg_course_enrollment_shortcode($atts) {
     bg_render_enrollment_form($course_id);
     return ob_get_clean();
 }
-add_shortcode('bg_course_enrollment', 'bg_course_enrollment_shortcode');
 
-
-// ============================================
-// FORMULAR RENDERING
-// ============================================
+/**
+ * Output enrollment form markup.
+ *
+ * @param int $course_id Course ID.
+ */
 function bg_render_enrollment_form($course_id) {
+    wp_enqueue_script('bg-frontend');
+
     $course_title       = get_the_title($course_id);
-    $max_participants   = get_post_meta($course_id, '_bg_max_participants', true);
-    $bildungsgutschein  = get_post_meta($course_id, '_bg_bildungsgutschein', true);
+    $total_spots        = bg_get_course_total_spots($course_id);
+    $available_spots    = bg_get_course_available_spots($course_id);
+    $has_voucher_option = (bool) get_post_meta($course_id, '_bg_bildungsgutschein', true);
 
-    // Aktuelle Anmeldungen zählen
-    $current_enrollments = new WP_Query([
-        'post_type'      => 'bg_enrollment',
-        'fields'         => 'ids',
-        'no_found_rows'  => true,
-        'meta_query'     => [
-            [
-                'key'   => '_bg_course_id',
-                'value' => $course_id,
-            ],
-            [
-                'key'     => '_bg_status',
-                'value'   => ['confirmed', 'pending'],
-                'compare' => 'IN',
-            ],
-        ],
-        'posts_per_page' => -1,
-    ]);
-
-    $enrolled   = count($current_enrollments->posts);
-    $spots_left = $max_participants ? max(0, intval($max_participants) - $enrolled) : 99;
-    $is_full    = $max_participants && $enrolled >= intval($max_participants);
-
-    wp_enqueue_script(
-        'bg-enrollment-form',
-        get_stylesheet_directory_uri() . '/assets/js/enrollment-form.js',
-        ['jquery'],
-        '1.0.0',
-        true
-    );
-
-    static $enrollment_script_localized = false;
-
-    if (!$enrollment_script_localized) {
-        wp_localize_script('bg-enrollment-form', 'bgEnrollmentForm', [
-            'ajaxUrl'       => admin_url('admin-ajax.php'),
-            'errorMessage'  => __('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.', 'beyondgotham-dark-child'),
-            'redirectDelay' => 2000,
-            'sendingLabel'  => __('Wird gesendet …', 'beyondgotham-dark-child'),
-        ]);
-
-        $enrollment_script_localized = true;
-    }
-
+    $is_full = $total_spots > 0 && 0 === $available_spots;
+    $submit_label = $is_full ? __('Zur Warteliste anmelden', 'beyondgotham-dark-child') : __('Verbindlich anmelden', 'beyondgotham-dark-child');
     $form_id = 'bg-enrollment-form-' . $course_id;
-    $field_ids = [
-        'first_name'          => 'course-' . $course_id . '-first-name',
-        'last_name'           => 'course-' . $course_id . '-last-name',
-        'email'               => 'course-' . $course_id . '-email',
-        'phone'               => 'course-' . $course_id . '-phone',
-        'toggle_bildung'      => 'course-' . $course_id . '-toggle-bildung',
-        'gutschein_number'    => 'course-' . $course_id . '-gutschein-number',
-        'gutschein_agency'    => 'course-' . $course_id . '-gutschein-agency',
-        'motivation'          => 'course-' . $course_id . '-motivation',
-        'consent'             => 'course-' . $course_id . '-consent',
-    ];
-    $submit_label = $is_full ? __('Zur Warteliste', 'beyondgotham-dark-child') : __('Verbindlich anmelden', 'beyondgotham-dark-child');
+
     ?>
-    <div class="bg-enrollment-form-wrapper" data-course="<?php echo esc_attr($course_id); ?>">
-        <h3 class="bg-enrollment-form__heading"><?php printf(esc_html__('Anmeldung: %s', 'beyondgotham-dark-child'), esc_html($course_title)); ?></h3>
+    <div class="bg-enrollment" id="bg-course-enrollment" data-course-id="<?php echo esc_attr($course_id); ?>">
+        <div class="bg-enrollment__header">
+            <h2 class="bg-enrollment__title"><?php printf(esc_html__('Anmeldung für %s', 'beyondgotham-dark-child'), esc_html($course_title)); ?></h2>
+            <p class="bg-enrollment__meta">
+                <?php
+                if ($is_full) {
+                    esc_html_e('Aktuell ausgebucht – wir setzen Sie gerne auf die Warteliste.', 'beyondgotham-dark-child');
+                } else {
+                    printf(
+                        esc_html(_n('Noch %d Platz verfügbar', 'Noch %d Plätze verfügbar', $available_spots, 'beyondgotham-dark-child')),
+                        intval($available_spots)
+                    );
+                }
+                ?>
+            </p>
+        </div>
 
-        <?php if ($is_full) : ?>
-            <div class="bg-enrollment-alert bg-enrollment-alert--warning">
-                <strong><?php esc_html_e('Warteliste', 'beyondgotham-dark-child'); ?>:</strong>
-                <?php esc_html_e('Dieser Kurs ist ausgebucht. Sie können sich auf die Warteliste setzen lassen.', 'beyondgotham-dark-child'); ?>
-            </div>
-        <?php else : ?>
-            <div class="bg-enrollment-alert bg-enrollment-alert--info">
-                <?php printf(esc_html__('Noch %d Plätze verfügbar', 'beyondgotham-dark-child'), intval($spots_left)); ?>
-            </div>
-        <?php endif; ?>
-
-        <form id="<?php echo esc_attr($form_id); ?>" class="bg-enrollment-form" method="post" action="" data-submit-label="<?php echo esc_attr($submit_label); ?>">
+        <form id="<?php echo esc_attr($form_id); ?>" class="bg-enrollment__form" method="post" enctype="multipart/form-data" novalidate>
             <?php wp_nonce_field('bg_submit_enrollment', 'bg_enrollment_nonce'); ?>
+            <input type="hidden" name="action" value="bg_enroll_course">
             <input type="hidden" name="course_id" value="<?php echo esc_attr($course_id); ?>">
-            <input type="hidden" name="action" value="bg_submit_enrollment">
 
-            <div class="bg-enrollment-form__grid">
-                <div class="bg-enrollment-field">
-                    <label class="bg-enrollment-label" for="<?php echo esc_attr($field_ids['first_name']); ?>"><?php esc_html_e('Vorname *', 'beyondgotham-dark-child'); ?></label>
-                    <input class="bg-enrollment-input" type="text" id="<?php echo esc_attr($field_ids['first_name']); ?>" name="first_name" required>
+            <div class="bg-enrollment__grid">
+                <div class="bg-enrollment__field">
+                    <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-first-name'); ?>"><?php esc_html_e('Vorname *', 'beyondgotham-dark-child'); ?></label>
+                    <input class="bg-enrollment__input" type="text" id="<?php echo esc_attr($form_id . '-first-name'); ?>" name="first_name" required>
                 </div>
-                <div class="bg-enrollment-field">
-                    <label class="bg-enrollment-label" for="<?php echo esc_attr($field_ids['last_name']); ?>"><?php esc_html_e('Nachname *', 'beyondgotham-dark-child'); ?></label>
-                    <input class="bg-enrollment-input" type="text" id="<?php echo esc_attr($field_ids['last_name']); ?>" name="last_name" required>
+                <div class="bg-enrollment__field">
+                    <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-last-name'); ?>"><?php esc_html_e('Nachname *', 'beyondgotham-dark-child'); ?></label>
+                    <input class="bg-enrollment__input" type="text" id="<?php echo esc_attr($form_id . '-last-name'); ?>" name="last_name" required>
                 </div>
             </div>
 
-            <div class="bg-enrollment-field">
-                <label class="bg-enrollment-label" for="<?php echo esc_attr($field_ids['email']); ?>"><?php esc_html_e('E-Mail *', 'beyondgotham-dark-child'); ?></label>
-                <input class="bg-enrollment-input" type="email" id="<?php echo esc_attr($field_ids['email']); ?>" name="email" required>
+            <div class="bg-enrollment__grid">
+                <div class="bg-enrollment__field">
+                    <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-email'); ?>"><?php esc_html_e('E-Mail *', 'beyondgotham-dark-child'); ?></label>
+                    <input class="bg-enrollment__input" type="email" id="<?php echo esc_attr($form_id . '-email'); ?>" name="email" required>
+                </div>
+                <div class="bg-enrollment__field">
+                    <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-phone'); ?>"><?php esc_html_e('Telefon', 'beyondgotham-dark-child'); ?></label>
+                    <input class="bg-enrollment__input" type="tel" id="<?php echo esc_attr($form_id . '-phone'); ?>" name="phone">
+                </div>
             </div>
 
-            <div class="bg-enrollment-field">
-                <label class="bg-enrollment-label" for="<?php echo esc_attr($field_ids['phone']); ?>"><?php esc_html_e('Telefon', 'beyondgotham-dark-child'); ?></label>
-                <input class="bg-enrollment-input" type="tel" id="<?php echo esc_attr($field_ids['phone']); ?>" name="phone">
+            <div class="bg-enrollment__field">
+                <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-motivation'); ?>"><?php esc_html_e('Motivation & Vorerfahrung', 'beyondgotham-dark-child'); ?></label>
+                <textarea class="bg-enrollment__textarea" id="<?php echo esc_attr($form_id . '-motivation'); ?>" name="motivation" rows="4"></textarea>
             </div>
 
-            <?php if ($bildungsgutschein) : ?>
-                <div class="bg-enrollment-field bg-enrollment-field--checkbox">
-                    <label class="bg-enrollment-checkbox">
-                        <input class="bg-enrollment-checkbox__input bg-enrollment-toggle" type="checkbox" id="<?php echo esc_attr($field_ids['toggle_bildung']); ?>" name="has_bildungsgutschein" value="1">
-                        <span class="bg-enrollment-checkbox__text"><?php esc_html_e('Ich habe einen Bildungsgutschein', 'beyondgotham-dark-child'); ?></span>
+            <?php if ($has_voucher_option) : ?>
+                <fieldset class="bg-enrollment__fieldset">
+                    <legend class="bg-enrollment__legend"><?php esc_html_e('Bildungsgutschein', 'beyondgotham-dark-child'); ?></legend>
+                    <label class="bg-enrollment__checkbox">
+                        <input type="checkbox" class="bg-enrollment__checkbox-input" name="has_voucher" value="1" data-bg-toggle="voucher-fields">
+                        <span><?php esc_html_e('Ich habe einen gültigen Bildungsgutschein', 'beyondgotham-dark-child'); ?></span>
                     </label>
-                </div>
 
-                <div class="bg-enrollment-bildungsgutschein" hidden>
-                    <h4 class="bg-enrollment-bildungsgutschein__title"><?php esc_html_e('Bildungsgutschein-Details', 'beyondgotham-dark-child'); ?></h4>
-                    <div class="bg-enrollment-field">
-                        <label class="bg-enrollment-label" for="<?php echo esc_attr($field_ids['gutschein_number']); ?>"><?php esc_html_e('Gutschein-Nummer', 'beyondgotham-dark-child'); ?></label>
-                        <input class="bg-enrollment-input" type="text" id="<?php echo esc_attr($field_ids['gutschein_number']); ?>" name="gutschein_number">
+                    <div class="bg-enrollment__voucher" data-bg-target="voucher-fields" hidden>
+                        <div class="bg-enrollment__field">
+                            <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-voucher-number'); ?>"><?php esc_html_e('Gutschein-Nummer', 'beyondgotham-dark-child'); ?></label>
+                            <input class="bg-enrollment__input" type="text" id="<?php echo esc_attr($form_id . '-voucher-number'); ?>" name="voucher_number">
+                        </div>
+                        <div class="bg-enrollment__field">
+                            <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-voucher-agency'); ?>"><?php esc_html_e('Ausstellende Agentur / Jobcenter', 'beyondgotham-dark-child'); ?></label>
+                            <input class="bg-enrollment__input" type="text" id="<?php echo esc_attr($form_id . '-voucher-agency'); ?>" name="voucher_agency">
+                        </div>
+                        <div class="bg-enrollment__field">
+                            <label class="bg-enrollment__label" for="<?php echo esc_attr($form_id . '-voucher-file'); ?>"><?php esc_html_e('Gutschein (PDF/JPG/PNG, optional)', 'beyondgotham-dark-child'); ?></label>
+                            <input class="bg-enrollment__input" type="file" id="<?php echo esc_attr($form_id . '-voucher-file'); ?>" name="voucher_document" accept="application/pdf,image/jpeg,image/png">
+                        </div>
                     </div>
-                    <div class="bg-enrollment-field">
-                        <label class="bg-enrollment-label" for="<?php echo esc_attr($field_ids['gutschein_agency']); ?>"><?php esc_html_e('Ausstellende Agentur/Jobcenter', 'beyondgotham-dark-child'); ?></label>
-                        <input class="bg-enrollment-input" type="text" id="<?php echo esc_attr($field_ids['gutschein_agency']); ?>" name="gutschein_agency" placeholder="<?php esc_attr_e('Agentur für Arbeit Leipzig', 'beyondgotham-dark-child'); ?>">
-                    </div>
-                </div>
+                </fieldset>
             <?php endif; ?>
 
-            <div class="bg-enrollment-field">
-                <label class="bg-enrollment-label" for="<?php echo esc_attr($field_ids['motivation']); ?>"><?php esc_html_e('Motivation / Vorerfahrung', 'beyondgotham-dark-child'); ?></label>
-                <textarea class="bg-enrollment-textarea" id="<?php echo esc_attr($field_ids['motivation']); ?>" name="motivation" rows="4"></textarea>
-            </div>
-
-            <div class="bg-enrollment-field bg-enrollment-field--checkbox">
-                <label class="bg-enrollment-checkbox">
-                    <input class="bg-enrollment-checkbox__input" type="checkbox" id="<?php echo esc_attr($field_ids['consent']); ?>" name="dsgvo_consent" value="1" required>
-                    <span class="bg-enrollment-checkbox__text"><?php esc_html_e('Ich stimme der Datenschutzerklärung zu *', 'beyondgotham-dark-child'); ?></span>
+            <div class="bg-enrollment__field bg-enrollment__field--consent">
+                <label class="bg-enrollment__checkbox">
+                    <input type="checkbox" class="bg-enrollment__checkbox-input" name="privacy_consent" value="1" required>
+                    <span><?php esc_html_e('Ich habe die Datenschutzerklärung gelesen und stimme zu.', 'beyondgotham-dark-child'); ?></span>
                 </label>
             </div>
 
-            <div class="bg-enrollment-response" aria-live="polite"></div>
+            <div class="bg-enrollment__messages" aria-live="polite"></div>
 
-            <button type="submit" class="bg-enrollment-submit"><?php echo esc_html($submit_label); ?></button>
+            <button type="submit" class="bg-enrollment__submit" data-default-label="<?php echo esc_attr($submit_label); ?>"><?php echo esc_html($submit_label); ?></button>
         </form>
     </div>
     <?php
 }
 
+// -----------------------------------------------------------------------------
+// AJAX handler
+// -----------------------------------------------------------------------------
 
-// ============================================
-// AJAX HANDLER
-// ============================================
+add_action('wp_ajax_bg_enroll_course', 'bg_handle_enrollment_submission');
+add_action('wp_ajax_nopriv_bg_enroll_course', 'bg_handle_enrollment_submission');
+/**
+ * Handle enrollment AJAX requests.
+ */
 function bg_handle_enrollment_submission() {
-    if (!isset($_POST['bg_enrollment_nonce']) || !wp_verify_nonce($_POST['bg_enrollment_nonce'], 'bg_submit_enrollment')) {
-        wp_send_json_error(['message' => __('Sicherheitsprüfung fehlgeschlagen.', 'beyondgotham-dark-child')]);
+    check_ajax_referer('bg_ajax_nonce', 'security');
+
+    if (!isset($_POST['bg_enrollment_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['bg_enrollment_nonce'])), 'bg_submit_enrollment')) {
+        wp_send_json_error(['message' => __('Sicherheitsprüfung fehlgeschlagen.', 'beyondgotham-dark-child')], 400);
     }
 
-    $course_id = isset($_POST['course_id']) ? intval($_POST['course_id']) : 0;
-    if (!$course_id || get_post_type($course_id) !== 'bg_course') {
-        wp_send_json_error(['message' => __('Der Kurs konnte nicht gefunden werden.', 'beyondgotham-dark-child')]);
+    if (!isset($_POST['course_id'])) {
+        wp_send_json_error(['message' => __('Ungültige Anfrage.', 'beyondgotham-dark-child')], 400);
     }
 
-    $max_participants = intval(get_post_meta($course_id, '_bg_max_participants', true));
-    $status            = 'pending';
+    $course_id = absint(wp_unslash($_POST['course_id']));
+    if (!$course_id || 'bg_course' !== get_post_type($course_id)) {
+        wp_send_json_error(['message' => __('Kurs konnte nicht gefunden werden.', 'beyondgotham-dark-child')], 404);
+    }
 
-    if ($max_participants > 0) {
-        $active_enrollments = new WP_Query([
-            'post_type'      => 'bg_enrollment',
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-            'posts_per_page' => -1,
-            'meta_query'     => [
-                [
-                    'key'   => '_bg_course_id',
-                    'value' => $course_id,
-                ],
-                [
-                    'key'     => '_bg_status',
-                    'value'   => ['confirmed', 'pending'],
-                    'compare' => 'IN',
-                ],
-            ],
-        ]);
-
-        if (count($active_enrollments->posts) >= $max_participants) {
-            $status = 'waitlist';
-        }
+    $rate_key = bg_get_enrollment_rate_limit_key();
+    $rate_limit = (int) get_transient($rate_key);
+    if ($rate_limit >= 3) {
+        wp_send_json_error(['message' => __('Sie haben das Limit für Anfragen erreicht. Bitte versuchen Sie es später erneut.', 'beyondgotham-dark-child')], 429);
     }
 
     $data = [
-        '_bg_course_id'        => $course_id,
-        '_bg_first_name'       => sanitize_text_field($_POST['first_name'] ?? ''),
-        '_bg_last_name'        => sanitize_text_field($_POST['last_name'] ?? ''),
-        '_bg_email'            => sanitize_email($_POST['email'] ?? ''),
-        '_bg_phone'            => sanitize_text_field($_POST['phone'] ?? ''),
-        '_bg_motivation'       => sanitize_textarea_field($_POST['motivation'] ?? ''),
-        '_bg_status'           => $status,
-        '_bg_submitted_at'     => current_time('mysql'),
+        'first_name'  => sanitize_text_field(wp_unslash($_POST['first_name'] ?? '')),
+        'last_name'   => sanitize_text_field(wp_unslash($_POST['last_name'] ?? '')),
+        'email'       => sanitize_email(wp_unslash($_POST['email'] ?? '')),
+        'phone'       => sanitize_text_field(wp_unslash($_POST['phone'] ?? '')),
+        'motivation'  => sanitize_textarea_field(wp_unslash($_POST['motivation'] ?? '')),
+        'has_voucher' => isset($_POST['has_voucher']) ? '1' : '',
     ];
 
-    if (empty($data['_bg_first_name']) || empty($data['_bg_last_name']) || empty($data['_bg_email'])) {
-        wp_send_json_error(['message' => __('Bitte füllen Sie alle Pflichtfelder aus.', 'beyondgotham-dark-child')]);
+    if (empty($data['first_name']) || empty($data['last_name']) || empty($data['email'])) {
+        wp_send_json_error(['message' => __('Bitte füllen Sie alle Pflichtfelder aus.', 'beyondgotham-dark-child')], 400);
     }
 
-    if (!is_email($data['_bg_email'])) {
-        wp_send_json_error(['message' => __('Bitte geben Sie eine gültige E-Mail-Adresse an.', 'beyondgotham-dark-child')]);
+    if (!is_email($data['email'])) {
+        wp_send_json_error(['message' => __('Bitte geben Sie eine gültige E-Mail-Adresse an.', 'beyondgotham-dark-child')], 400);
     }
 
-    $bildungsgutschein = get_post_meta($course_id, '_bg_bildungsgutschein', true);
-    if ($bildungsgutschein && !empty($_POST['has_bildungsgutschein'])) {
-        $data['_bg_has_bildungsgutschein'] = 1;
-        $data['_bg_gutschein_number']      = sanitize_text_field($_POST['gutschein_number'] ?? '');
-        $data['_bg_gutschein_agency']      = sanitize_text_field($_POST['gutschein_agency'] ?? '');
+    if (empty($_POST['privacy_consent'])) {
+        wp_send_json_error(['message' => __('Bitte akzeptieren Sie die Datenschutzbestimmungen.', 'beyondgotham-dark-child')], 400);
     }
+
+    $total_spots     = bg_get_course_total_spots($course_id);
+    $available_spots = bg_get_course_available_spots($course_id);
+    $status          = ($total_spots > 0 && $available_spots <= 0) ? 'waitlist' : 'confirmed';
+
+    $voucher_meta = [];
+    if ($data['has_voucher']) {
+        $voucher_meta['_bg_voucher_number'] = sanitize_text_field(wp_unslash($_POST['voucher_number'] ?? ''));
+        $voucher_meta['_bg_voucher_agency'] = sanitize_text_field(wp_unslash($_POST['voucher_agency'] ?? ''));
+
+        if (!empty($_FILES['voucher_document']['name'])) {
+            $upload = wp_handle_upload($_FILES['voucher_document'], ['test_form' => false]);
+            if (!isset($upload['error']) && isset($upload['file'])) {
+                $attachment_id = bg_store_uploaded_file($upload, $data['first_name'] . ' ' . $data['last_name']);
+                if ($attachment_id) {
+                    $voucher_meta['_bg_voucher_attachment_id'] = $attachment_id;
+                }
+            }
+        }
+    }
+
+    $enrollment_meta = array_merge([
+        '_bg_course_id'    => $course_id,
+        '_bg_first_name'   => $data['first_name'],
+        '_bg_last_name'    => $data['last_name'],
+        '_bg_email'        => $data['email'],
+        '_bg_phone'        => $data['phone'],
+        '_bg_motivation'   => $data['motivation'],
+        '_bg_status'       => $status,
+        '_bg_submitted_at' => current_time('mysql'),
+    ], $voucher_meta);
 
     $enrollment_id = wp_insert_post([
         'post_type'   => 'bg_enrollment',
-        'post_title'  => $data['_bg_first_name'] . ' ' . $data['_bg_last_name'],
         'post_status' => 'publish',
-        'meta_input'  => $data,
+        'post_title'  => $data['first_name'] . ' ' . $data['last_name'],
+        'meta_input'  => $enrollment_meta,
     ]);
 
     if (is_wp_error($enrollment_id)) {
-        wp_send_json_error(['message' => __('Die Anmeldung konnte nicht gespeichert werden.', 'beyondgotham-dark-child')]);
+        wp_send_json_error(['message' => __('Die Anmeldung konnte nicht gespeichert werden.', 'beyondgotham-dark-child')], 500);
     }
+
+    if ('confirmed' === $status && $total_spots > 0) {
+        bg_adjust_course_available_spots($course_id, -1);
+    }
+
+    set_transient($rate_key, $rate_limit + 1, 15 * MINUTE_IN_SECONDS);
+    bg_flush_course_stats_widget_cache();
 
     $course_title = get_the_title($course_id);
     $admin_email  = get_option('admin_email');
@@ -257,20 +249,75 @@ function bg_handle_enrollment_submission() {
         $admin_email,
         sprintf(__('Neue Kursanmeldung: %s', 'beyondgotham-dark-child'), $course_title),
         sprintf(
-            "Kurs: %s\nName: %s %s\nE-Mail: %s\nTelefon: %s\nMotivation: %s",
+            "Kurs: %s\nName: %s %s\nE-Mail: %s\nTelefon: %s\nStatus: %s\nMotivation: %s",
             $course_title,
-            $data['_bg_first_name'],
-            $data['_bg_last_name'],
-            $data['_bg_email'],
-            $data['_bg_phone'],
-            $data['_bg_motivation']
+            $data['first_name'],
+            $data['last_name'],
+            $data['email'],
+            $data['phone'],
+            $status,
+            $data['motivation']
         )
     );
 
+    $user_message = ('waitlist' === $status)
+        ? __('Vielen Dank! Sie stehen auf der Warteliste und wir melden uns, sobald ein Platz frei wird.', 'beyondgotham-dark-child')
+        : __('Vielen Dank für Ihre Anmeldung! Wir melden uns in Kürze mit weiteren Informationen.', 'beyondgotham-dark-child');
+
+    wp_mail(
+        $data['email'],
+        sprintf(__('Anmeldung für %s', 'beyondgotham-dark-child'), $course_title),
+        $user_message
+    );
+
     wp_send_json_success([
-        'message'  => __('Vielen Dank! Wir melden uns in Kürze bei Ihnen.', 'beyondgotham-dark-child'),
-        'redirect' => get_permalink($course_id),
+        'message' => $user_message,
+        'status'  => $status,
     ]);
 }
-add_action('wp_ajax_bg_submit_enrollment', 'bg_handle_enrollment_submission');
-add_action('wp_ajax_nopriv_bg_submit_enrollment', 'bg_handle_enrollment_submission');
+
+// -----------------------------------------------------------------------------
+// Helper utilities
+// -----------------------------------------------------------------------------
+
+if (!function_exists('bg_get_enrollment_rate_limit_key')) {
+    /**
+     * Build a transient key for rate limiting.
+     *
+     * @return string
+     */
+    function bg_get_enrollment_rate_limit_key() {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
+        return 'bg_enrollment_rate_' . md5($ip);
+    }
+}
+
+if (!function_exists('bg_store_uploaded_file')) {
+    /**
+     * Register uploaded voucher file in the media library.
+     *
+     * @param array  $upload Uploaded file array from wp_handle_upload.
+     * @param string $title  Attachment title.
+     * @return int Attachment ID.
+     */
+    function bg_store_uploaded_file($upload, $title) {
+        $filetype = wp_check_filetype(basename($upload['file']), null);
+
+        $attachment = [
+            'guid'           => $upload['url'],
+            'post_mime_type' => $filetype['type'],
+            'post_title'     => sanitize_text_field($title),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+        ];
+
+        $attach_id = wp_insert_attachment($attachment, $upload['file']);
+        if (!is_wp_error($attach_id)) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            wp_update_attachment_metadata($attach_id, wp_generate_attachment_metadata($attach_id, $upload['file']));
+            return (int) $attach_id;
+        }
+
+        return 0;
+    }
+}
