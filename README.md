@@ -21,4 +21,4 @@ cd app-demo-infoterminal
 npm ci
 npm run dev
 # build:
-npm run build  # Output: app-demo-infoterminal/dist/ 
+npm run build  # Output: app-demo-infoterminal/dist/
