@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#001f3f" />
+      <stop offset="100%" stop-color="#003e7a" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff" />
+      <stop offset="100%" stop-color="#36ffb5" />
+    </linearGradient>
+  </defs>
+  <rect width="480" height="300" fill="url(#bg)" rx="24" />
+  <g stroke="#36ffb5" stroke-width="2" stroke-linecap="round" opacity="0.35">
+    <path d="M80 220c30-50 90-90 180-90s150 40 180 90" fill="none" />
+    <path d="M80 200c30-40 90-70 180-70s150 30 180 70" fill="none" />
+    <path d="M80 180c30-30 90-50 180-50s150 20 180 50" fill="none" />
+  </g>
+  <g fill="#00d4ff" opacity="0.35">
+    <circle cx="120" cy="120" r="10" />
+    <circle cx="200" cy="90" r="8" />
+    <circle cx="260" cy="150" r="12" />
+    <circle cx="360" cy="110" r="6" />
+    <circle cx="400" cy="160" r="9" />
+  </g>
+  <rect x="70" y="70" width="340" height="150" rx="18" fill="rgba(0,0,0,0.35)" stroke="url(#accent)" stroke-width="3" />
+  <g fill="#f3f9ff" font-family="'Inter', 'Segoe UI', sans-serif">
+    <text x="90" y="120" font-size="34" font-weight="600">OSINT-Grundlagen</text>
+    <text x="90" y="150" font-size="18" opacity="0.75">Recherche, Verifikation &amp; Monitoring</text>
+    <text x="90" y="195" font-size="14" opacity="0.7">Live-Daten, Quellenanalyse und kollaborative Tools im Fokus.</text>
+  </g>
+  <g stroke="url(#accent)" stroke-width="2" fill="none" opacity="0.6">
+    <rect x="100" y="215" width="60" height="35" rx="8" />
+    <rect x="175" y="215" width="60" height="35" rx="8" />
+    <rect x="250" y="215" width="60" height="35" rx="8" />
+  </g>
+</svg>

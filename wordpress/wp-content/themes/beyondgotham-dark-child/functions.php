@@ -660,3 +660,258 @@ add_action('after_switch_theme', function() {
     // Flush rewrite rules
     flush_rewrite_rules();
 });
+
+
+// ============================================
+// 11. DEMO KURSE (OSINT, GEO, FORENSIK)
+// ============================================
+
+add_filter('upload_mimes', function ($mimes) {
+    $mimes['svg'] = 'image/svg+xml';
+    return $mimes;
+});
+
+function bg_seed_demo_course_thumbnail($post_id, $relative_path) {
+    if (!$post_id || !$relative_path) {
+        return;
+    }
+
+    $source_path = trailingslashit(get_stylesheet_directory()) . ltrim($relative_path, '/');
+
+    if (!file_exists($source_path)) {
+        return;
+    }
+
+    $upload_dir = wp_upload_dir();
+
+    if (!empty($upload_dir['error'])) {
+        return;
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    wp_mkdir_p($upload_dir['path']);
+
+    $filename = wp_unique_filename($upload_dir['path'], basename($source_path));
+    $destination = trailingslashit($upload_dir['path']) . $filename;
+
+    if (!file_exists($destination)) {
+        copy($source_path, $destination);
+    }
+
+    $filetype = wp_check_filetype($filename, null);
+
+    if (!$filetype || empty($filetype['type'])) {
+        return;
+    }
+
+    $attachment = [
+        'post_mime_type' => $filetype['type'],
+        'post_title'     => preg_replace('/\.[^.]+$/', '', basename($filename)),
+        'post_content'   => '',
+        'post_status'    => 'inherit',
+    ];
+
+    $attach_id = wp_insert_attachment($attachment, $destination, $post_id);
+
+    if (is_wp_error($attach_id)) {
+        return;
+    }
+
+    if ($filetype['type'] !== 'image/svg+xml') {
+        $attach_data = wp_generate_attachment_metadata($attach_id, $destination);
+        wp_update_attachment_metadata($attach_id, $attach_data);
+    }
+
+    update_post_meta($attach_id, '_wp_attachment_image_alt', get_the_title($post_id) . ' – Kursvisualisierung');
+    set_post_thumbnail($post_id, $attach_id);
+}
+
+function bg_create_demo_courses() {
+    if (!post_type_exists('bg_course')) {
+        return;
+    }
+
+    if (get_option('bg_demo_courses_created')) {
+        return;
+    }
+
+    $courses = [
+        [
+            'title'      => 'OSINT-Grundlagen',
+            'excerpt'    => 'Strukturierter Einstieg in Open Source Intelligence mit praxisnahen Monitoring- und Verifikationsübungen.',
+            'content'    => <<<HTML
+<h2>Überblick</h2>
+<p>Im Demo-Kurs <strong>OSINT-Grundlagen</strong> lernen Teilnehmende, wie sie offene Quellen strukturiert erfassen, bewerten und dokumentieren. Der Fokus liegt auf Recherche-Frameworks, Monitoring-Workflows und digitalen Sicherheitsstandards.</p>
+
+<h3>Module</h3>
+<ul>
+    <li>Open Source Intelligence Basics &amp; Recherche-Workflow</li>
+    <li>Social Media Monitoring &amp; Verifikation von Posts</li>
+    <li>Geolokalisierung und Zeitverifikation (Geo/Chrono)</li>
+    <li>Dashboarding, Alerts &amp; Reporting</li>
+    <li>OPSEC &amp; sichere Teamkollaboration</li>
+</ul>
+
+<h3>Lernziele</h3>
+<p>Nach Abschluss können Teams Monitoring-Aufträge priorisieren, Funde dokumentieren und Erkenntnisse konsistent in Lagebilder überführen.</p>
+
+<h3>Demo-Hinweis</h3>
+<p>Alle Inhalte dienen als Platzhalter für Design- und Template-Tests.</p>
+HTML,
+            'image'      => 'assets/images/demo-courses/osint-intro.svg',
+            'taxonomies' => [
+                'course_category' => ['OSINT & Recherche'],
+                'course_level'    => ['Einsteiger'],
+            ],
+            'meta'       => [
+                '_bg_duration'       => '4 Wochen',
+                '_bg_language'       => 'Deutsch',
+                '_bg_learning_format' => 'Live-Online & Präsenz',
+                '_bg_effort'         => '6 Stunden/Woche',
+            ],
+        ],
+        [
+            'title'      => 'Geo-Analyse mit Satellitendaten',
+            'excerpt'    => 'Visuelle Auswertung von Erdbeobachtungsdaten für Krisen- und Lageanalysen – von Rohdaten zum Lagebild.',
+            'content'    => <<<HTML
+<h2>Kursprofil</h2>
+<p>Dieser Demo-Kurs zeigt, wie Analyst:innen Satellitendaten und Luftbilder kombinieren, um Ereignisse zu verifizieren und Trendanalysen für Einsatzteams aufzubereiten.</p>
+
+<h3>Module</h3>
+<ol>
+    <li>Einführung in Erdbeobachtung &amp; Sensorik</li>
+    <li>Datenbeschaffung (Open Data, kommerzielle Provider)</li>
+    <li>Raster- und Vektor-Workflows in QGIS</li>
+    <li>Change Detection &amp; Heatmaps</li>
+    <li>Storytelling für Entscheidungsträger</li>
+</ol>
+
+<h3>Praxisszenarien</h3>
+<p>Beispielhafte Fallstudien rund um Infrastrukturmonitoring, Krisenhilfe und humanitäre Lageberichte.</p>
+
+<h3>Demo-Hinweis</h3>
+<p>Die Inhalte fungieren als Testdaten für Archive, Filter und Detailseiten.</p>
+HTML,
+            'image'      => 'assets/images/demo-courses/geo-analysis.svg',
+            'taxonomies' => [
+                'course_category' => ['Geodaten & Visualisierung'],
+                'course_level'    => ['Fortgeschritten'],
+            ],
+            'meta'       => [
+                '_bg_duration'       => '6 Wochen',
+                '_bg_language'       => 'Deutsch &amp; Englisch',
+                '_bg_learning_format' => 'Hybrid (Remote &amp; Lab)',
+                '_bg_effort'         => '8 Stunden/Woche',
+            ],
+        ],
+        [
+            'title'      => 'Digitale Beweissicherung',
+            'excerpt'    => 'Workflow-Demo zur Sicherung, Analyse und Dokumentation digitaler Spuren mit forensischen Standards.',
+            'content'    => <<<HTML
+<h2>Kurssteckbrief</h2>
+<p>Der Demo-Kurs <em>Digitale Beweissicherung</em> illustriert Prozesse zur Aufnahme, Analyse und Dokumentation digitaler Beweise für investigative Projekte.</p>
+
+<h3>Inhalte</h3>
+<ul>
+    <li>Forensische Sicherung von Datenträgern</li>
+    <li>Auswertung mobiler Endgeräte &amp; Cloud-Dumps</li>
+    <li>Metadatenanalyse und Kettennachverfolgung</li>
+    <li>Chain-of-Custody Dokumentation</li>
+    <li>Gerichtsfeste Berichterstattung</li>
+</ul>
+
+<h3>Praxisphasen</h3>
+<p>Simulierte Laborstationen mit Incident-Response-Playbooks und Review-Checklisten.</p>
+
+<h3>Demo-Hinweis</h3>
+<p>Die Textblöcke dienen als realitätsnahe Inhalte für Templates und Übersichten.</p>
+HTML,
+            'image'      => 'assets/images/demo-courses/digital-forensics.svg',
+            'taxonomies' => [
+                'course_category' => ['Digitale Forensik'],
+                'course_level'    => ['Professional'],
+            ],
+            'meta'       => [
+                '_bg_duration'       => '5 Wochen',
+                '_bg_language'       => 'Deutsch',
+                '_bg_learning_format' => 'Lab-basiert',
+                '_bg_effort'         => '10 Stunden/Woche',
+            ],
+        ],
+    ];
+
+    $created = false;
+
+    foreach ($courses as $course) {
+        if (get_page_by_title($course['title'], OBJECT, 'bg_course')) {
+            continue;
+        }
+
+        $post_id = wp_insert_post([
+            'post_type'    => 'bg_course',
+            'post_status'  => 'publish',
+            'post_title'   => $course['title'],
+            'post_content' => $course['content'],
+            'post_excerpt' => $course['excerpt'],
+            'post_author'  => get_current_user_id() ?: 1,
+        ]);
+
+        if (is_wp_error($post_id) || !$post_id) {
+            continue;
+        }
+
+        foreach ($course['meta'] as $key => $value) {
+            update_post_meta($post_id, $key, $value);
+        }
+
+        if (!empty($course['taxonomies'])) {
+            foreach ($course['taxonomies'] as $taxonomy => $terms) {
+                $term_ids = [];
+
+                foreach ((array) $terms as $term_name) {
+                    $existing = term_exists($term_name, $taxonomy);
+
+                    if (!$existing) {
+                        $existing = wp_insert_term($term_name, $taxonomy);
+                    }
+
+                    if (is_wp_error($existing)) {
+                        continue;
+                    }
+
+                    if (is_array($existing)) {
+                        $term_ids[] = (int) $existing['term_id'];
+                    } else {
+                        $term_ids[] = (int) $existing;
+                    }
+                }
+
+                if (!empty($term_ids)) {
+                    wp_set_object_terms($post_id, $term_ids, $taxonomy, false);
+                }
+            }
+        }
+
+        if (!empty($course['image'])) {
+            bg_seed_demo_course_thumbnail($post_id, $course['image']);
+        }
+
+        $created = true;
+    }
+
+    if ($created || !get_option('bg_demo_courses_created')) {
+        update_option('bg_demo_courses_created', 1, false);
+    }
+}
+
+function bg_maybe_create_demo_courses() {
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    bg_create_demo_courses();
+}
+add_action('admin_init', 'bg_maybe_create_demo_courses');
