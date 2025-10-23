@@ -59,8 +59,19 @@ add_action('after_setup_theme', function(){
 // ============================================
 // 3. CUSTOM POST TYPES & ENROLLMENT
 // ============================================
-require_once get_stylesheet_directory() . '/inc/custom-post-types.php';
-require_once get_stylesheet_directory() . '/inc/enrollment-form.php';
+$custom_post_types_file = get_stylesheet_directory() . '/inc/custom-post-types.php';
+if (file_exists($custom_post_types_file)) {
+    require_once $custom_post_types_file;
+} else {
+    error_log(sprintf('[BeyondGotham] Missing file: %s', $custom_post_types_file));
+}
+
+$enrollment_form_file = get_stylesheet_directory() . '/inc/enrollment-form.php';
+if (file_exists($enrollment_form_file)) {
+    require_once $enrollment_form_file;
+} else {
+    error_log(sprintf('[BeyondGotham] Missing file: %s', $enrollment_form_file));
+}
 
 
 // ============================================
