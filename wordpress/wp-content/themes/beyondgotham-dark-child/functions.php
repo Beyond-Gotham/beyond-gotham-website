@@ -1,5 +1,10 @@
 <?php
-add_action('wp_enqueue_scripts', function(){
-  wp_enqueue_style('parent-style', get_template_directory_uri().'/style.css');
-  wp_enqueue_style('child-style', get_stylesheet_uri(), ['parent-style'], '0.1.0');
+/**
+ * BeyondGotham Dark Child Theme
+ */
+add_action('wp_enqueue_scripts', function () {
+    // Parent stylesheet
+    wp_enqueue_style('freenews-style', get_template_directory_uri() . '/style.css');
+    // Child overrides
+    wp_enqueue_style('beyondgotham-style', get_stylesheet_uri(), ['freenews-style'], wp_get_theme()->get('Version'));
 });
