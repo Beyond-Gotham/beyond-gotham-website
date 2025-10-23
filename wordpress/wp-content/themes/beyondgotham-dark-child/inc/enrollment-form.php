@@ -186,6 +186,33 @@ function bg_handle_enrollment_submission() {
         wp_send_json_error(['message' => __('Der Kurs konnte nicht gefunden werden.', 'beyondgotham-dark-child')]);
     }
 
+    $max_participants = intval(get_post_meta($course_id, '_bg_max_participants', true));
+    $status            = 'pending';
+
+    if ($max_participants > 0) {
+        $active_enrollments = new WP_Query([
+            'post_type'      => 'bg_enrollment',
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                [
+                    'key'   => '_bg_course_id',
+                    'value' => $course_id,
+                ],
+                [
+                    'key'     => '_bg_status',
+                    'value'   => ['confirmed', 'pending'],
+                    'compare' => 'IN',
+                ],
+            ],
+        ]);
+
+        if (count($active_enrollments->posts) >= $max_participants) {
+            $status = 'waitlist';
+        }
+    }
+
     $data = [
         '_bg_course_id'        => $course_id,
         '_bg_first_name'       => sanitize_text_field($_POST['first_name'] ?? ''),
@@ -193,7 +220,7 @@ function bg_handle_enrollment_submission() {
         '_bg_email'            => sanitize_email($_POST['email'] ?? ''),
         '_bg_phone'            => sanitize_text_field($_POST['phone'] ?? ''),
         '_bg_motivation'       => sanitize_textarea_field($_POST['motivation'] ?? ''),
-        '_bg_status'           => 'pending',
+        '_bg_status'           => $status,
         '_bg_submitted_at'     => current_time('mysql'),
     ];
 
