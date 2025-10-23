@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300">
+  <defs>
+    <linearGradient id="bgForensics" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#030019" />
+      <stop offset="100%" stop-color="#170035" />
+    </linearGradient>
+    <linearGradient id="accentForensics" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff" />
+      <stop offset="100%" stop-color="#8b5cff" />
+    </linearGradient>
+  </defs>
+  <rect width="480" height="300" fill="url(#bgForensics)" rx="24" />
+  <g stroke="#8b5cff" stroke-width="1.2" opacity="0.25">
+    <rect x="40" y="40" width="400" height="220" rx="16" fill="none" />
+    <path d="M80 80h320" />
+    <path d="M80 120h320" />
+    <path d="M80 160h320" />
+    <path d="M80 200h320" />
+  </g>
+  <g fill="none" stroke="url(#accentForensics)" stroke-width="3" stroke-linecap="round">
+    <path d="M120 230l40-80 60 40 70-100 70 50" />
+    <path d="M160 150h20v-30h30" opacity="0.7" />
+    <path d="M280 160h25v-40h25" opacity="0.7" />
+  </g>
+  <g fill="#00d4ff" opacity="0.75">
+    <circle cx="160" cy="150" r="10" />
+    <circle cx="220" cy="190" r="11" />
+    <circle cx="290" cy="120" r="9" />
+    <circle cx="360" cy="170" r="10" />
+  </g>
+  <rect x="70" y="70" width="340" height="150" rx="18" fill="rgba(12, 0, 40, 0.65)" stroke="url(#accentForensics)" stroke-width="3" />
+  <g fill="#f4f2ff" font-family="'Inter', 'Segoe UI', sans-serif">
+    <text x="90" y="115" font-size="32" font-weight="600">Digitale Beweissicherung</text>
+    <text x="90" y="150" font-size="18" opacity="0.75">Forensische Workflows &amp; Chain-of-Custody</text>
+    <text x="90" y="190" font-size="14" opacity="0.7">Von Mobile Devices bis Darknet-Dokumentation.</text>
+  </g>
+  <g fill="none" stroke="#8b5cff" stroke-width="2" opacity="0.7">
+    <rect x="100" y="215" width="90" height="25" rx="12" />
+    <rect x="210" y="215" width="90" height="25" rx="12" />
+    <rect x="320" y="215" width="50" height="25" rx="12" />
+  </g>
+</svg>
