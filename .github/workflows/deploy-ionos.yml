@@ -2,8 +2,7 @@ name: deploy-ionos
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch: {}
 
 jobs:
@@ -38,13 +37,14 @@ jobs:
           rsync -a wordpress/wp-content/themes/beyondgotham-dark-child/ upload/wp-content/themes/beyondgotham-dark-child/
           rsync -a app-demo-infoterminal/dist/ upload/infoterminal/demo/
 
-      - name: SFTP Deploy
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      - name: SFTP Upload (pure SFTP)
+        uses: Creepios/sftp-action@v1.0.5
         with:
-          server: ${{ secrets.IONOS_SFTP_HOST }}
+          host: ${{ secrets.IONOS_SFTP_HOST }}
           port: ${{ secrets.IONOS_SFTP_PORT }}
           username: ${{ secrets.IONOS_SFTP_USER }}
           password: ${{ secrets.IONOS_SFTP_PASSWORD }}
-          local_path: "upload/*"
-          remote_path: ${{ secrets.IONOS_REMOTE_PATH }}
-          sftpArgs: "-o StrictHostKeyChecking=no"
+          localPath: "upload/"
+          remotePath: ${{ secrets.IONOS_REMOTE_PATH }}   # "/" oder "/htdocs"
+          forceUpload: true
+          dryRun: false
