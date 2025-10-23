@@ -1,6 +1,6 @@
 /*
  Theme Name: BeyondGotham Dark (Child)
- Template:   twentytwentyfour
+ Template:   twentytwentyfive   /* <- hier von twentytwentyfour auf twentytwentyfive ändern */
  Version:    0.1.0
 */
 :root{ --bg:#0f1115; --fg:#e7eaee; --muted:#a9b0bb; --accent:#33d1ff; }
