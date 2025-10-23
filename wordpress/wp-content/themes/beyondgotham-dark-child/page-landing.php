@@ -162,6 +162,88 @@ get_header();
             </form>
         </div>
     </section>
+
+    <section class="landing-social bg-section" aria-labelledby="landing-social-title">
+        <div class="landing-social__inner" data-bg-animate>
+            <h2 class="widget-title" id="landing-social-title"><?php esc_html_e('Stay Connected', 'beyondgotham-dark-child'); ?></h2>
+            <?php if (has_nav_menu('menu-2')) : ?>
+                <?php
+                wp_nav_menu([
+                    'theme_location' => 'menu-2',
+                    'menu_class'     => 'menu social-links-menu landing-social__menu',
+                    'container'      => false,
+                    'depth'          => 1,
+                    'link_before'    => '<span class="screen-reader-text">',
+                    'link_after'     => '</span>',
+                ]);
+                ?>
+            <?php else : ?>
+                <p class="landing-social__notice"><?php esc_html_e('Füge deine Social Links im Menü-Manager hinzu, um sie hier anzuzeigen.', 'beyondgotham-dark-child'); ?></p>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <?php
+    $landing_sections = [
+        [
+            'title'    => __('Latest Reports', 'beyondgotham-dark-child'),
+            'category' => 'reportagen',
+        ],
+        [
+            'title'    => __('New Dossiers', 'beyondgotham-dark-child'),
+            'category' => 'dossiers',
+        ],
+        [
+            'title'    => __('OSINT', 'beyondgotham-dark-child'),
+            'category' => 'osint',
+        ],
+    ];
+    global $post;
+    ?>
+
+    <section class="landing-news bg-section" aria-label="<?php esc_attr_e('Aktuelle Inhalte', 'beyondgotham-dark-child'); ?>">
+        <div class="landing-news__grid">
+            <?php
+            foreach ($landing_sections as $section) :
+                $posts = get_posts([
+                    'post_type'           => 'post',
+                    'posts_per_page'      => 3,
+                    'category_name'       => $section['category'],
+                    'ignore_sticky_posts' => true,
+                ]);
+
+                if (empty($posts)) {
+                    continue;
+                }
+                ?>
+                <div class="landing-news__column" data-bg-animate>
+                    <h2 class="widget-title"><?php echo esc_html($section['title']); ?></h2>
+                    <div class="landing-news__posts">
+                        <?php
+                        foreach ($posts as $post) :
+                            setup_postdata($post);
+                            ?>
+                            <article class="blog-category-post">
+                                <?php if (has_post_thumbnail($post)) : ?>
+                                    <a class="blog-category-post-thumbnail" href="<?php echo esc_url(get_permalink($post)); ?>">
+                                        <?php echo get_the_post_thumbnail($post, 'freenews-highlighted'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                    </a>
+                                <?php endif; ?>
+                                <h3 class="blog-category-post-title">
+                                    <a href="<?php echo esc_url(get_permalink($post)); ?>"><?php echo esc_html(get_the_title($post)); ?></a>
+                                </h3>
+                            </article>
+                            <?php
+                        endforeach;
+                        wp_reset_postdata();
+                        ?>
+                    </div>
+                </div>
+                <?php
+            endforeach;
+            ?>
+        </div>
+    </section>
 </main>
 
 <?php

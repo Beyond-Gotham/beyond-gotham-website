@@ -41,6 +41,7 @@ function bg_setup_theme() {
     register_nav_menus([
         'primary' => __('Hauptmenü', 'beyondgotham-dark-child'),
         'footer'  => __('Footer-Menü', 'beyondgotham-dark-child'),
+        'menu-2'  => __('Social Links', 'beyondgotham-dark-child'),
     ]);
 }
 

@@ -198,6 +198,116 @@
   text-align: center;
 }
 
+.landing-social__inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  background: var(--bg-panel);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  text-align: center;
+}
+
+.landing-social__menu {
+  display: inline-flex;
+  gap: 1rem;
+  margin: 1.5rem auto 0;
+}
+
+@media (max-width: 600px) {
+  .landing-social__menu {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .landing-social__menu a {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.landing-social__menu a {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fg);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.landing-social__menu a:hover,
+.landing-social__menu a:focus-visible {
+  background: var(--accent);
+  color: #001018;
+  transform: translateY(-2px);
+}
+
+.landing-social__notice {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.landing-news__grid {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 960px) {
+  .landing-news__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.landing-news__column {
+  background: var(--bg-panel);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .landing-news__column {
+    padding: 1.5rem;
+  }
+}
+
+.landing-news__posts {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.blog-category-post {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.blog-category-post-thumbnail {
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.blog-category-post-thumbnail img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.blog-category-post-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.blog-category-post-title a {
+  color: var(--fg);
+}
+
 .bg-section__title {
   margin: 0 0 0.75rem;
   font-size: clamp(2rem, 4vw, 2.8rem);
@@ -484,6 +594,19 @@
   gap: 1.25rem;
   min-height: 320px;
   position: relative;
+}
+
+.course-card__media {
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.course-card__image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
 }
 
 .course-card--waitlist {

@@ -11,7 +11,7 @@ get_header();
 
 $selected_category = isset($_GET['category']) ? sanitize_text_field(wp_unslash($_GET['category'])) : '';
 $selected_level    = isset($_GET['level']) ? sanitize_text_field(wp_unslash($_GET['level'])) : '';
-$selected_voucher  = isset($_GET['voucher']) ? sanitize_text_field(wp_unslash($_GET['voucher'])) : '';
+$selected_funding  = isset($_GET['funding']) ? sanitize_text_field(wp_unslash($_GET['funding'])) : '';
 
 $paged = max(1, get_query_var('paged', 1));
 
@@ -43,10 +43,15 @@ if (!empty($tax_query)) {
     $args['tax_query'] = $tax_query;
 }
 
-if ('1' === $selected_voucher) {
+if ($selected_funding) {
+    if (!isset($args['meta_query'])) {
+        $args['meta_query'] = [];
+    }
+
     $args['meta_query'][] = [
-        'key'   => '_bg_bildungsgutschein',
-        'value' => '1',
+        'key'     => 'bg_course_funding',
+        'value'   => $selected_funding,
+        'compare' => '=',
     ];
 }
 
@@ -92,15 +97,38 @@ $courses = new WP_Query($args);
                 </select>
             </div>
             <div class="courses-filter__group">
-                <label class="courses-filter__label" for="courses-voucher"><?php esc_html_e('Förderung', 'beyondgotham-dark-child'); ?></label>
-                <select class="courses-filter__select" id="courses-voucher" name="voucher">
+                <label class="courses-filter__label" for="courses-funding"><?php esc_html_e('Förderung', 'beyondgotham-dark-child'); ?></label>
+                <select class="courses-filter__select" id="courses-funding" name="funding">
                     <option value=""><?php esc_html_e('Alle', 'beyondgotham-dark-child'); ?></option>
-                    <option value="1" <?php selected($selected_voucher, '1'); ?>><?php esc_html_e('Bildungsgutschein', 'beyondgotham-dark-child'); ?></option>
+                    <?php
+                    $funding_options = get_posts([
+                        'post_type'      => 'bg_course',
+                        'fields'         => 'ids',
+                        'posts_per_page' => -1,
+                        'no_found_rows'  => true,
+                        'meta_key'       => 'bg_course_funding',
+                    ]);
+
+                    $funding_values = [];
+                    foreach ($funding_options as $funding_course_id) {
+                        $value = get_post_meta($funding_course_id, 'bg_course_funding', true);
+                        if (!empty($value)) {
+                            $funding_values[] = $value;
+                        }
+                    }
+
+                    $funding_values = array_unique($funding_values);
+                    sort($funding_values);
+
+                    foreach ($funding_values as $funding_value) {
+                        printf('<option value="%1$s" %2$s>%3$s</option>', esc_attr($funding_value), selected($selected_funding, $funding_value, false), esc_html($funding_value));
+                    }
+                    ?>
                 </select>
             </div>
             <div class="courses-filter__actions">
                 <button class="bg-button bg-button--primary" type="submit"><?php esc_html_e('Filtern', 'beyondgotham-dark-child'); ?></button>
-                <?php if ($selected_category || $selected_level || $selected_voucher) : ?>
+                <?php if ($selected_category || $selected_level || $selected_funding) : ?>
                     <a class="courses-filter__reset" href="<?php echo esc_url(get_permalink()); ?>"><?php esc_html_e('Filter zurücksetzen', 'beyondgotham-dark-child'); ?></a>
                 <?php endif; ?>
             </div>
@@ -122,10 +150,15 @@ $courses = new WP_Query($args);
                     $start_date = get_post_meta($course_id, '_bg_start_date', true);
                     $language   = get_post_meta($course_id, '_bg_language', true);
                     $location   = get_post_meta($course_id, '_bg_location', true);
-                    $level      = wp_get_post_terms($course_id, 'bg_course_level');
-                    $voucher    = get_post_meta($course_id, '_bg_bildungsgutschein', true);
+                    $level         = wp_get_post_terms($course_id, 'bg_course_level');
+                    $funding_label = get_post_meta($course_id, 'bg_course_funding', true);
                     ?>
                     <article class="course-card<?php echo $is_waitlist ? ' course-card--waitlist' : ''; ?>" data-bg-animate>
+                        <?php if (has_post_thumbnail()) : ?>
+                            <a class="course-card__media" href="<?php the_permalink(); ?>">
+                                <?php the_post_thumbnail('medium', ['class' => 'course-card__image']); ?>
+                            </a>
+                        <?php endif; ?>
                         <header class="course-card__header">
                             <?php if (!empty($level) && !is_wp_error($level)) : ?>
                                 <span class="course-card__badge"><?php echo esc_html($level[0]->name); ?></span>
@@ -155,27 +188,27 @@ $courses = new WP_Query($args);
                                         <dd><?php echo esc_html($location); ?></dd>
                                     </div>
                                 <?php endif; ?>
-                                <?php if ($voucher) : ?>
+                                <?php if ($funding_label) : ?>
                                     <div>
                                         <dt><?php esc_html_e('Förderung', 'beyondgotham-dark-child'); ?></dt>
-                                        <dd><?php esc_html_e('Bildungsgutschein', 'beyondgotham-dark-child'); ?></dd>
+                                        <dd><?php echo esc_html($funding_label); ?></dd>
                                     </div>
                                 <?php endif; ?>
+                                <div>
+                                    <dt><?php esc_html_e('Plätze', 'beyondgotham-dark-child'); ?></dt>
+                                    <dd>
+                                        <?php
+                                        if ($total_spots > 0) {
+                                            printf(esc_html__('%1$d von %2$d verfügbar', 'beyondgotham-dark-child'), intval($available_spots), intval($total_spots));
+                                        } else {
+                                            esc_html_e('Flexible Teilnehmerzahl', 'beyondgotham-dark-child');
+                                        }
+                                        ?>
+                                    </dd>
+                                </div>
                             </dl>
                         </div>
                         <footer class="course-card__footer">
-                            <span class="course-card__spots">
-                                <?php
-                                if ($total_spots > 0) {
-                                    printf(
-                                        esc_html(_n('%d Platz frei', '%d Plätze frei', $available_spots, 'beyondgotham-dark-child')),
-                                        intval($available_spots)
-                                    );
-                                } else {
-                                    esc_html_e('Flexible Teilnehmerzahl', 'beyondgotham-dark-child');
-                                }
-                                ?>
-                            </span>
                             <?php if ($is_waitlist) : ?>
                                 <span class="course-card__status course-card__status--waitlist"><?php esc_html_e('Warteliste', 'beyondgotham-dark-child'); ?></span>
                             <?php endif; ?>
