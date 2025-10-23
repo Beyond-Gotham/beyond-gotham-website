@@ -2,12 +2,14 @@ name: deploy-ionos
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   workflow_dispatch: {}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,14 +39,14 @@ jobs:
           rsync -a wordpress/wp-content/themes/beyondgotham-dark-child/ upload/wp-content/themes/beyondgotham-dark-child/
           rsync -a app-demo-infoterminal/dist/ upload/infoterminal/demo/
 
+      # Pure SFTP (password), no SSH agent, no extra flags
       - name: SFTP Upload (pure SFTP)
         uses: Creepios/sftp-action@v1.0.5
         with:
           host: ${{ secrets.IONOS_SFTP_HOST }}
-          port: ${{ secrets.IONOS_SFTP_PORT }}
+          port: "22"                              # fix: Port hart setzen (oder Secret korrekt füllen)
           username: ${{ secrets.IONOS_SFTP_USER }}
           password: ${{ secrets.IONOS_SFTP_PASSWORD }}
-          localPath: "upload/"
-          remotePath: ${{ secrets.IONOS_REMOTE_PATH }}   # "/" oder "/htdocs"
-          forceUpload: true
-          dryRun: false
+          localPath: "upload"                     # Ordner, kein Pattern
+          remotePath: ${{ secrets.IONOS_REMOTE_PATH }}  # "/" oder "/htdocs"
+          agent: false                            # fix: SSH-Agent deaktivieren
