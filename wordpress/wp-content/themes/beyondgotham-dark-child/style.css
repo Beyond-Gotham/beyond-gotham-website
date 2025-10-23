@@ -1,8 +1,22 @@
 /*
  Theme Name: BeyondGotham Dark (Child)
- Template:   freenews   /* <- hier von twentytwentyfour auf twentytwentyfive ändern */
- Version:    0.1.0
+ Theme URI: https://beyond-gotham.com
+ Description: Dark child theme based on FreeNews – designed for investigative & editorial reporting.
+ Author: Beyond Gotham
+ Template: freenews
+ Version: 0.1.0
+ Text Domain: beyondgotham-dark-child
 */
-:root{ --bg:#0f1115; --fg:#e7eaee; --muted:#a9b0bb; --accent:#33d1ff; }
-body{ background:var(--bg); color:var(--fg); }
-a{ color:var(--accent); }
+:root {
+  --bg: #0f1115;
+  --fg: #e7eaee;
+  --muted: #a9b0bb;
+  --accent: #33d1ff;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+a {
+  color: var(--accent);
+}
