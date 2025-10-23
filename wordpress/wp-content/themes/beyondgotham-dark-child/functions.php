@@ -21,6 +21,7 @@ define('BG_THEME_URI', get_stylesheet_directory_uri());
 
 require_once BG_THEME_DIR . '/inc/custom-post-types.php';
 require_once BG_THEME_DIR . '/inc/enrollment-form.php';
+require_once BG_THEME_DIR . '/inc/course-pages.php';
 
 // -----------------------------------------------------------------------------
 // Theme setup
