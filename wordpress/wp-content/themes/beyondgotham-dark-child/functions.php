@@ -655,7 +655,8 @@ add_action('after_switch_theme', function() {
     bg_ensure_page_exists('kontakt', 'Kontakt', 'page-contact.php');
     bg_ensure_page_exists('impressum', 'Impressum', 'page-impressum.php');
     bg_ensure_page_exists('datenschutz', 'Datenschutz', 'page-datenschutz.php');
-    
+    bg_ensure_page_exists('infoterminal-demo', 'InfoTerminal Demo', 'page-infoterminal-demo.php');
+
     // Flush rewrite rules
     flush_rewrite_rules();
 });
