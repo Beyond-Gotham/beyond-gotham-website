@@ -19,3 +19,6 @@ wordpress/wp-content/uploads/
 .env
 .env.*
 .DS_Store
+
+# Build output
+app-demo-infoterminal/dist/

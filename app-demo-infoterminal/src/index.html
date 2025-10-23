@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beyond Gotham – Infoterminal Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Beyond Gotham</h1>
+        <p class="tagline">Interactive infoterminal demo build</p>
+      </header>
+      <section>
+        <h2>Build verification</h2>
+        <p>
+          This static bundle is generated during the CI pipeline to verify that the
+          infoterminal assets can be assembled successfully.
+        </p>
+        <p>
+          The <code>dist</code> folder is copied to the deployment archive to make the
+          demo available on the remote server.
+        </p>
+      </section>
+      <footer>
+        <small>Last updated: <span id="build-date"></span></small>
+      </footer>
+    </main>
+    <script>
+      const timeEl = document.getElementById('build-date');
+      timeEl.textContent = new Date().toLocaleString();
+    </script>
+  </body>
+</html>
