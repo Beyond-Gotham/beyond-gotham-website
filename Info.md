@@ -154,21 +154,15 @@ Die Navigationsleiste der Website beinhaltet die Hauptseiten (Startseite, Projek
 
 Integration des InfoTerminal
 
-Ein besonderer Bestandteil der Website ist die Einbindung von InfoTerminal. Da InfoTerminal eine komplexe Anwendung ist, wird auf der Webseite vor allem eine Demo- oder Showcase-Version präsentiert
-GitHub
-. Technisch soll dies folgendermaßen umgesetzt werden:
+Ein besonderer Bestandteil der Website ist die Einbindung von InfoTerminal. Da InfoTerminal eine komplexe Anwendung ist, präsentiert die Seite eine kuratierte Showcase-Ansicht mitsamt optionalem Live-Embed. Technisch wird dies nun vollständig innerhalb des Child-Themes umgesetzt:
 
-Die InfoTerminal-Demo (entwickelt als React/TypeScript-App) wird als statischer Build in die Webpräsenz integriert. Im Repository ist vorgesehen, den gebauten Code unter /infoterminal/demo/ auf dem Webserver bereitzustellen
-GitHub
-. Dadurch kann die Demo entweder über eine eigene URL (z.B. beyond-gotham.com/infoterminal/demo) oder innerhalb eines WP-Seiten-Templates aufgerufen werden.
+- Das Template `page-infoterminal.php` liefert einen Hero-Bereich, Feature-Beschreibungen und Platz für redaktionelle Inhalte.
+- Über das benutzerdefinierte Feld `_bg_infoterminal_embed_url` kann – falls verfügbar – eine eigenständige Demo-Instanz (z.B. von einem separaten Server) per `<iframe>` eingebettet werden.
+- Wird kein Embed hinterlegt, zeigt die Seite erklärende Texte und Call-to-Actions, sodass keine leeren Bereiche entstehen.
 
-Einbettung: Empfohlen wird, die Demo in die Webseite einzubetten, damit Nutzer nahtlos auf der Beyond-Gotham-Seite bleiben. Dies kann mittels eines <iframe> in einer WordPress-Seite „InfoTerminal Demo“ geschehen, welches den Inhalt aus dem /infoterminal/demo/-Verzeichnis lädt. Alternativ könnte man einen WordPress-Template-Teil erstellen, der den React-App-Container direkt einbindet (wenn das Hosting dies zulässt).
+Leistungsaspekt: Da die Server-Komponenten von InfoTerminal (Datenbanken, APIs) nicht auf dem Shared-Webhosting laufen können, empfiehlt es sich weiterhin, für die Einbettung Mock-Daten oder einen extern gehosteten Read-only-Dienst zu nutzen. Die WordPress-Integration konzentriert sich auf die Präsentationsebene, kann aber perspektivisch per API ausgebaut werden.
 
-Leistungsaspekt: Da die Server-Komponenten von InfoTerminal (Datenbanken, APIs) nicht auf dem Shared-Webhosting laufen können
-GitHub
-, wird die Demo wahrscheinlich mit Mock-Daten oder eingeschränkter Funktion bereitgestellt. Die Integration beschränkt sich also auf den Frontend-Teil. Zukünftig wäre denkbar, die WordPress-Seite via API mit einem extern gehosteten InfoTerminal-Backend zu verbinden (etwa um Live-OSINT-Ergebnisse anzuzeigen), doch aktuell steht die statische Demonstration im Vordergrund.
-
-Sicherheit & UX: Bei der Einbindung ist darauf zu achten, dass die Demo keine Sicherheitslücken ins WP-System reißt (ggf. durch Content-Security-Policy absichern, da externe Scripts eingebunden werden). Außerdem sollte klar kommuniziert werden, dass es sich um eine Demo handelt (z.B. Hinweistext über dem Embed) und was die Nutzer darin ausprobieren können.
+Sicherheit & UX: Beim Einbinden externer Demos sollten Content-Security-Policies und Datenschutzhinweise geprüft werden. Zudem sollte klar kommuniziert werden, dass es sich um eine Demo handelt (z.B. Hinweistext über dem Embed) und welche Funktionen die Besucher testen können.
 
 Durch diese Integration wird die technologische Kompetenz von Beyond-Gotham sichtbar: Besucher können das Look-and-Feel der OSINT-Plattform erleben, was Vertrauen schafft und Interesse weckt. Sollte die Demo nicht live interaktiv sein, könnten alternativ Screenshots, animierte GIFs oder ein Erklärvideo des InfoTerminal die Seite bereichern.
 
@@ -215,9 +209,7 @@ erste Blog-Artikel erstellen (evtl. vorhandene Berichte ausarbeiten und veröffe
 Kontaktinformationen zusammentragen.
 Hierbei auch passende Kategorien und Tags für Blogposts anlegen (z.B. Themengebiete) und Menüs navigationsfreundlich einrichten.
 
-Integration der InfoTerminal-Demo: Den in app-demo-infoterminal erstellten Build bereitstellen. Dafür den Build-Prozess (npm run build) ausführen, sodass die statischen Dateien im vorgesehenen Verzeichnis (webroot/infoterminal/demo/) landen
-GitHub
-. In WordPress die Seite "InfoTerminal" so gestalten, dass die Demo sichtbar wird – z.B. mittels eines iframe-Tags im Seiteninhalt oder per PHP-Template, das infoterminal/demo/index.html lädt. Anschließend die Funktionsfähigkeit testen (läuft die Demo im Browser? Werden alle Assets geladen?).
+Integration der InfoTerminal-Demo: Die WordPress-Seite "InfoTerminal" nutzt jetzt das Template `page-infoterminal.php`. Darüber lassen sich Features redaktionell beschreiben und – falls gewünscht – eine externe Demo via benutzerdefiniertem Feld `_bg_infoterminal_embed_url` per `<iframe>` einbinden. Nach dem Hinterlegen der Ziel-URL sollte die Einbettung auf verschiedenen Geräten getestet werden (Ladezeit, Responsivität, Datenschutz-Hinweis).
 
 Responsives Design testen: Die Website auf verschiedenen Bildschirmgrößen (Desktop, Tablet, Smartphone) prüfen. Das FreeNews-Theme ist von Haus aus responsiv, dennoch müssen die Anpassungen (z.B. eingefügte iframes, Tabellen oder Medien in Blogposts) auf kleinen Displays gut funktionieren. Gegebenenfalls CSS-Media-Queries im Child-Theme ergänzen, um z.B. Schriftgrößen oder Abstände mobil zu optimieren.
 

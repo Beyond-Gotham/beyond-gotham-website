@@ -28,8 +28,6 @@ mkdir -p \
   scripts \
   .github/workflows \
   wordpress/wp-content/themes/beyondgotham-dark-child \
-  webroot/infoterminal/demo \
-  app-demo-infoterminal/src \
   services/gateway-fastapi/app \
   services/demo-java/src/main/java
 
@@ -98,11 +96,10 @@ EOF
 create_file "README.md" <<'EOF'
 # Beyond_Gotham
 
-Moderne, dunkle Nachrichtenagentur-Website (**WordPress**) mit **InfoTerminal**-Demo (**React/TypeScript**).
+Moderne, dunkle Nachrichtenagentur-Website (**WordPress**) mit **InfoTerminal**-Showcase.
 Dieses Repo bündelt:
 - `wordpress/` (Child-Theme, künftige WP-Erweiterungen)
-- `app-demo-infoterminal/` (Vite-App, statischer Build unter `/infoterminal/demo/`)
-- `webroot/` (statische Assets für IONOS, inkl. Demo-Build)
+- `webroot/` (statische Assets für IONOS)
 - `services/` (spätere APIs: FastAPI/Spring; laufen **nicht** auf Shared Hosting)
 - `.github/workflows/` (SFTP-Deploy zu IONOS)
 
@@ -114,9 +111,6 @@ chmod +x scripts/bootstrap_repo.sh
 cp .env.example .env
 # … Werte später anpassen (für VPS-Stack)
 
-# React-Demo lokal:
-cd app-demo-infoterminal
-npm ci
-npm run dev
-# build:
-npm run build  # Output: app-demo-infoterminal/dist/
+# InfoTerminal-Seite bearbeiten:
+# In WordPress das Template "InfoTerminal Showcase" auswählen und optional
+# eine Demo-URL im Custom Field `_bg_infoterminal_embed_url` hinterlegen.

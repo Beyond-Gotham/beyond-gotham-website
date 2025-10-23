@@ -1,0 +1,43 @@
+.bg-course-stats-widget {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.bg-course-stats-widget__item {
+  padding: 16px;
+  border-radius: 6px;
+  background: #f6f7f7;
+  border: 1px solid #dcdcde;
+}
+
+.bg-course-stats-widget__item--courses .bg-course-stats-widget__value {
+  color: #0073aa;
+}
+
+.bg-course-stats-widget__item--enrollments .bg-course-stats-widget__value {
+  color: #00a32a;
+}
+
+.bg-course-stats-widget__item--pending .bg-course-stats-widget__value {
+  color: #d63638;
+}
+
+.bg-course-stats-widget__item--instructors .bg-course-stats-widget__value {
+  color: #2271b1;
+}
+
+.bg-course-stats-widget__value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.bg-course-stats-widget__label {
+  font-size: 0.9rem;
+  color: #50575e;
+}
+
+.bg-course-stats-widget__actions {
+  margin-top: 16px;
+}
