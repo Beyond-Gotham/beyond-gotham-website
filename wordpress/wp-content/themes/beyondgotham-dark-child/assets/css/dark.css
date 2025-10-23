@@ -1,0 +1,19 @@
+/* Slider/Featured Raster dunkler */
+.featured-posts .featured-large, .featured-posts .featured-small{
+  background:var(--bg-2);
+  border:1px solid var(--line);
+}
+.featured-posts .meta, .featured-posts .meta a{color:var(--muted);}
+
+/* Sidebar „Advertisement“ → neutralisieren (bis Werbeblock/Newsletter live ist) */
+.widget.widget_advertisement .widget-title{display:none;}
+.widget.widget_advertisement{background:var(--bg-2); border:1px dashed var(--line);}
+.widget.widget_advertisement:before{
+  content:"Newsletter / Pro-Zugang demnächst"; display:block; padding:8px; color:var(--muted);
+}
+
+/* Datum/Badge in Listen dezent */
+.posted-on, .byline{color:var(--muted);}
+
+/* Menüs kleben */
+#site-navigation{position:sticky; top:0; z-index:50; background:var(--bg-2);}
