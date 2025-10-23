@@ -39,6 +39,10 @@ function bg_setup_theme() {
     add_theme_support('html5', ['search-form', 'comment-form', 'comment-list', 'gallery', 'caption']);
     add_theme_support('custom-logo');
 
+    add_image_size('bg-card', 640, 400, true);
+    add_image_size('bg-thumb', 320, 200, true);
+    add_image_size('bg-hero', 1440, 720, true);
+
     register_nav_menus([
         'primary' => __('Hauptmenü', 'beyondgotham-dark-child'),
         'footer'  => __('Footer-Menü', 'beyondgotham-dark-child'),
@@ -80,6 +84,15 @@ function bg_enqueue_assets() {
     );
 
     wp_enqueue_script(
+        'bg-ui',
+        BG_THEME_URI . '/assets/js/ui.js',
+        [],
+        BG_THEME_VERSION,
+        true
+    );
+    wp_script_add_data('bg-ui', 'defer', true);
+
+    wp_enqueue_script(
         'bg-frontend',
         BG_THEME_URI . '/assets/js/frontend.js',
         ['jquery'],
@@ -111,6 +124,490 @@ function bg_enqueue_admin_assets($hook) {
         [],
         BG_THEME_VERSION
     );
+}
+
+// -----------------------------------------------------------------------------
+// Media helpers & metadata
+// -----------------------------------------------------------------------------
+
+add_filter('image_size_names_choose', 'bg_register_custom_image_sizes');
+/**
+ * Expose custom image sizes in the editor.
+ *
+ * @param array $sizes Available sizes.
+ * @return array
+ */
+function bg_register_custom_image_sizes($sizes) {
+    $sizes['bg-card'] = __('Karte (640×400)', 'beyondgotham-dark-child');
+    $sizes['bg-thumb'] = __('Vorschau (320×200)', 'beyondgotham-dark-child');
+    $sizes['bg-hero'] = __('Hero (1440×720)', 'beyondgotham-dark-child');
+
+    return $sizes;
+}
+
+add_filter('wp_get_attachment_image_attributes', 'bg_adjust_attachment_image_attributes', 10, 3);
+/**
+ * Ensure responsive attributes & lazy loading for theme images.
+ *
+ * @param array        $attr       Attributes for the image markup.
+ * @param WP_Post      $attachment Attachment object.
+ * @param string|array $size       Requested size.
+ * @return array
+ */
+function bg_adjust_attachment_image_attributes($attr, $attachment, $size) {
+    if (empty($attr['loading'])) {
+        $attr['loading'] = 'lazy';
+    }
+
+    if (empty($attr['decoding'])) {
+        $attr['decoding'] = 'async';
+    }
+
+    if (is_string($size)) {
+        switch ($size) {
+            case 'bg-card':
+                $attr['sizes'] = '(min-width: 1280px) 320px, (min-width: 768px) 45vw, 100vw';
+                break;
+            case 'bg-thumb':
+                $attr['sizes'] = '(min-width: 1280px) 240px, (min-width: 768px) 30vw, 100vw';
+                break;
+            case 'bg-hero':
+                $attr['loading'] = 'eager';
+                $attr['sizes'] = '(min-width: 1280px) 1200px, 100vw';
+                break;
+        }
+    }
+
+    return $attr;
+}
+
+// -----------------------------------------------------------------------------
+// Content helpers
+// -----------------------------------------------------------------------------
+
+add_filter('excerpt_length', 'bg_filter_excerpt_length', 20);
+/**
+ * Adjust excerpt length per post type context.
+ *
+ * @param int $length Default length.
+ * @return int
+ */
+function bg_filter_excerpt_length($length) {
+    if (is_admin()) {
+        return $length;
+    }
+
+    $post_type = get_post_type();
+
+    if ('bg_course' === $post_type) {
+        return 26;
+    }
+
+    if ('post' === $post_type || is_home() || is_archive()) {
+        return 28;
+    }
+
+    return $length;
+}
+
+/**
+ * Calculate reading time for a post.
+ *
+ * @param int|WP_Post|null $post Post object or ID.
+ * @param int              $wpm  Words per minute baseline.
+ * @return string
+ */
+function bg_get_reading_time($post = null, $wpm = 180) {
+    $post = get_post($post);
+
+    if (!$post instanceof WP_Post) {
+        return '';
+    }
+
+    $content = wp_strip_all_tags($post->post_content, true);
+    $word_count = str_word_count($content);
+
+    if ($word_count <= 0) {
+        return '';
+    }
+
+    $wpm = (int) apply_filters('bg_reading_time_wpm', $wpm, $post);
+    $wpm = max(120, $wpm);
+
+    $minutes = (int) ceil($word_count / $wpm);
+
+    return sprintf(
+        _n('%d Minute Lesezeit', '%d Minuten Lesezeit', $minutes, 'beyondgotham-dark-child'),
+        $minutes
+    );
+}
+
+/**
+ * Echo helper for reading time.
+ *
+ * @param int|WP_Post|null $post Optional post override.
+ */
+function bg_the_reading_time($post = null) {
+    $reading_time = bg_get_reading_time($post);
+
+    if ($reading_time) {
+        echo esc_html($reading_time);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Navigation helpers
+// -----------------------------------------------------------------------------
+
+add_filter('body_class', 'bg_body_classes');
+/**
+ * Extend body classes with theme specific flags.
+ *
+ * @param array $classes Default classes.
+ * @return array
+ */
+function bg_body_classes($classes) {
+    $classes[] = 'bg-site';
+    $classes[] = 'bg-has-sticky-header';
+    $classes[] = 'bg-ui-loading';
+
+    return array_unique($classes);
+}
+
+add_filter('nav_menu_link_attributes', 'bg_nav_menu_link_attributes', 10, 4);
+/**
+ * Add accessibility attributes to navigation links.
+ *
+ * @param array   $atts  Link attributes.
+ * @param WP_Post $item  Menu item.
+ * @param stdClass $args Menu arguments.
+ * @param int     $depth Depth.
+ * @return array
+ */
+function bg_nav_menu_link_attributes($atts, $item, $args, $depth) {
+    $classes = isset($item->classes) ? (array) $item->classes : [];
+
+    if (isset($args->theme_location) && 'primary' === $args->theme_location) {
+        if (!empty($classes) && array_intersect($classes, ['current-menu-item', 'current_page_parent', 'current-menu-ancestor', 'current_page_ancestor'])) {
+            $atts['aria-current'] = 'page';
+        }
+    }
+
+    if (isset($args->theme_location) && 'menu-2' === $args->theme_location) {
+        $atts['class'] = isset($atts['class']) ? $atts['class'] . ' bg-social-link' : 'bg-social-link';
+        if (!empty($item->title)) {
+            $atts['aria-label'] = $item->title;
+        }
+
+        $network = bg_detect_social_network($item->url);
+        if ($network) {
+            $atts['data-network'] = $network;
+        }
+    }
+
+    return $atts;
+}
+
+add_filter('nav_menu_item_args', 'bg_adjust_social_menu_args', 10, 3);
+/**
+ * Inject icon markup for social menus.
+ *
+ * @param stdClass $args Menu arguments.
+ * @param WP_Post  $item Menu item.
+ * @param int      $depth Depth.
+ * @return stdClass
+ */
+function bg_adjust_social_menu_args($args, $item, $depth) {
+    if (isset($args->theme_location) && 'menu-2' === $args->theme_location) {
+        $initial = function_exists('mb_substr')
+            ? mb_strtoupper(mb_substr($item->title, 0, 2))
+            : strtoupper(substr($item->title, 0, 2));
+        $args->link_before = '<span class="bg-social-link__icon" aria-hidden="true" data-initial="' . esc_attr($initial) . '"></span><span class="bg-social-link__text">';
+        $args->link_after  = '</span>';
+    }
+
+    return $args;
+}
+
+/**
+ * Guess network slug from URL.
+ *
+ * @param string $url Social URL.
+ * @return string
+ */
+function bg_detect_social_network($url) {
+    if (!$url) {
+        return '';
+    }
+
+    $host = wp_parse_url($url, PHP_URL_HOST);
+    if (!$host) {
+        return '';
+    }
+
+    $networks = [
+        'twitter'   => ['twitter.com', 'x.com'],
+        'instagram' => ['instagram.com'],
+        'facebook'  => ['facebook.com'],
+        'linkedin'  => ['linkedin.com'],
+        'youtube'   => ['youtube.com', 'youtu.be'],
+        'mastodon'  => ['mastodon.social'],
+        'github'    => ['github.com'],
+    ];
+
+    foreach ($networks as $slug => $candidates) {
+        foreach ($candidates as $candidate) {
+            if (false !== stripos($host, $candidate)) {
+                return $slug;
+            }
+        }
+    }
+
+    return sanitize_title(str_replace('www.', '', $host));
+}
+
+// -----------------------------------------------------------------------------
+// Breadcrumbs
+// -----------------------------------------------------------------------------
+
+/**
+ * Render breadcrumb navigation with schema.org markup.
+ *
+ * @param array $args Optional overrides.
+ */
+function bg_breadcrumbs($args = []) {
+    if (is_front_page()) {
+        return;
+    }
+
+    $defaults = [
+        'class'       => 'bg-breadcrumbs',
+        'aria_label'  => __('Brotkrumennavigation', 'beyondgotham-dark-child'),
+        'show_on_home'=> false,
+    ];
+
+    $args = wp_parse_args($args, $defaults);
+
+    if (is_home() && !$args['show_on_home']) {
+        return;
+    }
+
+    $items = [];
+    $position = 1;
+
+    $items[] = [
+        'label'    => __('Startseite', 'beyondgotham-dark-child'),
+        'url'      => home_url('/'),
+        'position' => $position++,
+    ];
+
+    if (is_home()) {
+        $items[] = [
+            'label'    => get_the_title(get_option('page_for_posts')) ?: __('Blog', 'beyondgotham-dark-child'),
+            'url'      => '',
+            'position' => $position++,
+        ];
+    } elseif (is_singular('post')) {
+        $blog_page_id = (int) get_option('page_for_posts');
+        if ($blog_page_id) {
+            $items[] = [
+                'label'    => get_the_title($blog_page_id),
+                'url'      => get_permalink($blog_page_id),
+                'position' => $position++,
+            ];
+        }
+
+        $primary_category = null;
+        $categories = get_the_category();
+        if (!empty($categories)) {
+            $primary_category = $categories[0];
+        }
+
+        if ($primary_category instanceof WP_Term) {
+            $items[] = [
+                'label'    => $primary_category->name,
+                'url'      => get_category_link($primary_category),
+                'position' => $position++,
+            ];
+        }
+
+        $items[] = [
+            'label'    => get_the_title(),
+            'url'      => '',
+            'position' => $position++,
+        ];
+    } elseif (is_singular('bg_course')) {
+        $courses_page = get_page_by_path('kurse');
+        if ($courses_page instanceof WP_Post) {
+            $items[] = [
+                'label'    => get_the_title($courses_page),
+                'url'      => get_permalink($courses_page),
+                'position' => $position++,
+            ];
+        }
+
+        $terms = wp_get_post_terms(get_the_ID(), 'bg_course_category');
+        if (!empty($terms) && !is_wp_error($terms)) {
+            $items[] = [
+                'label'    => $terms[0]->name,
+                'url'      => get_term_link($terms[0]),
+                'position' => $position++,
+            ];
+        }
+
+        $items[] = [
+            'label'    => get_the_title(),
+            'url'      => '',
+            'position' => $position++,
+        ];
+    } elseif (is_category()) {
+        $queried = get_queried_object();
+        if ($queried instanceof WP_Term) {
+            $items[] = [
+                'label'    => $queried->name,
+                'url'      => '',
+                'position' => $position++,
+            ];
+        }
+    } elseif (is_post_type_archive('bg_course')) {
+        $items[] = [
+            'label'    => post_type_archive_title('', false),
+            'url'      => '',
+            'position' => $position++,
+        ];
+    } elseif (is_page()) {
+        $ancestors = get_post_ancestors(get_the_ID());
+        $ancestors = array_reverse($ancestors);
+        foreach ($ancestors as $ancestor_id) {
+            $items[] = [
+                'label'    => get_the_title($ancestor_id),
+                'url'      => get_permalink($ancestor_id),
+                'position' => $position++,
+            ];
+        }
+
+        $items[] = [
+            'label'    => get_the_title(),
+            'url'      => '',
+            'position' => $position++,
+        ];
+    } elseif (is_search()) {
+        $items[] = [
+            'label'    => sprintf(__('Suche: %s', 'beyondgotham-dark-child'), get_search_query()),
+            'url'      => '',
+            'position' => $position++,
+        ];
+    } elseif (is_archive()) {
+        $items[] = [
+            'label'    => get_the_archive_title(),
+            'url'      => '',
+            'position' => $position++,
+        ];
+    }
+
+    $items = apply_filters('bg_breadcrumb_items', $items, $args);
+
+    if (count($items) <= 1) {
+        return;
+    }
+
+    echo '<nav class="' . esc_attr($args['class']) . '" aria-label="' . esc_attr($args['aria_label']) . '">';
+    echo '<ol itemscope itemtype="https://schema.org/BreadcrumbList">';
+
+    foreach ($items as $index => $item) {
+        if (empty($item['label'])) {
+            continue;
+        }
+
+        $position = isset($item['position']) ? (int) $item['position'] : $index + 1;
+        $is_current = empty($item['url']);
+
+        echo '<li class="bg-breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+        if ($is_current) {
+            echo '<span itemprop="name" aria-current="page">' . esc_html($item['label']) . '</span>';
+        } else {
+            echo '<a itemprop="item" href="' . esc_url($item['url']) . '"><span itemprop="name">' . esc_html($item['label']) . '</span></a>';
+        }
+        echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+        echo '</li>';
+    }
+
+    echo '</ol>';
+    echo '</nav>';
+}
+
+// -----------------------------------------------------------------------------
+// SEO meta fallbacks
+// -----------------------------------------------------------------------------
+
+add_action('wp_head', 'bg_output_social_meta', 5);
+/**
+ * Provide Open Graph & Twitter card fallbacks when no SEO plugin is active.
+ */
+function bg_output_social_meta() {
+    if (
+        defined('WPSEO_VERSION')
+        || defined('RANK_MATH_VERSION')
+        || class_exists('SEOPress_Core')
+        || class_exists('All_in_One_SEO_Pack')
+        || class_exists('AIOSEO\\Plugin\\AIOSEO')
+    ) {
+        return;
+    }
+
+    global $wp;
+
+    $title = wp_get_document_title();
+    $description = get_bloginfo('description');
+    $url = home_url('/');
+    $image = '';
+
+    if (is_singular()) {
+        $post_id = get_queried_object_id();
+        $maybe_excerpt = get_the_excerpt($post_id);
+        if ($maybe_excerpt) {
+            $description = wp_strip_all_tags($maybe_excerpt);
+        }
+        $url = get_permalink($post_id);
+
+        $thumb_id = get_post_thumbnail_id($post_id);
+        if ($thumb_id) {
+            $image_data = wp_get_attachment_image_src($thumb_id, 'bg-hero');
+            if ($image_data) {
+                $image = $image_data[0];
+            }
+        }
+    }
+
+    if (!is_singular() && isset($wp->request)) {
+        $url = home_url($wp->request ? '/' . ltrim($wp->request, '/') : '/');
+    }
+
+    if (!$image) {
+        $custom_logo_id = get_theme_mod('custom_logo');
+        if ($custom_logo_id) {
+            $logo = wp_get_attachment_image_src($custom_logo_id, 'full');
+            if ($logo) {
+                $image = $logo[0];
+            }
+        }
+    }
+
+    echo '<meta property="og:title" content="' . esc_attr($title) . '" />';
+    echo '<meta property="og:description" content="' . esc_attr($description) . '" />';
+    echo '<meta property="og:url" content="' . esc_url($url) . '" />';
+    echo '<meta property="og:type" content="' . (is_singular() ? 'article' : 'website') . '" />';
+
+    if ($image) {
+        echo '<meta property="og:image" content="' . esc_url($image) . '" />';
+    }
+
+    echo '<meta name="twitter:card" content="summary_large_image" />';
+    echo '<meta name="twitter:title" content="' . esc_attr($title) . '" />';
+    echo '<meta name="twitter:description" content="' . esc_attr($description) . '" />';
+    if ($image) {
+        echo '<meta name="twitter:image" content="' . esc_url($image) . '" />';
+    }
 }
 
 // -----------------------------------------------------------------------------
