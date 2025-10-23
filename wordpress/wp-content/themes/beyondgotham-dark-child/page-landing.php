@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
 get_header();
 ?>
 
-<main class="landing" id="primary">
+<main class="landing" id="main">
     <section class="landing-hero" aria-labelledby="landing-hero-title">
         <div class="landing-hero__grid">
             <div class="landing-hero__content" data-bg-animate>
@@ -59,6 +59,145 @@ get_header();
             </div>
         </div>
     </section>
+
+    <section class="landing-social" aria-labelledby="landing-social-title">
+        <div class="landing-social__inner" data-bg-animate>
+            <div class="landing-social__header">
+                <h2 class="landing-social__title" id="landing-social-title"><?php esc_html_e('Stay Connected', 'beyondgotham-dark-child'); ?></h2>
+                <p class="landing-social__intro"><?php esc_html_e('Folgen Sie unseren Einsatz- und Recherche-Updates auf allen Kanälen.', 'beyondgotham-dark-child'); ?></p>
+            </div>
+            <?php if (has_nav_menu('menu-2')) : ?>
+                <?php
+                wp_nav_menu([
+                    'theme_location' => 'menu-2',
+                    'menu_class'     => 'landing-social__menu',
+                    'container'      => false,
+                    'depth'          => 1,
+                ]);
+                ?>
+            <?php else : ?>
+                <p class="landing-social__notice"><?php esc_html_e('Füge deine Social Links im Menü-Manager hinzu, um sie hier anzuzeigen.', 'beyondgotham-dark-child'); ?></p>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <?php
+    $landing_sections = [
+        [
+            'title' => __('Latest Sports News', 'beyondgotham-dark-child'),
+            'slug'  => 'sport',
+        ],
+        [
+            'title' => __('Local News', 'beyondgotham-dark-child'),
+            'slug'  => 'reportagen',
+        ],
+        [
+            'title'    => __('Arts & Culture', 'beyondgotham-dark-child'),
+            'slug'     => 'interviews',
+            'fallback' => 'dossiers',
+        ],
+    ];
+
+    foreach ($landing_sections as $section) :
+        $category_slug = $section['slug'];
+        $category      = get_category_by_slug($category_slug);
+        $query_args    = [
+            'post_type'           => 'post',
+            'posts_per_page'      => 6,
+            'ignore_sticky_posts' => true,
+            'category_name'       => $category_slug,
+        ];
+
+        $query = new WP_Query($query_args);
+
+        if (!$query->have_posts() && !empty($section['fallback'])) {
+            wp_reset_postdata();
+            $category_slug = $section['fallback'];
+            $category      = get_category_by_slug($category_slug);
+            $query_args['category_name'] = $category_slug;
+            $query = new WP_Query($query_args);
+        }
+
+        if (!$query->have_posts()) {
+            continue;
+        }
+
+        $has_carousel = $query->post_count > 4;
+        $archive_url  = $category instanceof WP_Term ? get_category_link($category) : get_post_type_archive_link('post');
+        ?>
+        <section class="landing-feed" aria-label="<?php echo esc_attr($section['title']); ?>">
+            <div class="landing-feed__header" data-bg-animate>
+                <h2 class="landing-feed__title"><?php echo esc_html($section['title']); ?></h2>
+                <a class="landing-feed__more" href="<?php echo esc_url($archive_url); ?>">
+                    <?php esc_html_e('Mehr', 'beyondgotham-dark-child'); ?>
+                </a>
+            </div>
+            <div class="landing-feed__content<?php echo $has_carousel ? ' landing-feed__content--carousel' : ''; ?>"<?php echo $has_carousel ? ' data-bg-carousel' : ''; ?>>
+                <div class="bg-grid<?php echo $has_carousel ? ' bg-grid--carousel' : ''; ?>"<?php echo $has_carousel ? ' data-bg-carousel-track' : ''; ?>>
+                    <?php
+                    while ($query->have_posts()) :
+                        $query->the_post();
+                        $post_id   = get_the_ID();
+                        $permalink = get_permalink();
+                        $badge     = '';
+
+                        if ($category instanceof WP_Term) {
+                            $badge = $category->name;
+                        } else {
+                            $post_categories = get_the_category();
+                            if (!empty($post_categories)) {
+                                $badge = $post_categories[0]->name;
+                            }
+                        }
+                        ?>
+                        <article class="bg-card" data-bg-animate>
+                            <a class="bg-card__media" href="<?php echo esc_url($permalink); ?>">
+                                <?php
+                                if (has_post_thumbnail()) {
+                                    the_post_thumbnail('bg-card', ['class' => 'bg-card__image']);
+                                } else {
+                                    echo '<span class="bg-card__placeholder" aria-hidden="true"></span>';
+                                }
+                                ?>
+                            </a>
+                            <div class="bg-card__body">
+                                <?php if ($badge) : ?>
+                                    <span class="bg-card__badge"><?php echo esc_html($badge); ?></span>
+                                <?php endif; ?>
+                                <h3 class="bg-card__title">
+                                    <a href="<?php echo esc_url($permalink); ?>"><?php the_title(); ?></a>
+                                </h3>
+                                <div class="bg-card__meta">
+                                    <time class="bg-card__meta-item" datetime="<?php echo esc_attr(get_the_date('c')); ?>">
+                                        <?php echo esc_html(get_the_date('d.m.Y')); ?>
+                                    </time>
+                                    <?php $reading_time = bg_get_reading_time($post_id); ?>
+                                    <?php if ($reading_time) : ?>
+                                        <span class="bg-card__meta-item"><?php echo esc_html($reading_time); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </article>
+                        <?php
+                    endwhile;
+                    ?>
+                </div>
+                <?php if ($has_carousel) : ?>
+                    <div class="bg-carousel__controls" aria-hidden="false">
+                        <button class="bg-carousel__button" type="button" data-bg-carousel-prev aria-label="<?php esc_attr_e('Vorherige Beiträge', 'beyondgotham-dark-child'); ?>">
+                            <span aria-hidden="true">&#8592;</span>
+                        </button>
+                        <button class="bg-carousel__button" type="button" data-bg-carousel-next aria-label="<?php esc_attr_e('Nächste Beiträge', 'beyondgotham-dark-child'); ?>">
+                            <span aria-hidden="true">&#8594;</span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </section>
+        <?php
+        wp_reset_postdata();
+    endforeach;
+    ?>
 
     <section class="bg-section" id="landing-features">
         <div class="bg-section__header" data-bg-animate>
@@ -160,88 +299,6 @@ get_header();
                 <button class="bg-button bg-button--primary" type="submit"><?php esc_html_e('Anmelden', 'beyondgotham-dark-child'); ?></button>
                 <p class="newsletter__legal"><?php esc_html_e('Mit Klick auf „Anmelden“ stimmen Sie dem Erhalt des Newsletters laut Datenschutzerklärung zu.', 'beyondgotham-dark-child'); ?></p>
             </form>
-        </div>
-    </section>
-
-    <section class="landing-social bg-section" aria-labelledby="landing-social-title">
-        <div class="landing-social__inner" data-bg-animate>
-            <h2 class="widget-title" id="landing-social-title"><?php esc_html_e('Stay Connected', 'beyondgotham-dark-child'); ?></h2>
-            <?php if (has_nav_menu('menu-2')) : ?>
-                <?php
-                wp_nav_menu([
-                    'theme_location' => 'menu-2',
-                    'menu_class'     => 'menu social-links-menu landing-social__menu',
-                    'container'      => false,
-                    'depth'          => 1,
-                    'link_before'    => '<span class="screen-reader-text">',
-                    'link_after'     => '</span>',
-                ]);
-                ?>
-            <?php else : ?>
-                <p class="landing-social__notice"><?php esc_html_e('Füge deine Social Links im Menü-Manager hinzu, um sie hier anzuzeigen.', 'beyondgotham-dark-child'); ?></p>
-            <?php endif; ?>
-        </div>
-    </section>
-
-    <?php
-    $landing_sections = [
-        [
-            'title'    => __('Latest Reports', 'beyondgotham-dark-child'),
-            'category' => 'reportagen',
-        ],
-        [
-            'title'    => __('New Dossiers', 'beyondgotham-dark-child'),
-            'category' => 'dossiers',
-        ],
-        [
-            'title'    => __('OSINT', 'beyondgotham-dark-child'),
-            'category' => 'osint',
-        ],
-    ];
-    global $post;
-    ?>
-
-    <section class="landing-news bg-section" aria-label="<?php esc_attr_e('Aktuelle Inhalte', 'beyondgotham-dark-child'); ?>">
-        <div class="landing-news__grid">
-            <?php
-            foreach ($landing_sections as $section) :
-                $posts = get_posts([
-                    'post_type'           => 'post',
-                    'posts_per_page'      => 3,
-                    'category_name'       => $section['category'],
-                    'ignore_sticky_posts' => true,
-                ]);
-
-                if (empty($posts)) {
-                    continue;
-                }
-                ?>
-                <div class="landing-news__column" data-bg-animate>
-                    <h2 class="widget-title"><?php echo esc_html($section['title']); ?></h2>
-                    <div class="landing-news__posts">
-                        <?php
-                        foreach ($posts as $post) :
-                            setup_postdata($post);
-                            ?>
-                            <article class="blog-category-post">
-                                <?php if (has_post_thumbnail($post)) : ?>
-                                    <a class="blog-category-post-thumbnail" href="<?php echo esc_url(get_permalink($post)); ?>">
-                                        <?php echo get_the_post_thumbnail($post, 'freenews-highlighted'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                    </a>
-                                <?php endif; ?>
-                                <h3 class="blog-category-post-title">
-                                    <a href="<?php echo esc_url(get_permalink($post)); ?>"><?php echo esc_html(get_the_title($post)); ?></a>
-                                </h3>
-                            </article>
-                            <?php
-                        endforeach;
-                        wp_reset_postdata();
-                        ?>
-                    </div>
-                </div>
-                <?php
-            endforeach;
-            ?>
         </div>
     </section>
 </main>
