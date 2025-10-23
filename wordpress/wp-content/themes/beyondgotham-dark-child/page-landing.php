@@ -75,40 +75,14 @@ get_header(); ?>
                 </p>
 
                 <div class="hero-cta" style="display:flex;gap:16px;flex-wrap:wrap;">
-                    <a href="/kurse/" class="btn btn-primary" style="
-                        padding:16px 32px;
-                        background:var(--accent);
-                        color:#001018;
-                        border:none;
-                        border-radius:6px;
-                        font-weight:600;
-                        font-size:1.1rem;
-                        text-decoration:none;
-                        display:inline-flex;
-                        align-items:center;
-                        gap:8px;
-                        transition:transform 0.2s, box-shadow 0.2s;
-                    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(51,209,255,0.3)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <a href="/kurse/" class="btn btn--cta">
                         Kurse entdecken
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
                         </svg>
                     </a>
 
-                    <a href="/infoterminal/demo/" class="btn btn-secondary" style="
-                        padding:16px 32px;
-                        background:transparent;
-                        color:var(--fg);
-                        border:2px solid var(--line);
-                        border-radius:6px;
-                        font-weight:600;
-                        font-size:1.1rem;
-                        text-decoration:none;
-                        display:inline-flex;
-                        align-items:center;
-                        gap:8px;
-                        transition:border-color 0.2s, background 0.2s;
-                    " onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg-3)'" onmouseout="this.style.borderColor='var(--line)';this.style.background='transparent'">
+                    <a href="/infoterminal/" class="btn btn--cta btn--outline">
                         InfoTerminal testen
                     </a>
                 </div>
