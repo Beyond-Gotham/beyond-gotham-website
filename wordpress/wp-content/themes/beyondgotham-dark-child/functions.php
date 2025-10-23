@@ -14,23 +14,48 @@ add_action('wp_enqueue_scripts', function () {
         [],
         wp_get_theme('freenews')->get('Version') ?: null
     );
-    
+
     wp_enqueue_style(
         'beyondgotham-child',
         get_stylesheet_uri(),
         ['freenews-parent'],
         '1.0.0'
     );
-    
+
     wp_enqueue_style(
         'beyondgotham-dark',
         get_stylesheet_directory_uri() . '/assets/css/dark.css',
         ['beyondgotham-child'],
         '1.0.0'
     );
-    
+
     wp_enqueue_script('jquery');
+
+    if (is_page_template('page-contact.php')) {
+        wp_enqueue_script(
+            'bg-contact-form',
+            get_stylesheet_directory_uri() . '/assets/js/contact-form.js',
+            ['jquery'],
+            '1.0.0',
+            true
+        );
+
+        wp_localize_script('bg-contact-form', 'bgContactForm', [
+            'ajaxUrl'      => admin_url('admin-ajax.php'),
+            'errorMessage' => __('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.', 'beyondgotham-dark-child'),
+            'sendingLabel' => __('Wird gesendet …', 'beyondgotham-dark-child'),
+        ]);
+    }
 }, 20);
+
+add_action('admin_enqueue_scripts', function() {
+    wp_enqueue_style(
+        'beyondgotham-admin',
+        get_stylesheet_directory_uri() . '/assets/css/admin.css',
+        [],
+        '1.0.0'
+    );
+});
 
 
 // ============================================
@@ -126,41 +151,72 @@ add_action('wp_dashboard_setup', function() {
 });
 
 function bg_render_course_stats_widget() {
-    $total_courses = wp_count_posts('bg_course')->publish;
-    $total_enrollments = wp_count_posts('bg_enrollment')->publish;
-    $total_instructors = wp_count_posts('bg_instructor')->publish;
-    
-    $pending = new WP_Query([
-        'post_type' => 'bg_enrollment',
-        'meta_key' => '_bg_status',
-        'meta_value' => 'pending',
-        'posts_per_page' => -1,
-    ]);
-    
+    $stats = get_transient('bg_course_stats_widget');
+
+    if (!$stats) {
+        $stats = [
+            'courses'      => (int) wp_count_posts('bg_course')->publish,
+            'enrollments'  => (int) wp_count_posts('bg_enrollment')->publish,
+            'instructors'  => (int) wp_count_posts('bg_instructor')->publish,
+            'pending'      => 0,
+        ];
+
+        $pending = new WP_Query([
+            'post_type'      => 'bg_enrollment',
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                [
+                    'key'   => '_bg_status',
+                    'value' => 'pending',
+                ],
+            ],
+        ]);
+
+        $stats['pending'] = count($pending->posts);
+
+        set_transient('bg_course_stats_widget', $stats, HOUR_IN_SECONDS);
+    }
+
     ?>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
-        <div style="padding:16px;background:#f0f0f1;border-radius:4px;">
-            <div style="font-size:2rem;font-weight:700;color:#0073aa;"><?php echo $total_courses; ?></div>
-            <div style="font-size:0.9rem;color:#666;">Aktive Kurse</div>
+    <div class="bg-course-stats-widget">
+        <div class="bg-course-stats-widget__item bg-course-stats-widget__item--courses">
+            <div class="bg-course-stats-widget__value"><?php echo esc_html($stats['courses']); ?></div>
+            <div class="bg-course-stats-widget__label"><?php esc_html_e('Aktive Kurse', 'beyondgotham-dark-child'); ?></div>
         </div>
-        <div style="padding:16px;background:#f0f0f1;border-radius:4px;">
-            <div style="font-size:2rem;font-weight:700;color:#00a32a;"><?php echo $total_enrollments; ?></div>
-            <div style="font-size:0.9rem;color:#666;">Anmeldungen</div>
+        <div class="bg-course-stats-widget__item bg-course-stats-widget__item--enrollments">
+            <div class="bg-course-stats-widget__value"><?php echo esc_html($stats['enrollments']); ?></div>
+            <div class="bg-course-stats-widget__label"><?php esc_html_e('Anmeldungen', 'beyondgotham-dark-child'); ?></div>
         </div>
-        <div style="padding:16px;background:#f0f0f1;border-radius:4px;">
-            <div style="font-size:2rem;font-weight:700;color:#d63638;"><?php echo $pending->found_posts; ?></div>
-            <div style="font-size:0.9rem;color:#666;">Offene Anmeldungen</div>
+        <div class="bg-course-stats-widget__item bg-course-stats-widget__item--pending">
+            <div class="bg-course-stats-widget__value"><?php echo esc_html($stats['pending']); ?></div>
+            <div class="bg-course-stats-widget__label"><?php esc_html_e('Offene Anmeldungen', 'beyondgotham-dark-child'); ?></div>
         </div>
-        <div style="padding:16px;background:#f0f0f1;border-radius:4px;">
-            <div style="font-size:2rem;font-weight:700;color:#2271b1;"><?php echo $total_instructors; ?></div>
-            <div style="font-size:0.9rem;color:#666;">Dozenten</div>
+        <div class="bg-course-stats-widget__item bg-course-stats-widget__item--instructors">
+            <div class="bg-course-stats-widget__value"><?php echo esc_html($stats['instructors']); ?></div>
+            <div class="bg-course-stats-widget__label"><?php esc_html_e('Dozenten', 'beyondgotham-dark-child'); ?></div>
         </div>
     </div>
-    <p style="margin-top:16px;">
-        <a href="<?php echo admin_url('edit.php?post_type=bg_enrollment'); ?>" class="button">Anmeldungen verwalten</a>
+    <p class="bg-course-stats-widget__actions">
+        <a href="<?php echo esc_url(admin_url('edit.php?post_type=bg_enrollment')); ?>" class="button"><?php esc_html_e('Anmeldungen verwalten', 'beyondgotham-dark-child'); ?></a>
     </p>
     <?php
 }
+
+function bg_flush_course_stats_widget_cache() {
+    delete_transient('bg_course_stats_widget');
+}
+
+add_action('save_post_bg_course', 'bg_flush_course_stats_widget_cache');
+add_action('save_post_bg_enrollment', 'bg_flush_course_stats_widget_cache');
+add_action('save_post_bg_instructor', 'bg_flush_course_stats_widget_cache');
+add_action('delete_post', function($post_id) {
+    $post_type = get_post_type($post_id);
+    if (in_array($post_type, ['bg_course', 'bg_enrollment', 'bg_instructor'], true)) {
+        bg_flush_course_stats_widget_cache();
+    }
+});
 
 
 // ============================================
@@ -518,7 +574,7 @@ function bg_create_demo_data() {
 <li><strong>Enhanced Security:</strong> Noch bessere OPSEC-Features</li>
 </ul>
 
-<p>Testen Sie InfoTerminal in unserer <a href="/infoterminal/demo/">Live-Demo</a>.</p>',
+<p>Testen Sie InfoTerminal in unserer <a href="/infoterminal/">Live-Demo</a>.</p>',
             'category' => 'infoterminal',
         ],
     ];
@@ -535,7 +591,8 @@ function bg_create_demo_data() {
 }
 
 // Demo-Daten bei Theme-Aktivierung erstellen
-add_action('after_switch_theme', 'bg_create_demo_data');
+// Demo-Daten werden nicht mehr automatisch erzeugt, um Live-Systeme schlank zu halten.
+// add_action('after_switch_theme', 'bg_create_demo_data');
 
 
 // ============================================
@@ -655,7 +712,7 @@ add_action('after_switch_theme', function() {
     bg_ensure_page_exists('kontakt', 'Kontakt', 'page-contact.php');
     bg_ensure_page_exists('impressum', 'Impressum', 'page-impressum.php');
     bg_ensure_page_exists('datenschutz', 'Datenschutz', 'page-datenschutz.php');
-    bg_ensure_page_exists('infoterminal-demo', 'InfoTerminal Demo', 'page-infoterminal-demo.php');
+    bg_ensure_page_exists('infoterminal', 'InfoTerminal', 'page-infoterminal.php');
 
     // Flush rewrite rules
     flush_rewrite_rules();
