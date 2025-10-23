@@ -1,14 +1,10 @@
-
----
-
-### `.github/workflows/deploy-ionos.yml`
-```yaml
-name: Deploy to IONOS (Theme + Demo)
+name: deploy-ionos
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches:
+      - main
+  workflow_dispatch: {}
 
 jobs:
   build-and-deploy:
@@ -18,10 +14,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Build React Demo
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install deps
         working-directory: app-demo-infoterminal
@@ -46,5 +43,5 @@ jobs:
           username: ${{ secrets.IONOS_SFTP_USER }}
           password: ${{ secrets.IONOS_SFTP_PASSWORD }}
           local_path: "upload/*"
-          remote_path: "${{ secrets.IONOS_REMOTE_PATH }}"
+          remote_path: ${{ secrets.IONOS_REMOTE_PATH }}
           sftpArgs: "-o StrictHostKeyChecking=no"
