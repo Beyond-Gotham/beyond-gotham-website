@@ -14,8 +14,14 @@
     var ctaWrapperSelector = ctaSelectors.wrapper || '[data-bg-cta]';
     var ctaTextSelector = ctaSelectors.text || '[data-bg-cta-text]';
     var ctaButtonSelector = ctaSelectors.button || '[data-bg-cta-button]';
+    var stickySelectors = (data && data.stickyCtaSelectors) ? data.stickyCtaSelectors : {};
+    var stickyWrapperSelector = stickySelectors.wrapper || '[data-bg-sticky-cta]';
+    var stickyContentSelector = stickySelectors.content || '[data-bg-sticky-cta-content]';
+    var stickyButtonSelector = stickySelectors.button || '[data-bg-sticky-cta-button]';
     var rawCtaLayout = (data && (data.ctaLayout || data.cta_layout)) ? (data.ctaLayout || data.cta_layout) : {};
     var ctaLayoutState = {};
+    var stickyState = Object.assign({}, (data && data.stickyCta) ? data.stickyCta : {});
+    var stickyDefaults = Object.assign({}, stickyState);
 
     function toArray(nodeList) {
         return Array.prototype.slice.call(nodeList || []);
@@ -27,6 +33,30 @@
         }
 
         return toArray(document.querySelectorAll(selector));
+    }
+
+    function getStickyWrapper() {
+        if (!stickyWrapperSelector) {
+            return null;
+        }
+
+        return document.querySelector(stickyWrapperSelector);
+    }
+
+    function getStickyContentNode() {
+        if (!stickyContentSelector) {
+            return null;
+        }
+
+        return document.querySelector(stickyContentSelector);
+    }
+
+    function getStickyButtonNode() {
+        if (!stickyButtonSelector) {
+            return null;
+        }
+
+        return document.querySelector(stickyButtonSelector);
     }
 
     function setCSSVariable(name, value) {
@@ -161,6 +191,192 @@
         }
 
         return rounded + 'px';
+    }
+
+    function normalizeHexColor(value) {
+        if (typeof value !== 'string') {
+            return null;
+        }
+
+        var color = value.trim();
+
+        if (!color) {
+            return null;
+        }
+
+        if (color.charAt(0) !== '#') {
+            return null;
+        }
+
+        if (color.length === 4) {
+            var r = color.charAt(1);
+            var g = color.charAt(2);
+            var b = color.charAt(3);
+
+            return ('#' + r + r + g + g + b + b).toLowerCase();
+        }
+
+        if (color.length === 7) {
+            return color.toLowerCase();
+        }
+
+        return null;
+    }
+
+    function hexToRgb(hex) {
+        var normalized = normalizeHexColor(hex);
+
+        if (!normalized) {
+            return null;
+        }
+
+        var value = parseInt(normalized.slice(1), 16);
+
+        return {
+            r: (value >> 16) & 255,
+            g: (value >> 8) & 255,
+            b: value & 255
+        };
+    }
+
+    function linearizeColorChannel(component) {
+        var ratio = component / 255;
+
+        if (ratio <= 0.03928) {
+            return ratio / 12.92;
+        }
+
+        return Math.pow((ratio + 0.055) / 1.055, 2.4);
+    }
+
+    function getRelativeLuminance(color) {
+        var rgb = hexToRgb(color);
+
+        if (!rgb) {
+            return null;
+        }
+
+        var r = linearizeColorChannel(rgb.r);
+        var g = linearizeColorChannel(rgb.g);
+        var b = linearizeColorChannel(rgb.b);
+
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    function getContrastRatio(colorA, colorB) {
+        var luminanceA = getRelativeLuminance(colorA);
+        var luminanceB = getRelativeLuminance(colorB);
+
+        if (luminanceA === null || luminanceB === null) {
+            return 1;
+        }
+
+        var lighter = Math.max(luminanceA, luminanceB);
+        var darker = Math.min(luminanceA, luminanceB);
+
+        return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    function ensureAccessibleColor(preferred, background, fallbacks, threshold) {
+        var normalizedBackground = normalizeHexColor(background);
+        var candidates = [];
+
+        if (preferred) {
+            candidates.push(preferred);
+        }
+
+        if (Array.isArray(fallbacks)) {
+            candidates = candidates.concat(fallbacks);
+        }
+
+        if (!normalizedBackground) {
+            return normalizeHexColor(preferred) || null;
+        }
+
+        var limit = typeof threshold === 'number' ? threshold : 4.5;
+
+        for (var i = 0; i < candidates.length; i += 1) {
+            var candidate = normalizeHexColor(candidates[i]);
+
+            if (!candidate) {
+                continue;
+            }
+
+            if (getContrastRatio(candidate, normalizedBackground) >= limit) {
+                return candidate;
+            }
+        }
+
+        return normalizeHexColor(preferred) || normalizeHexColor((Array.isArray(fallbacks) && fallbacks.length) ? fallbacks[0] : null);
+    }
+
+    function hasStickyContent(value) {
+        if (typeof value === 'undefined' || value === null) {
+            return false;
+        }
+
+        var markup = String(value);
+
+        if (!markup.trim()) {
+            return false;
+        }
+
+        var temp = document.createElement('div');
+        temp.innerHTML = markup;
+
+        var text = (temp.textContent || temp.innerText || '').trim();
+
+        if (text.length > 0) {
+            return true;
+        }
+
+        return /<(img|video|audio|iframe|svg|canvas|object|embed)\b/i.test(markup);
+    }
+
+    function refreshStickyCtaState(element) {
+        if (!element) {
+            return;
+        }
+
+        var isActive = element.getAttribute('data-active') === 'true';
+        var hasContent = element.getAttribute('data-has-content') === 'true';
+        var hasLink = element.getAttribute('data-has-link') === 'true';
+        var showDesktop = element.getAttribute('data-show-desktop') !== 'false';
+        var showMobile = element.getAttribute('data-show-mobile') !== 'false';
+        var enabled = isActive && (hasContent || hasLink) && (showDesktop || showMobile);
+
+        element.setAttribute('data-enabled', enabled ? 'true' : 'false');
+        element.setAttribute('data-empty', (hasContent || hasLink) ? 'false' : 'true');
+
+        if (enabled) {
+            element.removeAttribute('hidden');
+        } else {
+            element.setAttribute('hidden', 'hidden');
+            element.classList.remove('visible');
+            element.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function updateStickyButtonTextColor(element, buttonColor, textColor) {
+        if (!element) {
+            return;
+        }
+
+        var normalizedButton = normalizeHexColor(buttonColor);
+
+        if (!normalizedButton) {
+            element.style.removeProperty('--sticky-cta-button-text');
+            stickyState.button_text_color = '';
+            return;
+        }
+
+        var normalizedText = normalizeHexColor(textColor) || normalizeHexColor(stickyState.text_color) || '#ffffff';
+        var contrastColor = ensureAccessibleColor(normalizedText, normalizedButton, ['#050608', '#ffffff', '#000000'], 4.5);
+
+        if (contrastColor) {
+            element.style.setProperty('--sticky-cta-button-text', contrastColor);
+            stickyState.button_text_color = contrastColor;
+        }
     }
 
     var THUMBNAIL_ASPECT_MAP = {
@@ -1441,6 +1657,185 @@ function updateCTALayout() {
         value.bind(function (newValue) {
             ctaLayoutState.alignment = sanitizeAlignment(newValue);
             updateCTALayout();
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_active', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+
+            if (!wrapper) {
+                return;
+            }
+
+            var isActive = toBoolean(newValue);
+            wrapper.setAttribute('data-active', isActive ? 'true' : 'false');
+            stickyState.active = isActive;
+
+            if (!isActive) {
+                wrapper.classList.remove('visible');
+            }
+
+            refreshStickyCtaState(wrapper);
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_content', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+            var contentNode = getStickyContentNode();
+
+            if (!wrapper || !contentNode) {
+                return;
+            }
+
+            var markup = newValue || '';
+            contentNode.innerHTML = markup;
+
+            var hasContent = hasStickyContent(markup);
+            wrapper.setAttribute('data-has-content', hasContent ? 'true' : 'false');
+            stickyState.has_content = hasContent;
+
+            refreshStickyCtaState(wrapper);
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_link', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+            var button = getStickyButtonNode();
+
+            if (!wrapper || !button) {
+                return;
+            }
+
+            var linkValue = (newValue || '').trim();
+            var hasLink = linkValue.length > 0;
+
+            stickyState.link = linkValue;
+            wrapper.setAttribute('data-has-link', hasLink ? 'true' : 'false');
+
+            if (hasLink) {
+                button.setAttribute('href', linkValue);
+                button.removeAttribute('aria-disabled');
+                button.removeAttribute('tabindex');
+                button.removeAttribute('hidden');
+            } else {
+                button.removeAttribute('href');
+                button.setAttribute('aria-disabled', 'true');
+                button.setAttribute('tabindex', '-1');
+                button.setAttribute('hidden', 'hidden');
+            }
+
+            refreshStickyCtaState(wrapper);
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_delay', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+
+            if (!wrapper) {
+                return;
+            }
+
+            var seconds = toPositiveFloat(newValue);
+            var milliseconds = Math.max(0, Math.round(seconds * 1000));
+
+            wrapper.setAttribute('data-delay', String(milliseconds));
+            stickyState.delay_ms = milliseconds;
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_background_color', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+
+            if (!wrapper) {
+                return;
+            }
+
+            if (newValue) {
+                wrapper.style.setProperty('--sticky-cta-bg', newValue);
+                stickyState.background = newValue;
+            } else {
+                wrapper.style.removeProperty('--sticky-cta-bg');
+                stickyState.background = stickyDefaults.background || '';
+            }
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_text_color', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+
+            if (!wrapper) {
+                return;
+            }
+
+            var resolved = newValue ? newValue : (stickyDefaults.text_color || '');
+            stickyState.text_color = resolved;
+
+            if (newValue) {
+                wrapper.style.setProperty('--sticky-cta-text', newValue);
+            } else {
+                wrapper.style.removeProperty('--sticky-cta-text');
+            }
+
+            updateStickyButtonTextColor(wrapper, stickyState.button_color || stickyDefaults.button_color || '', resolved);
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_button_color', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+
+            if (!wrapper) {
+                return;
+            }
+
+            var resolved = newValue ? newValue : (stickyDefaults.button_color || '');
+            stickyState.button_color = resolved;
+
+            if (newValue) {
+                wrapper.style.setProperty('--sticky-cta-button-bg', newValue);
+            } else {
+                wrapper.style.removeProperty('--sticky-cta-button-bg');
+            }
+
+            updateStickyButtonTextColor(wrapper, resolved, stickyState.text_color || stickyDefaults.text_color || '');
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_show_desktop', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+
+            if (!wrapper) {
+                return;
+            }
+
+            var allowed = toBoolean(newValue, true);
+            wrapper.setAttribute('data-show-desktop', allowed ? 'true' : 'false');
+            stickyState.show_desktop = allowed;
+
+            refreshStickyCtaState(wrapper);
+        });
+    });
+
+    api('beyond_gotham_sticky_cta_show_mobile', function (value) {
+        value.bind(function (newValue) {
+            var wrapper = getStickyWrapper();
+
+            if (!wrapper) {
+                return;
+            }
+
+            var allowed = toBoolean(newValue, true);
+            wrapper.setAttribute('data-show-mobile', allowed ? 'true' : 'false');
+            stickyState.show_mobile = allowed;
+
+            refreshStickyCtaState(wrapper);
         });
     });
 

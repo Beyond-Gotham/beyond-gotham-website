@@ -117,6 +117,16 @@ function beyond_gotham_sanitize_optional_email( $value ) {
 }
 
 /**
+ * Sanitize HTML content while allowing safe markup.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_allow_html( $value ) {
+    return wp_kses_post( $value );
+}
+
+/**
  * Sanitize checkbox values.
  *
  * @param mixed $value Raw value.
@@ -778,6 +788,90 @@ function beyond_gotham_get_cta_settings() {
     );
 }
 
+/**
+ * Retrieve default settings for the sticky CTA bar.
+ *
+ * @return array
+ */
+function beyond_gotham_get_sticky_cta_defaults() {
+    return array(
+        'active'       => false,
+        'content'      => '',
+        'link'         => '',
+        'delay'        => 5,
+        'background'   => '#0b1d2a',
+        'text_color'   => '#ffffff',
+        'button_color' => '#33d1ff',
+        'show_desktop' => true,
+        'show_mobile'  => true,
+    );
+}
+
+/**
+ * Retrieve the configured sticky CTA settings.
+ *
+ * @return array
+ */
+function beyond_gotham_get_sticky_cta_settings() {
+    $defaults = beyond_gotham_get_sticky_cta_defaults();
+
+    $active       = beyond_gotham_sanitize_checkbox( get_theme_mod( 'beyond_gotham_sticky_cta_active', $defaults['active'] ) );
+    $content      = get_theme_mod( 'beyond_gotham_sticky_cta_content', $defaults['content'] );
+    $link         = beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_sticky_cta_link', $defaults['link'] ) );
+    $delay        = absint( get_theme_mod( 'beyond_gotham_sticky_cta_delay', $defaults['delay'] ) );
+    $background   = sanitize_hex_color( get_theme_mod( 'beyond_gotham_sticky_cta_background_color', $defaults['background'] ) );
+    $text_color   = sanitize_hex_color( get_theme_mod( 'beyond_gotham_sticky_cta_text_color', $defaults['text_color'] ) );
+    $button_color = sanitize_hex_color( get_theme_mod( 'beyond_gotham_sticky_cta_button_color', $defaults['button_color'] ) );
+    $show_desktop = beyond_gotham_sanitize_checkbox( get_theme_mod( 'beyond_gotham_sticky_cta_show_desktop', $defaults['show_desktop'] ) );
+    $show_mobile  = beyond_gotham_sanitize_checkbox( get_theme_mod( 'beyond_gotham_sticky_cta_show_mobile', $defaults['show_mobile'] ) );
+
+    $background   = $background ? $background : $defaults['background'];
+    $text_color   = $text_color ? $text_color : $defaults['text_color'];
+    $button_color = $button_color ? $button_color : $defaults['button_color'];
+
+    $content_clean = is_string( $content ) ? trim( $content ) : '';
+    $content_text  = trim( wp_strip_all_tags( $content_clean ) );
+    $has_content   = '' !== $content_text;
+    $has_link      = '' !== $link;
+    $has_device    = $show_desktop || $show_mobile;
+
+    $button_text_color = beyond_gotham_ensure_contrast(
+        $text_color,
+        $button_color,
+        array( '#050608', '#ffffff', '#000000' ),
+        4.5
+    );
+
+    $enabled  = $active && ( $has_content || $has_link ) && $has_device;
+    $delay_ms = max( 0, $delay ) * 1000;
+
+    $settings = array(
+        'active'            => $active,
+        'content'           => wp_kses_post( $content_clean ),
+        'link'              => $link,
+        'delay'             => $delay,
+        'delay_ms'          => $delay_ms,
+        'background'        => $background,
+        'text_color'        => $text_color,
+        'button_color'      => $button_color,
+        'button_text_color' => $button_text_color,
+        'show_desktop'      => $show_desktop,
+        'show_mobile'       => $show_mobile,
+        'has_content'       => $has_content,
+        'has_link'          => $has_link,
+        'enabled'           => $enabled,
+        'is_empty'          => ! $has_content && ! $has_link,
+    );
+
+    /**
+     * Filter the sticky CTA settings prior to rendering.
+     *
+     * @param array $settings Sticky CTA settings array.
+     * @param array $defaults Default sticky CTA values.
+     */
+    return apply_filters( 'beyond_gotham_sticky_cta_settings', $settings, $defaults );
+}
+
 if ( class_exists( 'WP_Customize_Control' ) && ! class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
     /**
      * Simple heading control for grouping customizer fields.
@@ -859,8 +953,8 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         )
     );
 
-    $wp_customize->add_section(
-        'beyond_gotham_cta',
+    $wp_customize->add_panel(
+        'beyond_gotham_cta_panel',
         array(
             'title'       => __( 'Call-to-Action', 'beyond_gotham' ),
             'priority'    => 40,
@@ -869,10 +963,21 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     );
 
     $wp_customize->add_section(
+        'beyond_gotham_cta',
+        array(
+            'title'       => __( 'Call-to-Action', 'beyond_gotham' ),
+            'priority'    => 10,
+            'panel'       => 'beyond_gotham_cta_panel',
+            'description' => __( 'Pflege Text, Button-Beschriftung und Ziel-Link für den Newsletter-Call-to-Action.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_section(
         'beyond_gotham_ui_layout',
         array(
             'title'       => __( 'UI Layout & Abstände', 'beyond_gotham' ),
-            'priority'    => 41,
+            'priority'    => 20,
+            'panel'       => 'beyond_gotham_cta_panel',
             'description' => __( 'Passe Position, Größe und Abstände zentral an.', 'beyond_gotham' ),
         )
     );
@@ -881,8 +986,19 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         'beyond_gotham_cta_mobile',
         array(
             'title'       => __( 'CTA – Mobilgeräte', 'beyond_gotham' ),
-            'priority'    => 42,
+            'priority'    => 30,
+            'panel'       => 'beyond_gotham_cta_panel',
             'description' => __( 'Steuere Sichtbarkeit und Darstellung der CTA-Box auf Smartphones.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_section(
+        'beyond_gotham_cta_sticky',
+        array(
+            'title'       => __( 'Sticky-Leiste', 'beyond_gotham' ),
+            'priority'    => 40,
+            'panel'       => 'beyond_gotham_cta_panel',
+            'description' => __( 'Konfiguriere die fixierte CTA-Leiste am unteren Bildschirmrand.', 'beyond_gotham' ),
         )
     );
 
@@ -1366,7 +1482,8 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         )
     );
 
-    $cta_defaults = beyond_gotham_get_cta_defaults();
+    $cta_defaults    = beyond_gotham_get_cta_defaults();
+    $sticky_defaults = beyond_gotham_get_sticky_cta_defaults();
 
     $wp_customize->add_setting(
         'beyond_gotham_cta_text',
@@ -1833,6 +1950,202 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
                 'step' => 2,
             ),
             'description' => __( 'Feinjustiere das Padding innerhalb der CTA-Box. 0 verwendet den Standardwert.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_active',
+        array(
+            'default'           => $sticky_defaults['active'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_active_control',
+        array(
+            'label'       => __( 'Sticky-CTA-Leiste aktivieren', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_sticky',
+            'settings'    => 'beyond_gotham_sticky_cta_active',
+            'type'        => 'checkbox',
+            'description' => __( 'Blende eine fixierte CTA-Leiste am unteren Bildschirmrand ein.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_content',
+        array(
+            'default'           => $sticky_defaults['content'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_allow_html',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_content_control',
+        array(
+            'label'       => __( 'CTA-Inhalt', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_sticky',
+            'settings'    => 'beyond_gotham_sticky_cta_content',
+            'type'        => 'textarea',
+            'description' => __( 'Füge Text oder HTML hinzu, der in der Sticky-Leiste angezeigt werden soll.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_link',
+        array(
+            'default'           => $sticky_defaults['link'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_optional_url',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_link_control',
+        array(
+            'label'       => __( 'CTA-Link', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_sticky',
+            'settings'    => 'beyond_gotham_sticky_cta_link',
+            'type'        => 'url',
+            'description' => __( 'Ziel-URL für den Button innerhalb der Sticky-Leiste.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_delay',
+        array(
+            'default'           => $sticky_defaults['delay'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'absint',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_delay_control',
+        array(
+            'label'       => __( 'Einblendungsverzögerung (Sekunden)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_sticky',
+            'settings'    => 'beyond_gotham_sticky_cta_delay',
+            'type'        => 'range',
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 20,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_background_color',
+        array(
+            'default'           => $sticky_defaults['background'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_sticky_cta_background_color_control',
+            array(
+                'label'    => __( 'Hintergrundfarbe', 'beyond_gotham' ),
+                'section'  => 'beyond_gotham_cta_sticky',
+                'settings' => 'beyond_gotham_sticky_cta_background_color',
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_text_color',
+        array(
+            'default'           => $sticky_defaults['text_color'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_sticky_cta_text_color_control',
+            array(
+                'label'    => __( 'Textfarbe', 'beyond_gotham' ),
+                'section'  => 'beyond_gotham_cta_sticky',
+                'settings' => 'beyond_gotham_sticky_cta_text_color',
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_button_color',
+        array(
+            'default'           => $sticky_defaults['button_color'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_sticky_cta_button_color_control',
+            array(
+                'label'    => __( 'Buttonfarbe', 'beyond_gotham' ),
+                'section'  => 'beyond_gotham_cta_sticky',
+                'settings' => 'beyond_gotham_sticky_cta_button_color',
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_show_desktop',
+        array(
+            'default'           => $sticky_defaults['show_desktop'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_show_desktop_control',
+        array(
+            'label'       => __( 'Auf Desktop anzeigen', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_sticky',
+            'settings'    => 'beyond_gotham_sticky_cta_show_desktop',
+            'type'        => 'checkbox',
+            'description' => __( 'Deaktiviere die Sticky-Leiste auf großen Displays, falls nicht benötigt.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_show_mobile',
+        array(
+            'default'           => $sticky_defaults['show_mobile'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_show_mobile_control',
+        array(
+            'label'       => __( 'Auf Mobilgeräten anzeigen', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_sticky',
+            'settings'    => 'beyond_gotham_sticky_cta_show_mobile',
+            'type'        => 'checkbox',
+            'description' => __( 'Steuert, ob die Sticky-Leiste auf kleineren Displays sichtbar ist.', 'beyond_gotham' ),
         )
     );
 
@@ -3049,8 +3362,9 @@ function beyond_gotham_customize_preview_js() {
         ),
     );
 
-    $cta_layout = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
-    $ui_layout  = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
+    $cta_layout    = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
+    $ui_layout     = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
+    $sticky_layout = function_exists( 'beyond_gotham_get_sticky_cta_settings' ) ? beyond_gotham_get_sticky_cta_settings() : array();
 
     wp_localize_script(
         $handle,
@@ -3065,7 +3379,13 @@ function beyond_gotham_customize_preview_js() {
                 'text'    => '[data-bg-cta-text]',
                 'button'  => '[data-bg-cta-button]',
             ),
+            'stickyCtaSelectors'   => array(
+                'wrapper' => '[data-bg-sticky-cta]',
+                'content' => '[data-bg-sticky-cta-content]',
+                'button'  => '[data-bg-sticky-cta-button]',
+            ),
             'ctaLayout'           => $cta_layout,
+            'stickyCta'           => $sticky_layout,
             'uiLayout'            => $ui_layout,
             'defaults'             => $color_defaults,
             'colorDefaults'        => $color_defaults,

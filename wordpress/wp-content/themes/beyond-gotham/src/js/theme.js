@@ -528,6 +528,243 @@
     });
   };
 
+  const initStickyCta = () => {
+    const bar = query('[data-bg-sticky-cta]');
+
+    if (!bar) {
+      return;
+    }
+
+    const button = query('[data-bg-sticky-cta-button]', bar);
+    const close = query('[data-bg-sticky-cta-close]', bar);
+    const mobileQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 767px)') : null;
+
+    let enabled = bar.getAttribute('data-enabled') === 'true';
+    let showDesktop = bar.getAttribute('data-show-desktop') !== 'false';
+    let showMobile = bar.getAttribute('data-show-mobile') !== 'false';
+    let delayMs = parseInt(bar.getAttribute('data-delay'), 10);
+    let dismissed = false;
+    let hasShown = false;
+    let timer = null;
+    let isInternalUpdate = false;
+
+    delayMs = Number.isNaN(delayMs) ? 0 : Math.max(0, delayMs);
+
+    const setAttributeInternal = (name, value) => {
+      isInternalUpdate = true;
+      bar.setAttribute(name, value);
+      setTimeout(() => {
+        isInternalUpdate = false;
+      }, 0);
+    };
+
+    const removeAttributeInternal = (name) => {
+      isInternalUpdate = true;
+      bar.removeAttribute(name);
+      setTimeout(() => {
+        isInternalUpdate = false;
+      }, 0);
+    };
+
+    const isDeviceAllowed = () => {
+      if (!mobileQuery) {
+        return showDesktop;
+      }
+
+      return mobileQuery.matches ? showMobile : showDesktop;
+    };
+
+    const setDeviceHidden = (hidden) => {
+      if (hidden) {
+        bar.classList.add('sticky-cta--device-hidden');
+      } else {
+        bar.classList.remove('sticky-cta--device-hidden');
+      }
+    };
+
+    const hideSticky = (permanent = false) => {
+      window.clearTimeout(timer);
+      bar.classList.remove('visible');
+      bar.setAttribute('aria-hidden', 'true');
+
+      if (permanent) {
+        setAttributeInternal('hidden', 'hidden');
+      }
+    };
+
+    const showSticky = () => {
+      if (!enabled || dismissed || !isDeviceAllowed()) {
+        return;
+      }
+
+      removeAttributeInternal('hidden');
+      bar.setAttribute('aria-hidden', 'false');
+      setDeviceHidden(false);
+
+      requestAnimationFrame(() => {
+        bar.classList.add('visible');
+      });
+
+      hasShown = true;
+    };
+
+    const scheduleShow = () => {
+      window.clearTimeout(timer);
+
+      if (!enabled || dismissed) {
+        hideSticky(true);
+        return;
+      }
+
+      if (!isDeviceAllowed()) {
+        setDeviceHidden(true);
+        hideSticky(true);
+        return;
+      }
+
+      setDeviceHidden(false);
+      removeAttributeInternal('hidden');
+      bar.setAttribute('aria-hidden', 'true');
+      bar.classList.remove('visible');
+
+      timer = window.setTimeout(showSticky, delayMs);
+    };
+
+    const updateFromAttributes = () => {
+      const newEnabled = bar.getAttribute('data-enabled') === 'true';
+
+      if (newEnabled !== enabled) {
+        enabled = newEnabled;
+        if (enabled) {
+          dismissed = false;
+          hasShown = false;
+          removeAttributeInternal('hidden');
+        }
+      }
+
+      showDesktop = bar.getAttribute('data-show-desktop') !== 'false';
+      showMobile = bar.getAttribute('data-show-mobile') !== 'false';
+
+      const attrDelay = parseInt(bar.getAttribute('data-delay'), 10);
+      delayMs = Number.isNaN(attrDelay) ? 0 : Math.max(0, attrDelay);
+
+      const allowed = isDeviceAllowed();
+      setDeviceHidden(!allowed);
+
+      if (!enabled || dismissed) {
+        hideSticky(true);
+        return;
+      }
+
+      if (!allowed) {
+        hideSticky(true);
+        return;
+      }
+
+      removeAttributeInternal('hidden');
+
+      if (hasShown) {
+        if (!bar.classList.contains('visible')) {
+          showSticky();
+        } else {
+          bar.setAttribute('aria-hidden', 'false');
+        }
+
+        return;
+      }
+
+      scheduleShow();
+    };
+
+    updateFromAttributes();
+
+    if (enabled && !dismissed && !hasShown) {
+      scheduleShow();
+    }
+
+    if (close) {
+      close.addEventListener('click', () => {
+        dismissed = true;
+        hideSticky(true);
+      });
+    }
+
+    if (button) {
+      button.addEventListener('click', () => {
+        if (button.getAttribute('href')) {
+          dismissed = true;
+          hideSticky(true);
+        }
+      });
+    }
+
+    const observer = new MutationObserver((mutations) => {
+      let shouldUpdate = false;
+
+      mutations.forEach((mutation) => {
+        if (mutation.type !== 'attributes') {
+          return;
+        }
+
+        const name = mutation.attributeName;
+
+        if (
+          name === 'data-enabled' ||
+          name === 'data-delay' ||
+          name === 'data-show-desktop' ||
+          name === 'data-show-mobile' ||
+          name === 'hidden'
+        ) {
+          shouldUpdate = true;
+        }
+      });
+
+      if (!shouldUpdate) {
+        return;
+      }
+
+      if (isInternalUpdate) {
+        return;
+      }
+
+      updateFromAttributes();
+    });
+
+    observer.observe(bar, { attributes: true });
+
+    if (mobileQuery) {
+      const handleChange = () => {
+        if (!enabled) {
+          return;
+        }
+
+        if (!isDeviceAllowed()) {
+          setDeviceHidden(true);
+          hideSticky(true);
+          return;
+        }
+
+        setDeviceHidden(false);
+
+        if (dismissed) {
+          return;
+        }
+
+        if (hasShown) {
+          showSticky();
+        } else {
+          scheduleShow();
+        }
+      };
+
+      if (typeof mobileQuery.addEventListener === 'function') {
+        mobileQuery.addEventListener('change', handleChange);
+      } else if (typeof mobileQuery.addListener === 'function') {
+        mobileQuery.addListener(handleChange);
+      }
+    }
+  };
+
   const init = () => {
     revealAnimated();
     initSmoothScroll();
@@ -535,6 +772,7 @@
     initFilterForms();
     initStickyHeader();
     initCarousels();
+    initStickyCta();
 
     if (bodyEl) {
       bodyEl.classList.remove('bg-ui-loading');
