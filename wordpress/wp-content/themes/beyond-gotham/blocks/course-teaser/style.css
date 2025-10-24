@@ -1,0 +1,113 @@
+.wp-block-beyond-gotham-course-teaser,
+.bg-course-teaser {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1.75rem, 3vw, 2.75rem);
+  border-radius: 1.5rem;
+  background: linear-gradient(150deg, rgba(11, 29, 42, 0.95) 0%, rgba(51, 209, 255, 0.12) 100%);
+  border: 1px solid rgba(51, 209, 255, 0.28);
+  color: var(--fg, #e7eaee);
+  overflow: hidden;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.28);
+}
+
+.bg-course-teaser::after {
+  content: '';
+  position: absolute;
+  inset: -30% 40% auto -20%;
+  height: 60%;
+  background: radial-gradient(circle at center, rgba(51, 209, 255, 0.35), transparent 70%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.bg-course-teaser > * {
+  position: relative;
+  z-index: 1;
+}
+
+.bg-course-teaser__eyebrow {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.bg-course-teaser__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.2;
+  color: var(--accent, #33d1ff);
+}
+
+.bg-course-teaser__summary {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(231, 234, 238, 0.92);
+}
+
+.bg-course-teaser__summary p {
+  margin: 0 0 0.75rem;
+}
+
+.bg-course-teaser__summary p:last-child {
+  margin-bottom: 0;
+}
+
+.bg-course-teaser__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(231, 234, 238, 0.8);
+}
+
+.bg-course-teaser__meta a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.bg-course-teaser__cta {
+  margin-top: 1rem;
+}
+
+.bg-course-teaser__cta .bg-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 1.75rem;
+  background: var(--accent, #33d1ff);
+  color: #02101d;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(51, 209, 255, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bg-course-teaser__cta .bg-button:hover,
+.bg-course-teaser__cta .bg-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 35px rgba(51, 209, 255, 0.45);
+}
+
+.bg-course-teaser__cta-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: inherit;
+}
+
+.bg-course-teaser__url-picker {
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .bg-course-teaser {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}

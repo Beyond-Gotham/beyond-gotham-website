@@ -68,6 +68,25 @@
   margin-top: 0;
 }
 
+.wp-block-paragraph.is-style-bg-intro {
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+  line-height: 1.8;
+  font-weight: 500;
+  color: var(--fg, #e7eaee);
+  max-width: 60ch;
+}
+
+.wp-block-beyond-gotham-course-teaser,
+.bg-course-teaser {
+  max-width: min(60rem, 100%);
+  margin-inline: auto;
+}
+
+.wp-block-beyond-gotham-course-teaser.alignfull,
+.wp-block-beyond-gotham-course-teaser.alignwide {
+  max-width: none;
+}
+
 .site-footer {
   padding: 2rem 1.5rem 2.5rem;
   background: rgba(12, 21, 32, 0.9);
