@@ -15,8 +15,6 @@
     var ctaTextSelector = ctaSelectors.text || '[data-bg-cta-text]';
     var ctaButtonSelector = ctaSelectors.button || '[data-bg-cta-button]';
     var rawCtaLayout = (data && (data.ctaLayout || data.cta_layout)) ? (data.ctaLayout || data.cta_layout) : {};
-    var rawCtaPresets = (data && (data.ctaSizePresets || data.cta_size_presets)) ? (data.ctaSizePresets || data.cta_size_presets) : {};
-    var ctaSizePresets = {};
     var ctaLayoutState = {};
 
     function toArray(nodeList) {
@@ -45,43 +43,6 @@
 
     var CTA_POSITION_CLASSES = ['cta-top', 'cta-bottom', 'cta-fixed'];
     var CTA_ALIGNMENT_CLASSES = ['cta-align-left', 'cta-align-center', 'cta-align-right'];
-    var CTA_SIZE_CLASSES = ['cta-size-small', 'cta-size-medium', 'cta-size-large', 'cta-size-custom'];
-    var CTA_PRESET_KEYS = ['small', 'medium', 'large', 'custom'];
-
-    function normalizePresetKey(value) {
-        if (typeof value !== 'string') {
-            return null;
-        }
-
-        var normalized = value.trim().toLowerCase();
-
-        if (CTA_PRESET_KEYS.indexOf(normalized) !== -1) {
-            return normalized;
-        }
-
-        return null;
-    }
-
-    function sanitizePreset(value) {
-        var normalized = normalizePresetKey(value);
-
-        return normalized || 'medium';
-    }
-
-    function sanitizeWidthUnit(value) {
-        if (typeof value !== 'string') {
-            return 'px';
-        }
-
-        var normalized = value.trim().toLowerCase();
-
-        if (normalized === '%' || normalized === 'rem' || normalized === 'px') {
-            return normalized;
-        }
-
-        return 'px';
-    }
-
     function sanitizePosition(value) {
         if (typeof value !== 'string') {
             return 'bottom';
@@ -120,26 +81,7 @@
         return number;
     }
 
-    function formatWidthValue(value, unit) {
-        var sanitizedValue = toPositiveFloat(value);
-        var sanitizedUnit = sanitizeWidthUnit(unit);
-
-        if (!sanitizedValue) {
-            return '';
-        }
-
-        var finalValue = sanitizedValue;
-
-        if (sanitizedUnit === 'px') {
-            finalValue = Math.round(sanitizedValue);
-        } else {
-            finalValue = Math.round(sanitizedValue * 100) / 100;
-        }
-
-        return finalValue + sanitizedUnit;
-    }
-
-    function formatMinHeightValue(value) {
+    function formatCtaDimension(value) {
         var sanitizedValue = Math.round(toPositiveFloat(value));
 
         if (!sanitizedValue) {
@@ -223,31 +165,9 @@
         }
     }
 
-    Object.keys(rawCtaPresets || {}).forEach(function (key) {
-        if (!Object.prototype.hasOwnProperty.call(rawCtaPresets, key)) {
-            return;
-        }
-
-        var normalizedKey = normalizePresetKey(key);
-
-        if (!normalizedKey) {
-            return;
-        }
-
-        var preset = rawCtaPresets[key] || {};
-
-        ctaSizePresets[normalizedKey] = {
-            max_width_value: toPositiveFloat(typeof preset.max_width_value !== 'undefined' ? preset.max_width_value : preset.maxWidthValue),
-            max_width_unit: sanitizeWidthUnit(preset.max_width_unit || preset.maxWidthUnit),
-            min_height_value: toPositiveFloat(typeof preset.min_height_value !== 'undefined' ? preset.min_height_value : preset.minHeightValue)
-        };
-    });
-
     ctaLayoutState = {
-        sizePreset: sanitizePreset(rawCtaLayout.sizePreset || rawCtaLayout.size_preset),
-        maxWidthValue: toPositiveFloat(rawCtaLayout.maxWidthValue || rawCtaLayout.max_width_value),
-        maxWidthUnit: sanitizeWidthUnit(rawCtaLayout.maxWidthUnit || rawCtaLayout.max_width_unit),
-        minHeightValue: toPositiveFloat(rawCtaLayout.minHeightValue || rawCtaLayout.min_height_value),
+        width: toPositiveFloat(rawCtaLayout.width || rawCtaLayout.maxWidthValue || rawCtaLayout.max_width_value),
+        height: toPositiveFloat(rawCtaLayout.height || rawCtaLayout.minHeightValue || rawCtaLayout.min_height_value),
         position: sanitizePosition(rawCtaLayout.position),
         alignment: sanitizeAlignment(rawCtaLayout.alignment)
     };
@@ -1138,33 +1058,29 @@ function updateCTALayout() {
         return;
     }
 
-    var presetKey = sanitizePreset(ctaLayoutState.sizePreset);
-    var presetValues = (presetKey !== 'custom' && ctaSizePresets[presetKey]) ? ctaSizePresets[presetKey] : null;
-    var widthValue = presetValues ? presetValues.max_width_value : ctaLayoutState.maxWidthValue;
-    var widthUnit = presetValues ? presetValues.max_width_unit : ctaLayoutState.maxWidthUnit;
-    var minHeightValue = presetValues ? presetValues.min_height_value : ctaLayoutState.minHeightValue;
-    var widthCss = formatWidthValue(widthValue, widthUnit);
-    var heightCss = formatMinHeightValue(minHeightValue);
+    var widthCss = formatCtaDimension(ctaLayoutState.width);
+    var heightCss = formatCtaDimension(ctaLayoutState.height);
     var positionClass = 'cta-' + sanitizePosition(ctaLayoutState.position);
     var alignmentClass = 'cta-align-' + sanitizeAlignment(ctaLayoutState.alignment);
-    var sizeClass = 'cta-size-' + presetKey;
 
     wrappers.forEach(function (el) {
         if (widthCss) {
-            el.style.setProperty('--cta-max-width', widthCss);
+            el.style.setProperty('--cta-width', widthCss);
         } else {
-            el.style.removeProperty('--cta-max-width');
+            el.style.removeProperty('--cta-width');
         }
 
         if (heightCss) {
-            el.style.setProperty('--cta-min-height', heightCss);
+            el.style.setProperty('--cta-height', heightCss);
         } else {
-            el.style.removeProperty('--cta-min-height');
+            el.style.removeProperty('--cta-height');
         }
+
+        el.style.removeProperty('--cta-max-width');
+        el.style.removeProperty('--cta-min-height');
 
         applyChoiceClass(el, CTA_POSITION_CLASSES, positionClass);
         applyChoiceClass(el, CTA_ALIGNMENT_CLASSES, alignmentClass);
-        applyChoiceClass(el, CTA_SIZE_CLASSES, sizeClass);
     });
 }
     api('beyond_gotham_nav_orientation', function (value) {
@@ -1394,30 +1310,16 @@ function updateCTALayout() {
 
     updateCTALayout();
 
-    api('beyond_gotham_cta_size_preset', function (value) {
+    api('beyond_gotham_cta_width', function (value) {
         value.bind(function (newValue) {
-            ctaLayoutState.sizePreset = sanitizePreset(newValue);
+            ctaLayoutState.width = toPositiveFloat(newValue);
             updateCTALayout();
         });
     });
 
-    api('beyond_gotham_cta_max_width_value', function (value) {
+    api('beyond_gotham_cta_height', function (value) {
         value.bind(function (newValue) {
-            ctaLayoutState.maxWidthValue = toPositiveFloat(newValue);
-            updateCTALayout();
-        });
-    });
-
-    api('beyond_gotham_cta_max_width_unit', function (value) {
-        value.bind(function (newValue) {
-            ctaLayoutState.maxWidthUnit = sanitizeWidthUnit(newValue);
-            updateCTALayout();
-        });
-    });
-
-    api('beyond_gotham_cta_min_height', function (value) {
-        value.bind(function (newValue) {
-            ctaLayoutState.minHeightValue = toPositiveFloat(newValue);
+            ctaLayoutState.height = toPositiveFloat(newValue);
             updateCTALayout();
         });
     });

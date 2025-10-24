@@ -167,39 +167,6 @@ function beyond_gotham_sanitize_font_unit( $value ) {
 }
 
 /**
- * Restrict CTA width units to supported values.
- *
- * @param string $value Raw value.
- * @return string
- */
-function beyond_gotham_sanitize_cta_width_unit( $value ) {
-    $value = is_string( $value ) ? strtolower( trim( $value ) ) : '';
-
-    if ( in_array( $value, array( 'px', '%', 'rem' ), true ) ) {
-        return $value;
-    }
-
-    return 'px';
-}
-
-/**
- * Limit CTA size presets to known choices.
- *
- * @param string $value Raw value.
- * @return string
- */
-function beyond_gotham_sanitize_cta_size_preset( $value ) {
-    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
-    $choices = array( 'small', 'medium', 'large', 'custom' );
-
-    if ( in_array( $value, $choices, true ) ) {
-        return $value;
-    }
-
-    return 'medium';
-}
-
-/**
  * Limit CTA position values.
  *
  * @param string $value Raw value.
@@ -646,26 +613,6 @@ function beyond_gotham_customize_is_nav_sticky_active( $control ) {
 }
 
 /**
- * Determine if the CTA layout controls for custom sizing should be visible.
- *
- * @param WP_Customize_Control $control Control instance.
- * @return bool
- */
-function beyond_gotham_customize_is_cta_custom_size( $control ) {
-    if ( ! $control instanceof WP_Customize_Control ) {
-        return true;
-    }
-
-    $setting = $control->manager->get_setting( 'beyond_gotham_cta_size_preset' );
-
-    if ( ! $setting ) {
-        return true;
-    }
-
-    return 'custom' === beyond_gotham_sanitize_cta_size_preset( $setting->value() );
-}
-
-/**
  * Retrieve default CTA values for reuse.
  *
  * @return array
@@ -683,45 +630,17 @@ function beyond_gotham_get_cta_defaults() {
  *
  * @return array
  */
-function beyond_gotham_get_cta_size_presets() {
-    return array(
-        'small'  => array(
-            'label'            => __( 'Klein', 'beyond_gotham' ),
-            'max_width_value'  => 560,
-            'max_width_unit'   => 'px',
-            'min_height_value' => 240,
-        ),
-        'medium' => array(
-            'label'            => __( 'Mittel (Standard)', 'beyond_gotham' ),
-            'max_width_value'  => 800,
-            'max_width_unit'   => 'px',
-            'min_height_value' => 320,
-        ),
-        'large'  => array(
-            'label'            => __( 'Groß', 'beyond_gotham' ),
-            'max_width_value'  => 100,
-            'max_width_unit'   => '%',
-            'min_height_value' => 380,
-        ),
-    );
-}
-
 /**
  * Default CTA layout configuration.
  *
  * @return array
  */
 function beyond_gotham_get_cta_layout_defaults() {
-    $presets = beyond_gotham_get_cta_size_presets();
-    $medium  = isset( $presets['medium'] ) ? $presets['medium'] : array();
-
     return array(
-        'size_preset'      => 'medium',
-        'max_width_value'  => isset( $medium['max_width_value'] ) ? $medium['max_width_value'] : 800,
-        'max_width_unit'   => isset( $medium['max_width_unit'] ) ? $medium['max_width_unit'] : 'px',
-        'min_height_value' => isset( $medium['min_height_value'] ) ? $medium['min_height_value'] : 320,
-        'position'         => 'bottom',
-        'alignment'        => 'center',
+        'width'     => 600,
+        'height'    => 200,
+        'position'  => 'bottom',
+        'alignment' => 'center',
     );
 }
 
@@ -732,15 +651,15 @@ function beyond_gotham_get_cta_layout_defaults() {
  * @param string $unit  CSS unit.
  * @return string
  */
-function beyond_gotham_format_css_size( $value, $unit ) {
+function beyond_gotham_format_css_size( $value, $unit = 'px' ) {
     $value = beyond_gotham_sanitize_positive_float( $value );
-    $unit  = beyond_gotham_sanitize_cta_width_unit( $unit );
+    $unit  = beyond_gotham_sanitize_dimension_unit( $unit );
 
     if ( $value <= 0 ) {
         return '';
     }
 
-    $precision = ( 'rem' === $unit ) ? 2 : 1;
+    $precision = ( '%' === $unit ) ? 0 : 1;
     $rounded   = round( $value, $precision );
 
     if ( abs( $rounded - round( $rounded ) ) < pow( 10, -$precision ) ) {
@@ -756,61 +675,57 @@ function beyond_gotham_format_css_size( $value, $unit ) {
  * @return array
  */
 function beyond_gotham_get_cta_layout_settings() {
-    $defaults         = beyond_gotham_get_cta_layout_defaults();
-    $size_preset      = beyond_gotham_sanitize_cta_size_preset( get_theme_mod( 'beyond_gotham_cta_size_preset', $defaults['size_preset'] ) );
-    $max_width_value  = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_max_width_value', $defaults['max_width_value'] ) );
-    $max_width_unit   = beyond_gotham_sanitize_cta_width_unit( get_theme_mod( 'beyond_gotham_cta_max_width_unit', $defaults['max_width_unit'] ) );
-    $min_height_value = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_min_height', $defaults['min_height_value'] ) );
-    $position         = beyond_gotham_sanitize_cta_position( get_theme_mod( 'beyond_gotham_cta_position', $defaults['position'] ) );
-    $alignment        = beyond_gotham_sanitize_cta_alignment( get_theme_mod( 'beyond_gotham_cta_alignment', $defaults['alignment'] ) );
-    $presets          = beyond_gotham_get_cta_size_presets();
+    $defaults = beyond_gotham_get_cta_layout_defaults();
 
-    if ( 'custom' !== $size_preset && isset( $presets[ $size_preset ] ) ) {
-        $preset = $presets[ $size_preset ];
+    $width     = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_width', $defaults['width'] ) );
+    $height    = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_height', $defaults['height'] ) );
+    $position  = beyond_gotham_sanitize_cta_position( get_theme_mod( 'beyond_gotham_cta_position', $defaults['position'] ) );
+    $alignment = beyond_gotham_sanitize_cta_alignment( get_theme_mod( 'beyond_gotham_cta_alignment', $defaults['alignment'] ) );
 
-        if ( isset( $preset['max_width_value'] ) ) {
-            $max_width_value = beyond_gotham_sanitize_positive_float( $preset['max_width_value'] );
-        }
+    if ( $width <= 0 ) {
+        $legacy_width_unit  = get_theme_mod( 'beyond_gotham_cta_max_width_unit', 'px' );
+        $legacy_width_value = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_max_width_value', 0 ) );
 
-        if ( isset( $preset['max_width_unit'] ) ) {
-            $max_width_unit = beyond_gotham_sanitize_cta_width_unit( $preset['max_width_unit'] );
-        }
-
-        if ( isset( $preset['min_height_value'] ) ) {
-            $min_height_value = beyond_gotham_sanitize_positive_float( $preset['min_height_value'] );
+        if ( $legacy_width_value > 0 && 'px' === beyond_gotham_sanitize_dimension_unit( $legacy_width_unit ) ) {
+            $width = $legacy_width_value;
         }
     }
 
-    $max_width = beyond_gotham_format_css_size( $max_width_value, $max_width_unit );
-    $min_height = $min_height_value > 0 ? beyond_gotham_format_css_size( $min_height_value, 'px' ) : '';
+    if ( $height <= 0 ) {
+        $legacy_height = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_min_height', 0 ) );
+
+        if ( $legacy_height > 0 ) {
+            $height = $legacy_height;
+        }
+    }
+
+    $width_css  = $width > 0 ? beyond_gotham_format_css_size( $width, 'px' ) : '';
+    $height_css = $height > 0 ? beyond_gotham_format_css_size( $height, 'px' ) : '';
 
     $classes = array(
         'cta-' . $position,
         'cta-align-' . $alignment,
-        'cta-size-' . $size_preset,
     );
 
     $style_map = array();
 
-    if ( $max_width ) {
-        $style_map['--cta-max-width'] = $max_width;
+    if ( $width_css ) {
+        $style_map['--cta-width'] = $width_css;
     }
 
-    if ( $min_height ) {
-        $style_map['--cta-min-height'] = $min_height;
+    if ( $height_css ) {
+        $style_map['--cta-height'] = $height_css;
     }
 
     return array(
-        'size_preset'      => $size_preset,
-        'max_width_value'  => $max_width_value,
-        'max_width_unit'   => $max_width_unit,
-        'max_width'        => $max_width,
-        'min_height_value' => $min_height_value,
-        'min_height'       => $min_height,
-        'position'         => $position,
-        'alignment'        => $alignment,
-        'class_list'       => array_values( array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) ) ),
-        'style_map'        => $style_map,
+        'width'       => $width,
+        'height'      => $height,
+        'width_css'   => $width_css,
+        'height_css'  => $height_css,
+        'position'    => $position,
+        'alignment'   => $alignment,
+        'class_list'  => array_values( array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) ) ),
+        'style_map'   => $style_map,
     );
 }
 
@@ -1478,16 +1393,17 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
 
     $layout_defaults     = beyond_gotham_get_ui_layout_defaults();
     $cta_layout_defaults = beyond_gotham_get_cta_layout_defaults();
-    $cta_size_presets    = beyond_gotham_get_cta_size_presets();
-    $cta_preset_choices  = array();
-
-    foreach ( $cta_size_presets as $key => $preset ) {
-        $cta_preset_choices[ $key ] = isset( $preset['label'] ) ? $preset['label'] : ucfirst( $key );
-    }
-
-    $cta_preset_choices['custom'] = __( 'Individuell', 'beyond_gotham' );
 
     $layout_priority = 5;
+
+    $stored_cta_width   = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_width', 0 ) );
+    $legacy_width_unit  = beyond_gotham_sanitize_dimension_unit( get_theme_mod( 'beyond_gotham_cta_max_width_unit', 'px' ) );
+    $legacy_width_value = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_max_width_value', 0 ) );
+    $cta_width_default  = $stored_cta_width > 0 ? $stored_cta_width : ( ( $legacy_width_value > 0 && 'px' === $legacy_width_unit ) ? $legacy_width_value : $cta_layout_defaults['width'] );
+
+    $stored_cta_height  = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_height', 0 ) );
+    $legacy_height      = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_min_height', 0 ) );
+    $cta_height_default = $stored_cta_height > 0 ? $stored_cta_height : ( $legacy_height > 0 ? $legacy_height : $cta_layout_defaults['height'] );
 
     if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
         $wp_customize->add_control(
@@ -1681,104 +1597,54 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     $layout_priority += 5;
 
     $wp_customize->add_setting(
-        'beyond_gotham_cta_size_preset',
+        'beyond_gotham_cta_width',
         array(
-            'default'           => $cta_layout_defaults['size_preset'],
+            'default'           => $cta_width_default,
             'type'              => 'theme_mod',
-            'sanitize_callback' => 'beyond_gotham_sanitize_cta_size_preset',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
             'transport'         => 'postMessage',
         )
     );
 
     $wp_customize->add_control(
-        'beyond_gotham_cta_size_preset_control',
+        'beyond_gotham_cta_width_control',
         array(
-            'label'       => __( 'Größen-Preset', 'beyond_gotham' ),
+            'label'       => __( 'CTA-Breite', 'beyond_gotham' ),
             'section'     => 'beyond_gotham_ui_layout',
-            'settings'    => 'beyond_gotham_cta_size_preset',
-            'type'        => 'select',
-            'choices'     => $cta_preset_choices,
-            'description' => __( 'Wähle eine Vorlage oder passe Breite und Höhe individuell an.', 'beyond_gotham' ),
-        )
-    );
-
-    $wp_customize->add_setting(
-        'beyond_gotham_cta_max_width_value',
-        array(
-            'default'           => $cta_layout_defaults['max_width_value'],
-            'type'              => 'theme_mod',
-            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
-            'transport'         => 'postMessage',
-        )
-    );
-
-    $wp_customize->add_control(
-        'beyond_gotham_cta_max_width_value_control',
-        array(
-            'label'           => __( 'Maximale Breite', 'beyond_gotham' ),
-            'section'         => 'beyond_gotham_ui_layout',
-            'settings'        => 'beyond_gotham_cta_max_width_value',
-            'type'            => 'number',
-            'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
-            'input_attrs'     => array(
-                'min'  => 40,
-                'max'  => 1600,
-                'step' => 1,
-            ),
-            'description'     => __( 'Gib den Zahlenwert der Breite an. Einheit unten auswählen.', 'beyond_gotham' ),
-        )
-    );
-
-    $wp_customize->add_setting(
-        'beyond_gotham_cta_max_width_unit',
-        array(
-            'default'           => $cta_layout_defaults['max_width_unit'],
-            'type'              => 'theme_mod',
-            'sanitize_callback' => 'beyond_gotham_sanitize_cta_width_unit',
-            'transport'         => 'postMessage',
-        )
-    );
-
-    $wp_customize->add_control(
-        'beyond_gotham_cta_max_width_unit_control',
-        array(
-            'label'           => __( 'Einheit der Breite', 'beyond_gotham' ),
-            'section'         => 'beyond_gotham_ui_layout',
-            'settings'        => 'beyond_gotham_cta_max_width_unit',
-            'type'            => 'radio',
-            'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
-            'choices'         => array(
-                'px'  => __( 'Pixel (px)', 'beyond_gotham' ),
-                '%'   => __( 'Prozent (%)', 'beyond_gotham' ),
-                'rem' => __( 'Rem (rem)', 'beyond_gotham' ),
-            ),
-        )
-    );
-
-    $wp_customize->add_setting(
-        'beyond_gotham_cta_min_height',
-        array(
-            'default'           => $cta_layout_defaults['min_height_value'],
-            'type'              => 'theme_mod',
-            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
-            'transport'         => 'postMessage',
-        )
-    );
-
-    $wp_customize->add_control(
-        'beyond_gotham_cta_min_height_control',
-        array(
-            'label'           => __( 'Innenhöhe (min-height)', 'beyond_gotham' ),
-            'section'         => 'beyond_gotham_ui_layout',
-            'settings'        => 'beyond_gotham_cta_min_height',
-            'type'            => 'range',
-            'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
-            'input_attrs'     => array(
+            'settings'    => 'beyond_gotham_cta_width',
+            'type'        => 'range',
+            'input_attrs' => array(
                 'min'  => 200,
-                'max'  => 600,
+                'max'  => 1000,
                 'step' => 10,
             ),
-            'description'     => __( 'Höhe in Pixeln, die innerhalb der CTA mindestens beibehalten wird.', 'beyond_gotham' ),
+            'description' => __( 'Definiert die Breite der CTA-Box in Pixeln.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_height',
+        array(
+            'default'           => $cta_height_default,
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_height_control',
+        array(
+            'label'       => __( 'CTA-Höhe', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_cta_height',
+            'type'        => 'range',
+            'input_attrs' => array(
+                'min'  => 100,
+                'max'  => 500,
+                'step' => 10,
+            ),
+            'description' => __( 'Stellt die Höhe der CTA-Box in Pixeln ein.', 'beyond_gotham' ),
         )
     );
 
@@ -3045,9 +2911,8 @@ function beyond_gotham_customize_preview_js() {
         ),
     );
 
-    $cta_layout  = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
-    $cta_presets = function_exists( 'beyond_gotham_get_cta_size_presets' ) ? beyond_gotham_get_cta_size_presets() : array();
-    $ui_layout   = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
+    $cta_layout = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
+    $ui_layout  = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
 
     wp_localize_script(
         $handle,
@@ -3063,7 +2928,6 @@ function beyond_gotham_customize_preview_js() {
                 'button'  => '[data-bg-cta-button]',
             ),
             'ctaLayout'           => $cta_layout,
-            'ctaSizePresets'      => $cta_presets,
             'uiLayout'            => $ui_layout,
             'defaults'             => $color_defaults,
             'colorDefaults'        => $color_defaults,
