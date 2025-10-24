@@ -54,6 +54,8 @@
 
         <?php
         $custom_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
+        $socialbar_settings = function_exists( 'beyond_gotham_get_socialbar_settings' ) ? beyond_gotham_get_socialbar_settings() : array();
+        $header_socialbar_active = ! empty( $socialbar_settings['show_header'] );
         ?>
         <nav class="site-nav" id="primary-navigation" aria-label="<?php esc_attr_e( 'Hauptnavigation', 'beyond_gotham' ); ?>" data-bg-nav>
             <?php
@@ -73,27 +75,29 @@
                 echo '<ul class="site-nav__list"><li class="site-nav__item">' . esc_html__( 'Bitte ein Hauptmenü zuweisen.', 'beyond_gotham' ) . '</li></ul>';
             }
 
-            if ( has_nav_menu( 'menu-2' ) ) {
-                wp_nav_menu(
-                    array(
-                        'theme_location' => 'menu-2',
-                        'menu_class'     => 'site-nav__social',
-                        'container'      => false,
-                        'depth'          => 1,
-                    )
-                );
-            } elseif ( ! empty( $custom_social_links ) ) {
-                get_template_part(
-                    'template-parts/social-icons',
-                    null,
-                    array(
-                        'context'         => 'header',
-                        'modifiers'       => array( 'compact' ),
-                        'links'           => $custom_social_links,
-                        'wrapper_classes' => array( 'site-nav__social', 'site-nav__social--theme' ),
-                        'aria_label'      => __( 'Social-Media-Links', 'beyond_gotham' ),
-                    )
-                );
+            if ( ! $header_socialbar_active ) {
+                if ( has_nav_menu( 'menu-2' ) ) {
+                    wp_nav_menu(
+                        array(
+                            'theme_location' => 'menu-2',
+                            'menu_class'     => 'site-nav__social',
+                            'container'      => false,
+                            'depth'          => 1,
+                        )
+                    );
+                } elseif ( ! empty( $custom_social_links ) ) {
+                    get_template_part(
+                        'template-parts/social-icons',
+                        null,
+                        array(
+                            'context'         => 'header',
+                            'modifiers'       => array( 'compact' ),
+                            'links'           => $custom_social_links,
+                            'wrapper_classes' => array( 'site-nav__social', 'site-nav__social--theme' ),
+                            'aria_label'      => __( 'Social-Media-Links', 'beyond_gotham' ),
+                        )
+                    );
+                }
             }
             ?>
             <button
@@ -130,7 +134,7 @@
             </button>
         </nav>
         <?php
-        if ( function_exists( 'beyond_gotham_render_socialbar' ) ) {
+        if ( $header_socialbar_active && function_exists( 'beyond_gotham_render_socialbar' ) ) {
             beyond_gotham_render_socialbar( 'header' );
         }
         ?>

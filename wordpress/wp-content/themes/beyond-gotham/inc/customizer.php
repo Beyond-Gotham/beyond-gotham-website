@@ -3940,10 +3940,16 @@ function beyond_gotham_render_social_links( $links = null, $args = array() ) {
  * @param string $location Social bar location. Accepts 'header', 'mobile', or 'footer'.
  */
 function beyond_gotham_render_socialbar( $location = 'header' ) {
+    static $rendered_locations = array();
+
     $allowed_locations = array( 'header', 'mobile', 'footer' );
 
     if ( ! in_array( $location, $allowed_locations, true ) ) {
         $location = 'header';
+    }
+
+    if ( isset( $rendered_locations[ $location ] ) ) {
+        return;
     }
 
     $links    = beyond_gotham_get_social_links();
@@ -4096,6 +4102,8 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
 
         $attribute_string .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( $value ) );
     }
+
+    $rendered_locations[ $location ] = true;
 
     echo '<div' . $attribute_string . '>';
 
