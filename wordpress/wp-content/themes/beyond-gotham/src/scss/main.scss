@@ -134,6 +134,7 @@
   font-size: clamp(1.3rem, 2vw, 1.6rem);
 }
 
+
 .article-content blockquote {
   margin: clamp(2rem, 4vw, 3rem) auto;
   padding: 1.5rem 2rem;
@@ -143,6 +144,7 @@
   line-height: 1.6;
   font-style: italic;
 }
+
 
 .article-content figure {
   margin: clamp(2rem, 4vw, 3rem) 0;
@@ -255,6 +257,226 @@
   max-width: 60ch;
   padding: clamp(2rem, 5vw, 4rem) 0;
   text-align: center;
+}
+
+.wp-block {
+  max-width: min(72ch, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.wp-block[data-align="wide"],
+.alignwide {
+  width: min(95vw, 68rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.wp-block[data-align="full"],
+.alignfull {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+figure {
+  margin: clamp(2rem, 4vw, 3rem) 0;
+}
+
+.wp-block-image img,
+.wp-block-embed iframe,
+.wp-block-video video,
+.wp-block-cover img {
+  border-radius: 0.75rem;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.55);
+  text-align: center;
+}
+
+blockquote,
+.wp-block-quote {
+  margin: clamp(2rem, 4vw, 3rem) auto;
+  padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1.5rem, 4vw, 2.75rem);
+  border-left: 4px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.04);
+  font-size: 1.2rem;
+  line-height: 1.6;
+  font-style: italic;
+  border-radius: 0.75rem;
+}
+
+.wp-block-quote cite {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  font-style: normal;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.bg-stack-sm > * + * {
+  margin-top: 0.75rem;
+}
+
+.bg-stack-md > * + * {
+  margin-top: 1.5rem;
+}
+
+.bg-stack-lg > * + * {
+  margin-top: 2.5rem;
+}
+
+.bg-heading-xs {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.bg-heading-sm {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bg-heading-md {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.bg-heading-lg {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.wp-block-columns {
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.wp-block-column > * + * {
+  margin-top: 1.25rem;
+}
+
+.wp-block-button .wp-block-button__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0b1d2a, #143852);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  box-shadow: 0 8px 18px rgba(11, 29, 42, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.wp-block-button .wp-block-button__link:hover,
+.wp-block-button .wp-block-button__link:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(11, 29, 42, 0.3);
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link {
+  background: transparent;
+  color: #0b1d2a;
+  border: 2px solid currentColor;
+  box-shadow: none;
+  transform: none;
+}
+
+.wp-block-buttons.is-layout-flex {
+  gap: 0.75rem 1rem;
+}
+
+.wp-block-separator {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  width: 100%;
+  margin: clamp(2rem, 4vw, 3rem) auto;
+}
+
+.wp-block-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.wp-block-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background-color: #fff;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.wp-block-table table th,
+.wp-block-table table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.wp-block-table table th {
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.wp-block-table table tr:last-child td {
+  border-bottom: none;
+}
+
+.wp-block-code,
+pre {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  background-color: rgba(0, 0, 0, 0.08);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+}
+
+.has-gotham-midnight-background-color {
+  background-color: #0b1d2a;
+}
+
+.has-gotham-midnight-color {
+  color: #0b1d2a;
+}
+
+.has-skyline-gray-background-color {
+  background-color: #4c5b68;
+}
+
+.has-skyline-gray-color {
+  color: #4c5b68;
+}
+
+.has-signal-yellow-background-color {
+  background-color: #f2b705;
+}
+
+.has-signal-yellow-color {
+  color: #f2b705;
+}
+
+.has-beacon-red-background-color {
+  background-color: #d43a3a;
+}
+
+.has-beacon-red-color {
+  color: #d43a3a;
 }
 
 @media (min-width: 768px) {
