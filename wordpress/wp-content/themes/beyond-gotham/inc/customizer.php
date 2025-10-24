@@ -519,6 +519,46 @@ function beyond_gotham_sanitize_dimension_unit( $value ) {
 }
 
 /**
+ * Sanitize CSS length values (e.g. px, rem, em).
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_css_length( $value ) {
+    $value = trim( (string) $value );
+
+    if ( '' === $value ) {
+        return '';
+    }
+
+    if ( ! preg_match( '/^([0-9]+(?:\.[0-9]+)?)\s*(px|rem|em|vh|vw|vmin|vmax|%)$/i', $value, $matches ) ) {
+        return '';
+    }
+
+    $number = (float) $matches[1];
+
+    if ( $number <= 0 ) {
+        return '';
+    }
+
+    $unit      = strtolower( $matches[2] );
+    $precision = in_array( $unit, array( '%', 'vh', 'vw', 'vmin', 'vmax' ), true ) ? 0 : 2;
+    $rounded   = round( $number, $precision );
+
+    if ( $precision > 0 && abs( $rounded - round( $rounded ) ) < pow( 10, -$precision ) ) {
+        $rounded = round( $rounded );
+    }
+
+    if ( 0 === $precision ) {
+        $rounded = round( $rounded );
+    }
+
+    $value = $rounded . $unit;
+
+    return $value;
+}
+
+/**
  * Sanitize aspect ratio choices for thumbnails.
  *
  * @param string $value Raw value.
@@ -556,6 +596,42 @@ function beyond_gotham_get_ui_layout_defaults() {
         'content_max_width'         => 1200,
         'content_section_spacing'   => 48,
     );
+}
+
+/**
+ * Default responsive logo height values.
+ *
+ * @return array
+ */
+function beyond_gotham_get_logo_size_defaults() {
+    return array(
+        'mobile'  => '3rem',
+        'tablet'  => '4rem',
+        'desktop' => '4.5rem',
+    );
+}
+
+/**
+ * Retrieve responsive logo heights merged with defaults.
+ *
+ * @return array
+ */
+function beyond_gotham_get_logo_size_settings() {
+    $defaults = beyond_gotham_get_logo_size_defaults();
+    $sizes    = array();
+
+    foreach ( $defaults as $breakpoint => $default_value ) {
+        $raw_value   = get_theme_mod( 'beyond_gotham_logo_max_height_' . $breakpoint, $default_value );
+        $clean_value = beyond_gotham_sanitize_css_length( $raw_value );
+
+        if ( '' === $clean_value ) {
+            $clean_value = $default_value;
+        }
+
+        $sizes[ $breakpoint ] = $clean_value;
+    }
+
+    return $sizes;
 }
 
 /**
@@ -1253,6 +1329,69 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
             'description' => __( 'Allgemeine Einstellungen für Branding-Elemente.', 'beyond_gotham' ),
         )
     );
+
+    $wp_customize->add_section(
+        'beyond_gotham_logo_responsive_sizes',
+        array(
+            'title'       => __( 'Logo-Größe (Responsiv)', 'beyond_gotham' ),
+            'priority'    => 35,
+            'description' => __( 'Definiere die maximale Höhe des Logos für verschiedene Bildschirmgrößen.', 'beyond_gotham' ),
+        )
+    );
+
+    $logo_defaults  = beyond_gotham_get_logo_size_defaults();
+    $logo_priority  = 5;
+    $logo_breakpoints = array(
+        'mobile'  => __( 'Mobil (bis 767px)', 'beyond_gotham' ),
+        'tablet'  => __( 'Tablet (ab 768px)', 'beyond_gotham' ),
+        'desktop' => __( 'Desktop (ab 1024px)', 'beyond_gotham' ),
+    );
+
+    if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_logo_responsive_sizes_heading',
+                array(
+                    'section'     => 'beyond_gotham_logo_responsive_sizes',
+                    'label'       => __( 'Maximale Logo-Höhen', 'beyond_gotham' ),
+                    'description' => __( 'Nutze Werte wie „3rem“ oder „64px“, um das Logo responsiv an die Header-Höhe anzupassen.', 'beyond_gotham' ),
+                    'priority'    => $logo_priority,
+                )
+            )
+        );
+
+        $logo_priority += 5;
+    }
+
+    foreach ( $logo_breakpoints as $breakpoint => $label ) {
+        $setting_id = 'beyond_gotham_logo_max_height_' . $breakpoint;
+
+        $wp_customize->add_setting(
+            $setting_id,
+            array(
+                'default'           => $logo_defaults[ $breakpoint ],
+                'type'              => 'theme_mod',
+                'sanitize_callback' => 'beyond_gotham_sanitize_css_length',
+                'transport'         => 'refresh',
+            )
+        );
+
+        $wp_customize->add_control(
+            $setting_id,
+            array(
+                'label'       => $label,
+                'section'     => 'beyond_gotham_logo_responsive_sizes',
+                'type'        => 'text',
+                'priority'    => $logo_priority,
+                'input_attrs' => array(
+                    'placeholder' => $logo_defaults[ $breakpoint ],
+                ),
+            )
+        );
+
+        $logo_priority += 5;
+    }
 
     $wp_customize->add_panel(
         'beyond_gotham_color_modes',
@@ -4376,6 +4515,7 @@ function beyond_gotham_get_customizer_css() {
     $layout_root_vars = array();
 
     $socialbar_settings = beyond_gotham_get_socialbar_settings();
+    $logo_sizes         = beyond_gotham_get_logo_size_settings();
 
     if ( ! empty( $socialbar_settings['surface_color'] ) ) {
         $layout_root_vars['--socialbar-surface'] = $socialbar_settings['surface_color'];
@@ -4404,6 +4544,18 @@ function beyond_gotham_get_customizer_css() {
     if ( ! empty( $header_layout['height_css'] ) ) {
         $layout_root_vars['--site-header-height'] = $header_layout['height_css'];
         $layout_root_vars['--header-height']      = $header_layout['height_css'];
+    }
+
+    if ( ! empty( $logo_sizes['mobile'] ) ) {
+        $layout_root_vars['--logo-max-height-mobile'] = $logo_sizes['mobile'];
+    }
+
+    if ( ! empty( $logo_sizes['tablet'] ) ) {
+        $layout_root_vars['--logo-max-height-tablet'] = $logo_sizes['tablet'];
+    }
+
+    if ( ! empty( $logo_sizes['desktop'] ) ) {
+        $layout_root_vars['--logo-max-height-desktop'] = $logo_sizes['desktop'];
     }
 
     if ( isset( $header_layout['padding_top_css'] ) && '' !== $header_layout['padding_top_css'] ) {
