@@ -11,10 +11,14 @@ defined( 'ABSPATH' ) || exit;
  * Register custom blocks that ship with the theme.
  */
 function beyond_gotham_register_blocks() {
-    $block_dir = get_template_directory() . '/blocks/highlight-box';
+    $blocks = array( 'highlight-box', 'course-teaser' );
 
-    if ( file_exists( $block_dir . '/block.json' ) ) {
-        register_block_type( $block_dir );
+    foreach ( $blocks as $block ) {
+        $block_dir = get_template_directory() . '/blocks/' . $block;
+
+        if ( file_exists( $block_dir . '/block.json' ) ) {
+            register_block_type( $block_dir );
+        }
     }
 }
 add_action( 'init', 'beyond_gotham_register_blocks' );
@@ -52,6 +56,14 @@ function beyond_gotham_register_block_styles() {
         array(
             'name'  => 'bg-callout',
             'label' => __( 'Callout', 'beyond_gotham' ),
+        )
+    );
+
+    register_block_style(
+        'core/paragraph',
+        array(
+            'name'  => 'bg-intro',
+            'label' => __( 'Intro-Text', 'beyond_gotham' ),
         )
     );
 }

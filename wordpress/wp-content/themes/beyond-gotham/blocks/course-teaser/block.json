@@ -1,0 +1,55 @@
+{
+  "apiVersion": 2,
+  "name": "beyond-gotham/course-teaser",
+  "title": "Kurs-Teaser",
+  "category": "widgets",
+  "description": "Zeigt einen redaktionellen Teaser für Kurse oder OSINT-Highlights an.",
+  "textdomain": "beyond_gotham",
+  "keywords": [
+    "course",
+    "teaser",
+    "beyond gotham"
+  ],
+  "attributes": {
+    "eyebrow": {
+      "type": "string",
+      "source": "html",
+      "selector": ".bg-course-teaser__eyebrow"
+    },
+    "title": {
+      "type": "string",
+      "source": "html",
+      "selector": ".bg-course-teaser__title"
+    },
+    "summary": {
+      "type": "string",
+      "source": "html",
+      "selector": ".bg-course-teaser__summary"
+    },
+    "ctaLabel": {
+      "type": "string",
+      "default": ""
+    },
+    "ctaUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "meta": {
+      "type": "string",
+      "source": "html",
+      "selector": ".bg-course-teaser__meta"
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"],
+    "anchor": true,
+    "spacing": {
+      "margin": true,
+      "padding": true
+    }
+  },
+  "editorScript": "file:./index.js",
+  "style": "file:./style.css",
+  "editorStyle": "file:./editor.css"
+}
