@@ -9,13 +9,20 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Ensure the shared post meta helpers are available without redeclaring them.
-if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
-        require_once get_template_directory() . '/inc/post-meta.php';
-}
-
 // The customizer module consumes the helpers from inc/post-meta.php. Additional fields should
 // be registered via the `beyond_gotham_post_meta_fields` filter instead of redefining the helpers.
+
+if ( ! function_exists( 'beyond_gotham_get_post_meta_fields' ) || ! function_exists( 'beyond_gotham_get_post_meta_post_types' ) || ! function_exists( 'beyond_gotham_get_post_meta_defaults' ) ) {
+        if ( function_exists( '_doing_it_wrong' ) ) {
+                _doing_it_wrong(
+                        __FILE__,
+                        __( 'Post meta helpers must be loaded before initializing the customizer module.', 'beyond_gotham' ),
+                        defined( 'BEYOND_GOTHAM_VERSION' ) ? BEYOND_GOTHAM_VERSION : '0.1.0'
+                );
+        }
+
+        return;
+}
 
 // =============================================================================
 // Customizer Registration

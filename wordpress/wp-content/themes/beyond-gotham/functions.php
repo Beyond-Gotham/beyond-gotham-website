@@ -9,6 +9,9 @@ if ( ! defined( 'BEYOND_GOTHAM_VERSION' ) ) {
     define( 'BEYOND_GOTHAM_VERSION', '0.1.0' );
 }
 
+// Load the shared post meta helpers before any consumer touches them.
+require_once get_template_directory() . '/inc/post-meta.php';
+
 if ( ! function_exists( 'beyond_gotham_asset_version' ) ) {
     /**
      * Resolve a file version based on the file modification time.
@@ -746,9 +749,6 @@ function should_display_cta() {
     return apply_filters( 'beyond_gotham_should_display_cta', false, $settings, $conditions );
 }
 
-if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
-    require_once get_template_directory() . '/inc/post-meta.php';
-}
 require_once get_template_directory() . '/inc/customizer/loader.php';
 require_once get_template_directory() . '/inc/rest-api.php';
 require_once get_template_directory() . '/inc/blocks.php';

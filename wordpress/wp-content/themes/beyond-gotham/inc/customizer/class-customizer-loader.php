@@ -65,10 +65,68 @@ final class Beyond_Gotham_Customizer_Loader {
      * @return void
      */
     public function boot() {
+        if ( ! $this->should_boot() ) {
+            return;
+        }
+
         $this->load_support_files();
         $this->discover_modules();
 
         add_action( 'customize_register', array( $this, 'register_modules' ), 1 );
+    }
+
+    /**
+     * Determine whether the loader should initialise for the current request.
+     *
+     * @return bool
+     */
+    private function should_boot() {
+        if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
+            return false;
+        }
+
+        if ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() ) {
+            return false;
+        }
+
+        if ( defined( 'REST_REQUEST' ) && REST_REQUEST && ! $this->is_customizer_request() ) {
+            return false;
+        }
+
+        if ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() && ! $this->is_customizer_request() ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Detect if the current request is for the customizer preview or API.
+     *
+     * @return bool
+     */
+    private function is_customizer_request() {
+        if ( function_exists( 'is_customize_preview' ) && is_customize_preview() ) {
+            return true;
+        }
+
+        $request_keys = array(
+            'customize_changeset_uuid',
+            'customize_theme',
+            'customize_messenger_channel',
+        );
+
+        foreach ( $request_keys as $key ) {
+            if ( isset( $_REQUEST[ $key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                return true;
+            }
+        }
+
+        if ( isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] ) && 0 === strpos( $_REQUEST['action'], 'customize_' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            return true;
+        }
+
+        return false;
     }
 
     /**
