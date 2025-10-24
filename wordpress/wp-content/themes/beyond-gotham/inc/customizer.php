@@ -188,6 +188,107 @@ function beyond_gotham_hex_to_rgba( $color, $alpha = 1.0 ) {
 }
 
 /**
+ * Retrieve default navigation layout options.
+ *
+ * @return array
+ */
+function beyond_gotham_get_nav_layout_defaults() {
+    return array(
+        'orientation'   => 'horizontal',
+        'position'      => 'right',
+        'dropdown'      => 'down',
+        'sticky'        => true,
+        'sticky_offset' => 0,
+    );
+}
+
+/**
+ * Sanitize the navigation orientation choice.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_nav_orientation( $value ) {
+    $value = is_string( $value ) ? strtolower( $value ) : '';
+
+    if ( in_array( $value, array( 'horizontal', 'vertical' ), true ) ) {
+        return $value;
+    }
+
+    return 'horizontal';
+}
+
+/**
+ * Sanitize the navigation position choice.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_nav_position( $value ) {
+    $value = is_string( $value ) ? strtolower( $value ) : '';
+    $allowed = array( 'left', 'center', 'right', 'below' );
+
+    if ( in_array( $value, $allowed, true ) ) {
+        return $value;
+    }
+
+    return 'right';
+}
+
+/**
+ * Sanitize the dropdown direction choice.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_nav_dropdown_direction( $value ) {
+    $value = is_string( $value ) ? strtolower( $value ) : '';
+
+    if ( in_array( $value, array( 'down', 'right' ), true ) ) {
+        return $value;
+    }
+
+    return 'down';
+}
+
+/**
+ * Retrieve sanitized navigation layout settings.
+ *
+ * @return array
+ */
+function beyond_gotham_get_nav_layout_settings() {
+    $defaults = beyond_gotham_get_nav_layout_defaults();
+
+    return array(
+        'orientation'   => beyond_gotham_sanitize_nav_orientation( get_theme_mod( 'beyond_gotham_nav_orientation', $defaults['orientation'] ) ),
+        'position'      => beyond_gotham_sanitize_nav_position( get_theme_mod( 'beyond_gotham_nav_position', $defaults['position'] ) ),
+        'dropdown'      => beyond_gotham_sanitize_nav_dropdown_direction( get_theme_mod( 'beyond_gotham_nav_dropdown_direction', $defaults['dropdown'] ) ),
+        'sticky'        => beyond_gotham_sanitize_checkbox( get_theme_mod( 'beyond_gotham_nav_sticky', $defaults['sticky'] ) ),
+        'sticky_offset' => absint( get_theme_mod( 'beyond_gotham_nav_sticky_offset', $defaults['sticky_offset'] ) ),
+    );
+}
+
+/**
+ * Determine if sticky navigation is enabled in the Customizer preview.
+ *
+ * @param WP_Customize_Control $control Customizer control instance.
+ * @return bool
+ */
+function beyond_gotham_customize_is_nav_sticky_active( $control ) {
+    if ( ! $control instanceof WP_Customize_Control ) {
+        return true;
+    }
+
+    $setting = $control->manager->get_setting( 'beyond_gotham_nav_sticky' );
+
+    if ( ! $setting ) {
+        return true;
+    }
+
+    return beyond_gotham_sanitize_checkbox( $setting->value() );
+}
+
+/**
  * Retrieve default CTA values for reuse.
  *
  * @return array
@@ -277,6 +378,141 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
             'title'       => __( 'Social Media', 'beyond_gotham' ),
             'priority'    => 91,
             'description' => __( 'Links zu Social-Media-Profilen pflegen.', 'beyond_gotham' ),
+        )
+    );
+
+    $nav_defaults = beyond_gotham_get_nav_layout_defaults();
+
+    $wp_customize->add_section(
+        'beyond_gotham_navigation_layout',
+        array(
+            'title'       => __( 'Navigation & Menü-Layout', 'beyond_gotham' ),
+            'priority'    => 33,
+            'description' => __( 'Hier kannst du Position und Ausrichtung des Hauptmenüs konfigurieren.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_nav_orientation',
+        array(
+            'default'           => $nav_defaults['orientation'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_nav_orientation',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_nav_orientation_control',
+        array(
+            'label'       => __( 'Menü-Ausrichtung', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_navigation_layout',
+            'settings'    => 'beyond_gotham_nav_orientation',
+            'type'        => 'radio',
+            'choices'     => array(
+                'horizontal' => __( 'Horizontal', 'beyond_gotham' ),
+                'vertical'   => __( 'Vertikal', 'beyond_gotham' ),
+            ),
+            'description' => __( 'Steuert, ob die Hauptnavigation horizontal oder vertikal dargestellt wird.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_nav_position',
+        array(
+            'default'           => $nav_defaults['position'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_nav_position',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_nav_position_control',
+        array(
+            'label'       => __( 'Menü-Position im Header', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_navigation_layout',
+            'settings'    => 'beyond_gotham_nav_position',
+            'type'        => 'radio',
+            'choices'     => array(
+                'left'  => __( 'Links', 'beyond_gotham' ),
+                'center' => __( 'Mitte', 'beyond_gotham' ),
+                'right' => __( 'Rechts', 'beyond_gotham' ),
+                'below' => __( 'Unter dem Logo (Full-Width Below Branding)', 'beyond_gotham' ),
+            ),
+            'description' => __( 'Wähle die Ausrichtung des Menüs innerhalb des Headers.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_nav_dropdown_direction',
+        array(
+            'default'           => $nav_defaults['dropdown'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_nav_dropdown_direction',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_nav_dropdown_direction_control',
+        array(
+            'label'       => __( 'Dropdown-Richtung', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_navigation_layout',
+            'settings'    => 'beyond_gotham_nav_dropdown_direction',
+            'type'        => 'radio',
+            'choices'     => array(
+                'down'  => __( 'Nach unten', 'beyond_gotham' ),
+                'right' => __( 'Seitlich rechts', 'beyond_gotham' ),
+            ),
+            'description' => __( 'Bestimme, in welche Richtung Untermenüs aufklappen sollen.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_nav_sticky',
+        array(
+            'default'           => $nav_defaults['sticky'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_nav_sticky_control',
+        array(
+            'label'       => __( 'Sticky Header aktivieren', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_navigation_layout',
+            'settings'    => 'beyond_gotham_nav_sticky',
+            'type'        => 'checkbox',
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_nav_sticky_offset',
+        array(
+            'default'           => $nav_defaults['sticky_offset'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'absint',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_nav_sticky_offset_control',
+        array(
+            'label'           => __( 'Sticky-Offset (px)', 'beyond_gotham' ),
+            'section'         => 'beyond_gotham_navigation_layout',
+            'settings'        => 'beyond_gotham_nav_sticky_offset',
+            'type'            => 'number',
+            'input_attrs'     => array(
+                'min'  => 0,
+                'max'  => 300,
+                'step' => 1,
+            ),
+            'description'     => __( 'Optionaler Versatz vom oberen Bildschirmrand für den Sticky-Header.', 'beyond_gotham' ),
+            'active_callback' => 'beyond_gotham_customize_is_nav_sticky_active',
         )
     );
 
@@ -906,6 +1142,12 @@ function beyond_gotham_get_customizer_css() {
     $font_unit      = beyond_gotham_sanitize_font_unit( get_theme_mod( 'beyond_gotham_body_font_size_unit', 'px' ) );
     $line_height    = (float) get_theme_mod( 'beyond_gotham_body_line_height', 1.6 );
     $presets        = beyond_gotham_get_typography_presets();
+    $nav_layout     = beyond_gotham_get_nav_layout_settings();
+    $sticky_offset  = isset( $nav_layout['sticky_offset'] ) ? absint( $nav_layout['sticky_offset'] ) : 0;
+
+    if ( empty( $nav_layout['sticky'] ) ) {
+        $sticky_offset = 0;
+    }
 
     if ( 'rem' === $font_unit ) {
         $font_size = max( 0.5, min( 3, $font_size ) );
@@ -923,6 +1165,7 @@ function beyond_gotham_get_customizer_css() {
     $line_height_value = rtrim( rtrim( sprintf( '%.2f', $line_height ), '0' ), '.' );
 
     $css = ':root {';
+    $css .= '--bg-sticky-offset: ' . $sticky_offset . 'px;';
 
     if ( $primary ) {
         $css .= '--accent: ' . $primary . ';';

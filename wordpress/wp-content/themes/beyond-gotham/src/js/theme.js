@@ -366,6 +366,11 @@
     }
 
     const toggleCondensed = () => {
+      if (!bodyEl || !bodyEl.classList.contains('bg-has-sticky-header')) {
+        header.classList.remove('is-condensed');
+        return;
+      }
+
       const offset = window.pageYOffset || document.documentElement.scrollTop || 0;
       if (offset > 80) {
         header.classList.add('is-condensed');
@@ -376,6 +381,7 @@
 
     toggleCondensed();
     window.addEventListener('scroll', toggleCondensed, { passive: true });
+    document.addEventListener('bg:navStickyToggle', toggleCondensed);
   };
 
   const initCarousels = () => {
