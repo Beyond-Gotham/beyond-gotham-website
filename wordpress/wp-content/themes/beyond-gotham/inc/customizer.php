@@ -188,6 +188,131 @@ function beyond_gotham_hex_to_rgba( $color, $alpha = 1.0 ) {
 }
 
 /**
+ * Convert a sanitized hex color into an RGB triplet.
+ *
+ * @param string $color Hex color value.
+ * @return array|null
+ */
+function beyond_gotham_hex_to_rgb( $color ) {
+    $hex = sanitize_hex_color( $color );
+
+    if ( empty( $hex ) ) {
+        return null;
+    }
+
+    $hex = ltrim( $hex, '#' );
+
+    if ( 3 === strlen( $hex ) ) {
+        $hex = sprintf(
+            '%1$s%1$s%2$s%2$s%3$s%3$s',
+            $hex[0],
+            $hex[1],
+            $hex[2]
+        );
+    }
+
+    if ( 6 !== strlen( $hex ) ) {
+        return null;
+    }
+
+    return array(
+        hexdec( substr( $hex, 0, 2 ) ),
+        hexdec( substr( $hex, 2, 2 ) ),
+        hexdec( substr( $hex, 4, 2 ) ),
+    );
+}
+
+/**
+ * Calculate the relative luminance for a hex color value.
+ *
+ * @param string $color Hex color value.
+ * @return float|null
+ */
+function beyond_gotham_get_relative_luminance( $color ) {
+    $rgb = beyond_gotham_hex_to_rgb( $color );
+
+    if ( null === $rgb ) {
+        return null;
+    }
+
+    $channels = array_map(
+        static function ( $channel ) {
+            $channel = $channel / 255;
+
+            if ( $channel <= 0.03928 ) {
+                return $channel / 12.92;
+            }
+
+            return pow( ( $channel + 0.055 ) / 1.055, 2.4 );
+        },
+        $rgb
+    );
+
+    return ( 0.2126 * $channels[0] ) + ( 0.7152 * $channels[1] ) + ( 0.0722 * $channels[2] );
+}
+
+/**
+ * Determine the contrast ratio between two colors.
+ *
+ * @param string $color_a First color.
+ * @param string $color_b Second color.
+ * @return float
+ */
+function beyond_gotham_get_contrast_ratio( $color_a, $color_b ) {
+    $lum_a = beyond_gotham_get_relative_luminance( $color_a );
+    $lum_b = beyond_gotham_get_relative_luminance( $color_b );
+
+    if ( null === $lum_a || null === $lum_b ) {
+        return 0.0;
+    }
+
+    $lighter = max( $lum_a, $lum_b );
+    $darker  = min( $lum_a, $lum_b );
+
+    return ( $lighter + 0.05 ) / ( $darker + 0.05 );
+}
+
+/**
+ * Ensure the provided color offers sufficient contrast with the background.
+ *
+ * Attempts the preferred color first and gracefully falls back to provided
+ * defaults, finally checking pure black and white.
+ *
+ * @param string $preferred  Preferred color.
+ * @param string $background Background color for contrast testing.
+ * @param array  $fallbacks  List of fallback colors to try.
+ * @param float  $threshold  Minimum contrast ratio required.
+ * @return string|null
+ */
+function beyond_gotham_ensure_contrast( $preferred, $background, $fallbacks = array(), $threshold = 4.5 ) {
+    $background = sanitize_hex_color( $background );
+    $candidates = array_merge( array( sanitize_hex_color( $preferred ) ), $fallbacks );
+    $candidates = array_filter(
+        array_map( 'sanitize_hex_color', $candidates )
+    );
+
+    // Always ensure black and white are tested as final fallbacks.
+    $candidates[] = '#000000';
+    $candidates[] = '#ffffff';
+
+    foreach ( $candidates as $candidate ) {
+        if ( ! $candidate ) {
+            continue;
+        }
+
+        if ( ! $background ) {
+            return $candidate;
+        }
+
+        if ( beyond_gotham_get_contrast_ratio( $candidate, $background ) >= $threshold ) {
+            return $candidate;
+        }
+    }
+
+    return $preferred ? sanitize_hex_color( $preferred ) : null;
+}
+
+/**
  * Retrieve default navigation layout options.
  *
  * @return array
@@ -341,7 +466,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         array(
             'title'       => __( 'Farben & Design', 'beyond_gotham' ),
             'priority'    => 31,
-            'description' => __( 'Steuere Primär-, Hintergrund- und Textfarben sowie CTA-Akzente.', 'beyond_gotham' ),
+            'description' => __( 'Steuere Primär-, Hintergrund- und Textfarben sowie Links, Buttons und Callouts.', 'beyond_gotham' ),
         )
     );
 
@@ -673,6 +798,167 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
                 'section'     => 'beyond_gotham_colors',
                 'settings'    => 'beyond_gotham_cta_accent_color',
                 'description' => __( 'Wird für Highlight-Boxen und Newsletter-CTAs verwendet.', 'beyond_gotham' ),
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_header_background_color',
+        array(
+            'default'           => '#0b0d12',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_header_background_color_control',
+            array(
+                'label'       => __( 'Header-Hintergrundfarbe', 'beyond_gotham' ),
+                'section'     => 'beyond_gotham_colors',
+                'settings'    => 'beyond_gotham_header_background_color',
+                'description' => __( 'Beeinflusst die Hintergrundfarbe der oberen Seite inkl. Navigationsbereich.', 'beyond_gotham' ),
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_footer_background_color',
+        array(
+            'default'           => '#050608',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_footer_background_color_control',
+            array(
+                'label'       => __( 'Footer-Hintergrundfarbe', 'beyond_gotham' ),
+                'section'     => 'beyond_gotham_colors',
+                'settings'    => 'beyond_gotham_footer_background_color',
+                'description' => __( 'Färbt den kompletten Footer-Bereich samt CTA.', 'beyond_gotham' ),
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_link_color',
+        array(
+            'default'           => '#33d1ff',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_link_color_control',
+            array(
+                'label'       => __( 'Linkfarbe', 'beyond_gotham' ),
+                'section'     => 'beyond_gotham_colors',
+                'settings'    => 'beyond_gotham_link_color',
+                'description' => __( 'Standardfarbe für Textlinks im gesamten Theme.', 'beyond_gotham' ),
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_link_hover_color',
+        array(
+            'default'           => '#1aa5d1',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_link_hover_color_control',
+            array(
+                'label'       => __( 'Link-Hover-Farbe', 'beyond_gotham' ),
+                'section'     => 'beyond_gotham_colors',
+                'settings'    => 'beyond_gotham_link_hover_color',
+                'description' => __( 'Farbe für Hover-, Fokus- und aktive Zustände von Links.', 'beyond_gotham' ),
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_button_background_color',
+        array(
+            'default'           => '#33d1ff',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_button_background_color_control',
+            array(
+                'label'       => __( 'Button-Hintergrundfarbe', 'beyond_gotham' ),
+                'section'     => 'beyond_gotham_colors',
+                'settings'    => 'beyond_gotham_button_background_color',
+                'description' => __( 'Hintergrund- und Rahmenfarbe für Buttons und Formularaktionen.', 'beyond_gotham' ),
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_button_text_color',
+        array(
+            'default'           => '#050608',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_button_text_color_control',
+            array(
+                'label'       => __( 'Button-Textfarbe', 'beyond_gotham' ),
+                'section'     => 'beyond_gotham_colors',
+                'settings'    => 'beyond_gotham_button_text_color',
+                'description' => __( 'Textfarbe für Buttons, damit Beschriftungen immer gut lesbar bleiben.', 'beyond_gotham' ),
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_quote_background_color',
+        array(
+            'default'           => '#161b2a',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_quote_background_color_control',
+            array(
+                'label'       => __( 'Zitat- & Highlight-Hintergrund', 'beyond_gotham' ),
+                'section'     => 'beyond_gotham_colors',
+                'settings'    => 'beyond_gotham_quote_background_color',
+                'description' => __( 'Steuert Hintergründe von Blockquotes, Pullquotes und Highlight-Boxen.', 'beyond_gotham' ),
             )
         )
     );
@@ -1131,19 +1417,95 @@ function beyond_gotham_render_social_links( $links = null ) {
  * @return string
  */
 function beyond_gotham_get_customizer_css() {
-    $primary        = sanitize_hex_color( get_theme_mod( 'beyond_gotham_primary_color', '#33d1ff' ) );
-    $secondary      = sanitize_hex_color( get_theme_mod( 'beyond_gotham_secondary_color', '#1aa5d1' ) );
-    $background     = sanitize_hex_color( get_theme_mod( 'beyond_gotham_background_color', '#0f1115' ) );
-    $text_color     = sanitize_hex_color( get_theme_mod( 'beyond_gotham_text_color', '#e7eaee' ) );
-    $cta_accent     = sanitize_hex_color( get_theme_mod( 'beyond_gotham_cta_accent_color', '#33d1ff' ) );
-    $body_font_key  = beyond_gotham_sanitize_typography_choice( get_theme_mod( 'beyond_gotham_body_font_family', 'inter' ) );
-    $heading_key    = beyond_gotham_sanitize_typography_choice( get_theme_mod( 'beyond_gotham_heading_font_family', 'merriweather' ) );
-    $font_size      = (float) get_theme_mod( 'beyond_gotham_body_font_size', 16 );
-    $font_unit      = beyond_gotham_sanitize_font_unit( get_theme_mod( 'beyond_gotham_body_font_size_unit', 'px' ) );
-    $line_height    = (float) get_theme_mod( 'beyond_gotham_body_line_height', 1.6 );
-    $presets        = beyond_gotham_get_typography_presets();
-    $nav_layout     = beyond_gotham_get_nav_layout_settings();
-    $sticky_offset  = isset( $nav_layout['sticky_offset'] ) ? absint( $nav_layout['sticky_offset'] ) : 0;
+    $defaults = array(
+        'primary'                  => '#33d1ff',
+        'secondary'                => '#1aa5d1',
+        'background'               => '#0f1115',
+        'text'                     => '#e7eaee',
+        'text_dark'                => '#050608',
+        'cta_accent'               => '#33d1ff',
+        'header_background'        => '#0b0d12',
+        'footer_background'        => '#050608',
+        'link_color'               => '#33d1ff',
+        'link_hover_color'         => '#1aa5d1',
+        'button_background_color'  => '#33d1ff',
+        'button_text_color'        => '#050608',
+        'quote_background_color'   => '#161b2a',
+    );
+
+    $primary           = sanitize_hex_color( get_theme_mod( 'beyond_gotham_primary_color', $defaults['primary'] ) ) ?: $defaults['primary'];
+    $secondary         = sanitize_hex_color( get_theme_mod( 'beyond_gotham_secondary_color', $defaults['secondary'] ) ) ?: $defaults['secondary'];
+    $background        = sanitize_hex_color( get_theme_mod( 'beyond_gotham_background_color', $defaults['background'] ) ) ?: $defaults['background'];
+    $text_color_raw    = sanitize_hex_color( get_theme_mod( 'beyond_gotham_text_color', $defaults['text'] ) ) ?: $defaults['text'];
+    $cta_accent        = sanitize_hex_color( get_theme_mod( 'beyond_gotham_cta_accent_color', $defaults['cta_accent'] ) ) ?: $defaults['cta_accent'];
+    $header_background = sanitize_hex_color( get_theme_mod( 'beyond_gotham_header_background_color', $defaults['header_background'] ) ) ?: $defaults['header_background'];
+    $footer_background = sanitize_hex_color( get_theme_mod( 'beyond_gotham_footer_background_color', $defaults['footer_background'] ) ) ?: $defaults['footer_background'];
+    $link_color_raw    = sanitize_hex_color( get_theme_mod( 'beyond_gotham_link_color', $defaults['link_color'] ) ) ?: $defaults['link_color'];
+    $link_hover_raw    = sanitize_hex_color( get_theme_mod( 'beyond_gotham_link_hover_color', $defaults['link_hover_color'] ) ) ?: $defaults['link_hover_color'];
+    $button_bg         = sanitize_hex_color( get_theme_mod( 'beyond_gotham_button_background_color', $defaults['button_background_color'] ) ) ?: $defaults['button_background_color'];
+    $button_text_raw   = sanitize_hex_color( get_theme_mod( 'beyond_gotham_button_text_color', $defaults['button_text_color'] ) ) ?: $defaults['button_text_color'];
+    $quote_background  = sanitize_hex_color( get_theme_mod( 'beyond_gotham_quote_background_color', $defaults['quote_background_color'] ) ) ?: $defaults['quote_background_color'];
+
+    $text_color = beyond_gotham_ensure_contrast( $text_color_raw, $background, array( $defaults['text'], $defaults['text_dark'] ) );
+    if ( ! $text_color ) {
+        $text_color = $defaults['text'];
+    }
+
+    $link_color = beyond_gotham_ensure_contrast(
+        $link_color_raw,
+        $background,
+        array( $defaults['link_color'], $primary, $secondary, $defaults['text_dark'], $defaults['text'] )
+    );
+    if ( ! $link_color ) {
+        $link_color = $defaults['link_color'];
+    }
+
+    $link_hover = beyond_gotham_ensure_contrast(
+        $link_hover_raw,
+        $background,
+        array( $link_color, $defaults['link_hover_color'], $secondary, $primary, $defaults['text_dark'] )
+    );
+    if ( ! $link_hover ) {
+        $link_hover = $defaults['link_hover_color'];
+    }
+
+    $button_text = beyond_gotham_ensure_contrast(
+        $button_text_raw,
+        $button_bg,
+        array( $defaults['button_text_color'], $text_color, $defaults['text_dark'], '#ffffff' )
+    );
+    if ( ! $button_text ) {
+        $button_text = $defaults['button_text_color'];
+    }
+
+    $header_background = beyond_gotham_ensure_contrast(
+        $header_background,
+        $text_color,
+        array( $defaults['header_background'], $background )
+    ) ?: $defaults['header_background'];
+
+    $footer_background = beyond_gotham_ensure_contrast(
+        $footer_background,
+        $text_color,
+        array( $defaults['footer_background'], $background )
+    ) ?: $defaults['footer_background'];
+
+    $quote_background = beyond_gotham_ensure_contrast(
+        $quote_background,
+        $text_color,
+        array( $defaults['quote_background_color'], $background )
+    ) ?: $defaults['quote_background_color'];
+
+    $quote_border = beyond_gotham_hex_to_rgba( $quote_background, 0.35 );
+
+    $body_font_key = beyond_gotham_sanitize_typography_choice( get_theme_mod( 'beyond_gotham_body_font_family', 'inter' ) );
+    $heading_key   = beyond_gotham_sanitize_typography_choice( get_theme_mod( 'beyond_gotham_heading_font_family', 'merriweather' ) );
+    $font_size     = (float) get_theme_mod( 'beyond_gotham_body_font_size', 16 );
+    $font_unit     = beyond_gotham_sanitize_font_unit( get_theme_mod( 'beyond_gotham_body_font_size_unit', 'px' ) );
+    $line_height   = (float) get_theme_mod( 'beyond_gotham_body_line_height', 1.6 );
+    $presets       = beyond_gotham_get_typography_presets();
+    $nav_layout    = beyond_gotham_get_nav_layout_settings();
+    $sticky_offset = isset( $nav_layout['sticky_offset'] ) ? absint( $nav_layout['sticky_offset'] ) : 0;
 
     if ( empty( $nav_layout['sticky'] ) ) {
         $sticky_offset = 0;
@@ -1187,6 +1549,38 @@ function beyond_gotham_get_customizer_css() {
         $css .= '--cta-accent: ' . $cta_accent . ';';
     }
 
+    if ( $header_background ) {
+        $css .= '--bg-header: ' . $header_background . ';';
+    }
+
+    if ( $footer_background ) {
+        $css .= '--bg-footer: ' . $footer_background . ';';
+    }
+
+    if ( $link_color ) {
+        $css .= '--link-color: ' . $link_color . ';';
+    }
+
+    if ( $link_hover ) {
+        $css .= '--link-hover-color: ' . $link_hover . ';';
+    }
+
+    if ( $button_bg ) {
+        $css .= '--button-bg: ' . $button_bg . ';';
+    }
+
+    if ( $button_text ) {
+        $css .= '--button-fg: ' . $button_text . ';';
+    }
+
+    if ( $quote_background ) {
+        $css .= '--callout-bg: ' . $quote_background . ';';
+    }
+
+    if ( $quote_border ) {
+        $css .= '--callout-border: ' . $quote_border . ';';
+    }
+
     $css .= '}' . PHP_EOL;
 
     $body_rules = array();
@@ -1208,6 +1602,61 @@ function beyond_gotham_get_customizer_css() {
 
     if ( ! empty( $body_rules ) ) {
         $css .= 'body {' . implode( ' ', $body_rules ) . '}';
+    }
+
+    if ( $header_background ) {
+        $css .= '.site-header {background-color: var(--bg-header, ' . $header_background . ');}';
+    }
+
+    if ( $footer_background ) {
+        $css .= '.site-footer {background-color: var(--bg-footer, ' . $footer_background . ');}';
+    }
+
+    if ( $link_color ) {
+        $css .= 'a, a:visited, .entry-content a, .widget a, .site-footer a, .site-header a {color: var(--link-color, ' . $link_color . ');}';
+    }
+
+    if ( $link_hover ) {
+        $css .= 'a:hover, a:focus, a:active, .entry-content a:hover, .entry-content a:focus, .widget a:hover, .widget a:focus, .site-footer a:hover, .site-footer a:focus, .site-header a:hover, .site-header a:focus {color: var(--link-hover-color, ' . $link_hover . ');}';
+    }
+
+    $button_selectors = '.bg-button, .wp-block-button__link, .wp-element-button, button, input[type="submit"], input[type="button"], input[type="reset"], .button';
+    $button_hover_selectors = '.bg-button:hover, .bg-button:focus, .wp-block-button__link:hover, .wp-block-button__link:focus, .wp-element-button:hover, .wp-element-button:focus, button:hover, button:focus, input[type="submit"]:hover, input[type="submit"]:focus, input[type="button"]:hover, input[type="button"]:focus, input[type="reset"]:hover, input[type="reset"]:focus, .button:hover, .button:focus';
+
+    if ( $button_bg || $button_text ) {
+        $button_rules = array();
+
+        if ( $button_bg ) {
+            $button_rules[] = 'background-color: var(--button-bg, ' . $button_bg . ');';
+            $button_rules[] = 'border-color: var(--button-bg, ' . $button_bg . ');';
+        }
+
+        if ( $button_text ) {
+            $button_rules[] = 'color: var(--button-fg, ' . $button_text . ');';
+        }
+
+        if ( ! empty( $button_rules ) ) {
+            $css .= $button_selectors . ' {' . implode( ' ', $button_rules ) . '}';
+            $css .= $button_hover_selectors . ' {' . implode( ' ', $button_rules ) . '}';
+        }
+    }
+
+    if ( $quote_background ) {
+        $css .= '.wp-block-beyond-gotham-highlight-box, .bg-highlight-box {background: var(--callout-bg, ' . $quote_background . ');';
+
+        if ( $quote_border ) {
+            $css .= 'border-color: var(--callout-border, ' . $quote_border . ');';
+        }
+
+        $css .= '}';
+
+        $css .= 'blockquote, .wp-block-quote, .wp-block-quote.is-style-large, .wp-block-pullquote {background-color: var(--callout-bg, ' . $quote_background . ');';
+
+        if ( $quote_border ) {
+            $css .= 'border-color: var(--callout-border, ' . $quote_border . '); border-left-color: var(--callout-border, ' . $quote_border . ');';
+        }
+
+        $css .= '}';
     }
 
     if ( isset( $presets[ $heading_key ] ) ) {
@@ -1294,6 +1743,21 @@ function beyond_gotham_customize_preview_js() {
         $stacks[ $key ] = $preset['stack'];
     }
 
+    $color_defaults = array(
+        'backgroundColor'       => '#0f1115',
+        'textColor'             => '#e7eaee',
+        'darkTextColor'         => '#050608',
+        'primaryColor'          => '#33d1ff',
+        'secondaryColor'        => '#1aa5d1',
+        'headerBackgroundColor' => '#0b0d12',
+        'footerBackgroundColor' => '#050608',
+        'linkColor'             => '#33d1ff',
+        'linkHoverColor'        => '#1aa5d1',
+        'buttonBackgroundColor' => '#33d1ff',
+        'buttonTextColor'       => '#050608',
+        'quoteBackgroundColor'  => '#161b2a',
+    );
+
     wp_localize_script(
         $handle,
         'BGCustomizerPreview',
@@ -1307,6 +1771,8 @@ function beyond_gotham_customize_preview_js() {
                 'text'    => '[data-bg-cta-text]',
                 'button'  => '[data-bg-cta-button]',
             ),
+            'defaults'             => $color_defaults,
+            'contrastThreshold'    => 4.5,
         )
     );
 }
