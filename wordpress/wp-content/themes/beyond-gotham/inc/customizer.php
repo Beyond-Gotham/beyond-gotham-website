@@ -637,10 +637,14 @@ function beyond_gotham_get_cta_defaults() {
  */
 function beyond_gotham_get_cta_layout_defaults() {
     return array(
-        'width'     => 600,
-        'height'    => 200,
-        'position'  => 'bottom',
-        'alignment' => 'center',
+        'width'         => 600,
+        'height'        => 200,
+        'position'      => 'bottom',
+        'alignment'     => 'center',
+        'mobile_width'  => 0,
+        'mobile_height' => 0,
+        'mobile_padding' => 0,
+        'show_mobile'   => true,
     );
 }
 
@@ -677,10 +681,14 @@ function beyond_gotham_format_css_size( $value, $unit = 'px' ) {
 function beyond_gotham_get_cta_layout_settings() {
     $defaults = beyond_gotham_get_cta_layout_defaults();
 
-    $width     = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_width', $defaults['width'] ) );
-    $height    = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_height', $defaults['height'] ) );
-    $position  = beyond_gotham_sanitize_cta_position( get_theme_mod( 'beyond_gotham_cta_position', $defaults['position'] ) );
-    $alignment = beyond_gotham_sanitize_cta_alignment( get_theme_mod( 'beyond_gotham_cta_alignment', $defaults['alignment'] ) );
+    $width          = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_width', $defaults['width'] ) );
+    $height         = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_height', $defaults['height'] ) );
+    $position       = beyond_gotham_sanitize_cta_position( get_theme_mod( 'beyond_gotham_cta_position', $defaults['position'] ) );
+    $alignment      = beyond_gotham_sanitize_cta_alignment( get_theme_mod( 'beyond_gotham_cta_alignment', $defaults['alignment'] ) );
+    $show_mobile    = beyond_gotham_sanitize_checkbox( get_theme_mod( 'beyond_gotham_cta_mobile_visible', $defaults['show_mobile'] ) );
+    $mobile_width   = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_mobile_width', $defaults['mobile_width'] ) );
+    $mobile_height  = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_mobile_height', $defaults['mobile_height'] ) );
+    $mobile_padding = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_mobile_padding', $defaults['mobile_padding'] ) );
 
     if ( $width <= 0 ) {
         $legacy_width_unit  = get_theme_mod( 'beyond_gotham_cta_max_width_unit', 'px' );
@@ -699,8 +707,11 @@ function beyond_gotham_get_cta_layout_settings() {
         }
     }
 
-    $width_css  = $width > 0 ? beyond_gotham_format_css_size( $width, 'px' ) : '';
-    $height_css = $height > 0 ? beyond_gotham_format_css_size( $height, 'px' ) : '';
+    $width_css         = $width > 0 ? beyond_gotham_format_css_size( $width, 'px' ) : '';
+    $height_css        = $height > 0 ? beyond_gotham_format_css_size( $height, 'px' ) : '';
+    $mobile_width_css  = $mobile_width > 0 ? beyond_gotham_format_css_size( $mobile_width, 'px' ) : '';
+    $mobile_height_css = $mobile_height > 0 ? beyond_gotham_format_css_size( $mobile_height, 'px' ) : '';
+    $mobile_padding_css = beyond_gotham_format_px_value( $mobile_padding, true );
 
     $classes = array(
         'cta-' . $position,
@@ -717,15 +728,34 @@ function beyond_gotham_get_cta_layout_settings() {
         $style_map['--cta-height'] = $height_css;
     }
 
+    if ( $mobile_width_css ) {
+        $style_map['--cta-width-mobile'] = $mobile_width_css;
+    }
+
+    if ( $mobile_height_css ) {
+        $style_map['--cta-height-mobile'] = $mobile_height_css;
+    }
+
+    if ( '' !== $mobile_padding_css ) {
+        $style_map['--cta-padding-mobile'] = $mobile_padding_css;
+    }
+
     return array(
-        'width'       => $width,
-        'height'      => $height,
-        'width_css'   => $width_css,
-        'height_css'  => $height_css,
-        'position'    => $position,
-        'alignment'   => $alignment,
-        'class_list'  => array_values( array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) ) ),
-        'style_map'   => $style_map,
+        'width'             => $width,
+        'height'            => $height,
+        'width_css'         => $width_css,
+        'height_css'        => $height_css,
+        'position'          => $position,
+        'alignment'         => $alignment,
+        'show_mobile'       => $show_mobile,
+        'mobile_width'      => $mobile_width,
+        'mobile_height'     => $mobile_height,
+        'mobile_padding'    => $mobile_padding,
+        'mobile_width_css'  => $mobile_width_css,
+        'mobile_height_css' => $mobile_height_css,
+        'mobile_padding_css' => $mobile_padding_css,
+        'class_list'        => array_values( array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) ) ),
+        'style_map'         => $style_map,
     );
 }
 
@@ -844,6 +874,15 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
             'title'       => __( 'UI Layout & Abstände', 'beyond_gotham' ),
             'priority'    => 41,
             'description' => __( 'Passe Position, Größe und Abstände zentral an.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_section(
+        'beyond_gotham_cta_mobile',
+        array(
+            'title'       => __( 'CTA – Mobilgeräte', 'beyond_gotham' ),
+            'priority'    => 42,
+            'description' => __( 'Steuere Sichtbarkeit und Darstellung der CTA-Box auf Smartphones.', 'beyond_gotham' ),
         )
     );
 
@@ -1695,6 +1734,105 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
                 'center' => __( 'Zentriert', 'beyond_gotham' ),
                 'right'  => __( 'Rechts', 'beyond_gotham' ),
             ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_mobile_visible',
+        array(
+            'default'           => $cta_layout_defaults['show_mobile'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_mobile_visible_control',
+        array(
+            'label'       => __( 'CTA auf Mobilgeräten anzeigen?', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_mobile',
+            'settings'    => 'beyond_gotham_cta_mobile_visible',
+            'type'        => 'checkbox',
+            'description' => __( 'Blende die Newsletter-CTA auf Displays unter 768px aus.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_mobile_width',
+        array(
+            'default'           => $cta_layout_defaults['mobile_width'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_mobile_width_control',
+        array(
+            'label'       => __( 'CTA-Breite – Mobil', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_mobile',
+            'settings'    => 'beyond_gotham_cta_mobile_width',
+            'type'        => 'range',
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 600,
+                'step' => 10,
+            ),
+            'description' => __( 'Lege eine feste Breite zwischen 200px und 600px fest. 0 entspricht voller Breite (100%).', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_mobile_height',
+        array(
+            'default'           => $cta_layout_defaults['mobile_height'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_mobile_height_control',
+        array(
+            'label'       => __( 'CTA-Höhe – Mobil', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_mobile',
+            'settings'    => 'beyond_gotham_cta_mobile_height',
+            'type'        => 'range',
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 300,
+                'step' => 5,
+            ),
+            'description' => __( 'Definiert die Höhe der CTA-Box für Smartphones. 0 übernimmt die automatische Höhe.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_mobile_padding',
+        array(
+            'default'           => $cta_layout_defaults['mobile_padding'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_mobile_padding_control',
+        array(
+            'label'       => __( 'Innenabstand – Mobil', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_mobile',
+            'settings'    => 'beyond_gotham_cta_mobile_padding',
+            'type'        => 'range',
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 80,
+                'step' => 2,
+            ),
+            'description' => __( 'Feinjustiere das Padding innerhalb der CTA-Box. 0 verwendet den Standardwert.', 'beyond_gotham' ),
         )
     );
 
