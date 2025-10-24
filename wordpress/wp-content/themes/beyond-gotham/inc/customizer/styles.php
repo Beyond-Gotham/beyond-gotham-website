@@ -235,12 +235,93 @@ function beyond_gotham_get_customizer_css() {
  * Print inline styles driven by the customizer.
  */
 function beyond_gotham_print_customizer_styles() {
-	$css = beyond_gotham_get_customizer_css();
+        $css = beyond_gotham_get_customizer_css();
 
-	if ( empty( $css ) ) {
-		return;
-	}
+        if ( empty( $css ) ) {
+                return;
+        }
 
-	wp_add_inline_style( 'beyond-gotham-style', $css );
+        wp_add_inline_style( 'beyond-gotham-style', $css );
 }
-add_action( 'wp_enqueue_scripts', 'beyond_gotham_print_customizer_styles', 20 );
+
+/**
+ * Enqueue the Customizer preview script with contextual data.
+ */
+function beyond_gotham_customize_preview_js() {
+        $handle  = 'beyond-gotham-customize-preview';
+        $src     = get_template_directory_uri() . '/assets/js/customize-preview.js';
+        $version = function_exists( 'beyond_gotham_asset_version' ) ? beyond_gotham_asset_version( 'assets/js/customize-preview.js' ) : BEYOND_GOTHAM_VERSION;
+
+        wp_enqueue_script( $handle, $src, array( 'customize-preview' ), $version, true );
+
+        $presets = beyond_gotham_get_typography_presets();
+        $stacks  = array();
+
+        foreach ( $presets as $key => $preset ) {
+                $stacks[ $key ] = $preset['stack'];
+        }
+
+        $color_defaults = array(
+                'light' => array(
+                        'primary'           => '#33d1ff',
+                        'secondary'         => '#1aa5d1',
+                        'background'        => '#f4f6fb',
+                        'text'              => '#0f172a',
+                        'darkText'          => '#050608',
+                        'ctaAccent'         => '#33d1ff',
+                        'headerBackground'  => '#ffffff',
+                        'footerBackground'  => '#f4f6fb',
+                        'link'              => '#0f172a',
+                        'linkHover'         => '#1aa5d1',
+                        'buttonBackground'  => '#33d1ff',
+                        'buttonText'        => '#050608',
+                        'quoteBackground'   => '#e6edf7',
+                ),
+                'dark'  => array(
+                        'primary'           => '#33d1ff',
+                        'secondary'         => '#1aa5d1',
+                        'background'        => '#0f1115',
+                        'text'              => '#e7eaee',
+                        'darkText'          => '#050608',
+                        'ctaAccent'         => '#33d1ff',
+                        'headerBackground'  => '#0b0d12',
+                        'footerBackground'  => '#050608',
+                        'link'              => '#33d1ff',
+                        'linkHover'         => '#1aa5d1',
+                        'buttonBackground'  => '#33d1ff',
+                        'buttonText'        => '#050608',
+                        'quoteBackground'   => '#161b2a',
+                ),
+        );
+
+        $cta_layout    = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
+        $ui_layout     = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
+        $sticky_layout = function_exists( 'beyond_gotham_get_sticky_cta_settings' ) ? beyond_gotham_get_sticky_cta_settings() : array();
+
+        wp_localize_script(
+                $handle,
+                'BGCustomizerPreview',
+                array(
+                        'fontStacks'           => $stacks,
+                        'footerTarget'         => '.site-info',
+                        'headingSelector'      => 'h1, h2, h3, h4, h5, h6',
+                        'footerSocialSelector' => '[data-bg-footer-social]',
+                        'ctaSelectors'         => array(
+                                'wrapper' => '[data-bg-cta]',
+                                'text'    => '[data-bg-cta-text]',
+                                'button'  => '[data-bg-cta-button]',
+                        ),
+                        'stickyCtaSelectors'   => array(
+                                'wrapper' => '[data-bg-sticky-cta]',
+                                'content' => '[data-bg-sticky-cta-content]',
+                                'button'  => '[data-bg-sticky-cta-button]',
+                        ),
+                        'ctaLayout'           => $cta_layout,
+                        'stickyCta'           => $sticky_layout,
+                        'uiLayout'            => $ui_layout,
+                        'defaults'             => $color_defaults,
+                        'colorDefaults'        => $color_defaults,
+                        'contrastThreshold'    => 4.5,
+                )
+        );
+}

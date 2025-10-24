@@ -113,4 +113,3 @@ function beyond_gotham_register_footer_customizer( WP_Customize_Manager $wp_cust
 		);
 	}
 }
-add_action( 'customize_register', 'beyond_gotham_register_footer_customizer' );

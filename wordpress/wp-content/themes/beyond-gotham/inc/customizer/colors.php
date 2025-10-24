@@ -47,8 +47,6 @@ function beyond_gotham_get_color_defaults() {
 // Customizer Registration
 // =============================================================================
 
-add_action( 'customize_register', 'beyond_gotham_register_colors_customizer', 15 );
-
 /**
  * Register color settings in the customizer.
  *

@@ -346,4 +346,3 @@ function beyond_gotham_register_social_sharing_customizer( WP_Customize_Manager 
 		++$network_priority;
 	}
 }
-add_action( 'customize_register', 'beyond_gotham_register_social_sharing_customizer' );

@@ -30,8 +30,6 @@ function beyond_gotham_get_logo_defaults() {
 // Customizer Registration
 // =============================================================================
 
-add_action( 'customize_register', 'beyond_gotham_register_logo_customizer', 10 );
-
 /**
  * Register logo settings in the customizer.
  *
@@ -187,13 +185,28 @@ function beyond_gotham_register_logo_customizer( $wp_customize ) {
  * @return array
  */
 function beyond_gotham_get_logo_size_settings() {
-	$defaults = beyond_gotham_get_logo_defaults();
+        $defaults = beyond_gotham_get_logo_defaults();
 
-	return array(
-		'desktop_height' => absint( get_theme_mod( 'beyond_gotham_logo_height_desktop', $defaults['desktop_height'] ) ),
-		'mobile_height'  => absint( get_theme_mod( 'beyond_gotham_logo_height_mobile', $defaults['mobile_height'] ) ),
-		'max_width'      => absint( get_theme_mod( 'beyond_gotham_logo_max_width', $defaults['max_width'] ) ),
-	);
+        return array(
+                'desktop_height' => absint( get_theme_mod( 'beyond_gotham_logo_height_desktop', $defaults['desktop_height'] ) ),
+                'mobile_height'  => absint( get_theme_mod( 'beyond_gotham_logo_height_mobile', $defaults['mobile_height'] ) ),
+                'max_width'      => absint( get_theme_mod( 'beyond_gotham_logo_max_width', $defaults['max_width'] ) ),
+        );
+}
+
+/**
+ * Retrieve the effective brand logo attachment ID.
+ *
+ * @return int
+ */
+function beyond_gotham_get_brand_logo_id() {
+        $custom_logo = (int) get_theme_mod( 'beyond_gotham_brand_logo' );
+
+        if ( $custom_logo ) {
+                return $custom_logo;
+        }
+
+        return (int) get_theme_mod( 'custom_logo' );
 }
 
 /**
@@ -218,7 +231,7 @@ function beyond_gotham_get_logo_url() {
  * @return bool
  */
 function beyond_gotham_has_custom_logo() {
-	return has_custom_logo();
+        return has_custom_logo();
 }
 
 /**
@@ -227,15 +240,43 @@ function beyond_gotham_has_custom_logo() {
  * @param array $args Additional arguments for the logo.
  */
 function beyond_gotham_display_logo( $args = array() ) {
-	if ( ! beyond_gotham_has_custom_logo() ) {
-		return;
-	}
+        if ( ! beyond_gotham_has_custom_logo() ) {
+                return;
+        }
 
-	$defaults = array(
-		'class' => 'custom-logo',
-	);
+        $defaults = array(
+                'class' => 'custom-logo',
+        );
 
-	$args = wp_parse_args( $args, $defaults );
+        $args = wp_parse_args( $args, $defaults );
 
-	the_custom_logo();
+        the_custom_logo();
+}
+
+/**
+ * Output a favicon tag when a dedicated brand icon is configured.
+ */
+function beyond_gotham_render_brand_favicon() {
+        if ( has_site_icon() ) {
+                return;
+        }
+
+        $favicon_id = (int) get_theme_mod( 'beyond_gotham_brand_favicon' );
+
+        if ( ! $favicon_id ) {
+                return;
+        }
+
+        $icon = wp_get_attachment_image_src( $favicon_id, 'full' );
+
+        if ( ! $icon ) {
+                return;
+        }
+
+        printf(
+                '<link rel="icon" href="%1$s" sizes="%2$dx%3$d" />' . "\n",
+                esc_url( $icon[0] ),
+                (int) $icon[1],
+                (int) $icon[2]
+        );
 }

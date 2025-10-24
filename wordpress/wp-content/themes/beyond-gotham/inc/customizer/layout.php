@@ -36,8 +36,6 @@ function beyond_gotham_get_layout_defaults() {
 // Customizer Registration
 // =============================================================================
 
-add_action( 'customize_register', 'beyond_gotham_register_layout_customizer', 30 );
-
 /**
  * Register layout settings in the customizer.
  *

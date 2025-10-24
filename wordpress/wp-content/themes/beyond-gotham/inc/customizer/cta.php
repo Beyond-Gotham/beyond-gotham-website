@@ -788,4 +788,3 @@ function beyond_gotham_register_cta_customizer( WP_Customize_Manager $wp_customi
 		)
 	);
 }
-add_action( 'customize_register', 'beyond_gotham_register_cta_customizer' );
