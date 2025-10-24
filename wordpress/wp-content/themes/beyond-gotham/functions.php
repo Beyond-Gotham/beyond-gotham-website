@@ -120,8 +120,34 @@ add_action( 'after_setup_theme', 'beyond_gotham_theme_setup' );
  */
 function beyond_gotham_body_classes( $classes ) {
     $classes[] = 'bg-site';
-    $classes[] = 'bg-has-sticky-header';
     $classes[] = 'bg-ui-loading';
+
+    if ( function_exists( 'beyond_gotham_get_nav_layout_settings' ) ) {
+        $nav_layout = beyond_gotham_get_nav_layout_settings();
+
+        $orientation = isset( $nav_layout['orientation'] ) ? $nav_layout['orientation'] : 'horizontal';
+        $position    = isset( $nav_layout['position'] ) ? $nav_layout['position'] : 'right';
+        $dropdown    = isset( $nav_layout['dropdown'] ) ? $nav_layout['dropdown'] : 'down';
+
+        $classes[] = 'nav-' . ( 'vertical' === $orientation ? 'vertical' : 'horizontal' );
+
+        $allowed_positions = array( 'left', 'center', 'right', 'below' );
+        if ( ! in_array( $position, $allowed_positions, true ) ) {
+            $position = 'right';
+        }
+        $classes[] = 'nav-position-' . $position;
+
+        $classes[] = 'nav-dropdown-' . ( 'right' === $dropdown ? 'right' : 'down' );
+
+        if ( ! empty( $nav_layout['sticky'] ) ) {
+            $classes[] = 'bg-has-sticky-header';
+        }
+    } else {
+        $classes[] = 'nav-horizontal';
+        $classes[] = 'nav-position-right';
+        $classes[] = 'nav-dropdown-down';
+        $classes[] = 'bg-has-sticky-header';
+    }
 
     return array_unique( $classes );
 }

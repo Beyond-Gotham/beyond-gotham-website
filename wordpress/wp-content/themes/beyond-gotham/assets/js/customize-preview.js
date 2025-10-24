@@ -39,6 +39,114 @@
         }
     }
 
+    var orientationClasses = ['nav-horizontal', 'nav-vertical'];
+    var positionClasses = ['nav-position-left', 'nav-position-center', 'nav-position-right', 'nav-position-below'];
+    var dropdownClasses = ['nav-dropdown-down', 'nav-dropdown-right'];
+    var stickyEnabledState = bodyEl ? bodyEl.classList.contains('bg-has-sticky-header') : true;
+    var stickyOffsetValue = 0;
+
+    function replaceBodyClass(classNames, activeClass) {
+        if (!bodyEl || !Array.isArray(classNames)) {
+            return;
+        }
+
+        classNames.forEach(function (className) {
+            bodyEl.classList.remove(className);
+        });
+
+        if (activeClass) {
+            bodyEl.classList.add(activeClass);
+        }
+    }
+
+    function normalizeBoolean(value) {
+        if (typeof value === 'string') {
+            return value === '1' || value.toLowerCase() === 'true';
+        }
+
+        return !!value;
+    }
+
+    function dispatchStickyEvent() {
+        var eventName = 'bg:navStickyToggle';
+
+        if (typeof window.CustomEvent === 'function') {
+            document.dispatchEvent(new CustomEvent(eventName));
+            return;
+        }
+
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent(eventName, false, false, null);
+        document.dispatchEvent(event);
+    }
+
+    function refreshStickyOffset() {
+        if (!docEl) {
+            return;
+        }
+
+        if (stickyEnabledState) {
+            setCSSVariable('--bg-sticky-offset', stickyOffsetValue + 'px');
+        } else {
+            setCSSVariable('--bg-sticky-offset', '0px');
+        }
+    }
+
+    function setOrientation(value) {
+        var normalized = (value || '').toString().toLowerCase();
+        var active = normalized === 'vertical' ? 'nav-vertical' : 'nav-horizontal';
+        replaceBodyClass(orientationClasses, active);
+    }
+
+    function setPosition(value) {
+        var normalized = (value || '').toString().toLowerCase();
+        var map = {
+            left: 'nav-position-left',
+            center: 'nav-position-center',
+            right: 'nav-position-right',
+            below: 'nav-position-below'
+        };
+
+        var active = map[normalized] || map.right;
+        replaceBodyClass(positionClasses, active);
+    }
+
+    function setDropdown(value) {
+        var normalized = (value || '').toString().toLowerCase();
+        var active = normalized === 'right' ? 'nav-dropdown-right' : 'nav-dropdown-down';
+        replaceBodyClass(dropdownClasses, active);
+    }
+
+    function setStickyEnabled(value) {
+        stickyEnabledState = normalizeBoolean(value);
+
+        if (bodyEl) {
+            if (stickyEnabledState) {
+                bodyEl.classList.add('bg-has-sticky-header');
+            } else {
+                bodyEl.classList.remove('bg-has-sticky-header');
+            }
+        }
+
+        refreshStickyOffset();
+        dispatchStickyEvent();
+    }
+
+    function updateStickyOffset(newValue, shouldNotify) {
+        var parsed = parseInt(newValue, 10);
+
+        if (isNaN(parsed) || parsed < 0) {
+            parsed = 0;
+        }
+
+        stickyOffsetValue = parsed;
+        refreshStickyOffset();
+
+        if (shouldNotify) {
+            dispatchStickyEvent();
+        }
+    }
+
     function updateFooter(newValue) {
         var footer = document.querySelector(footerSelector);
         if (footer) {
@@ -219,6 +327,46 @@
             container.setAttribute('aria-hidden', 'true');
         }
     }
+
+    api('beyond_gotham_nav_orientation', function (value) {
+        setOrientation(value.get());
+
+        value.bind(function (newValue) {
+            setOrientation(newValue);
+        });
+    });
+
+    api('beyond_gotham_nav_position', function (value) {
+        setPosition(value.get());
+
+        value.bind(function (newValue) {
+            setPosition(newValue);
+        });
+    });
+
+    api('beyond_gotham_nav_dropdown_direction', function (value) {
+        setDropdown(value.get());
+
+        value.bind(function (newValue) {
+            setDropdown(newValue);
+        });
+    });
+
+    api('beyond_gotham_nav_sticky', function (value) {
+        setStickyEnabled(value.get());
+
+        value.bind(function (newValue) {
+            setStickyEnabled(newValue);
+        });
+    });
+
+    api('beyond_gotham_nav_sticky_offset', function (value) {
+        updateStickyOffset(value.get(), false);
+
+        value.bind(function (newValue) {
+            updateStickyOffset(newValue, true);
+        });
+    });
 
     api('beyond_gotham_primary_color', function (value) {
         value.bind(function (newValue) {
