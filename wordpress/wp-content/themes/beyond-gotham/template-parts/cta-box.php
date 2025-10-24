@@ -5,6 +5,10 @@
  * @package beyond_gotham
  */
 
+if ( ! should_display_cta() ) {
+    return;
+}
+
 $cta_settings = function_exists( 'beyond_gotham_get_cta_settings' ) ? beyond_gotham_get_cta_settings() : array();
 $cta_text     = isset( $cta_settings['text'] ) ? $cta_settings['text'] : '';
 $cta_label    = isset( $cta_settings['label'] ) ? $cta_settings['label'] : '';

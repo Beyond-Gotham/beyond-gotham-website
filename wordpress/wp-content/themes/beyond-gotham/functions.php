@@ -701,6 +701,51 @@ function beyond_gotham_enable_modern_image_mimes( $mimes ) {
 }
 add_filter( 'upload_mimes', 'beyond_gotham_enable_modern_image_mimes' );
 
+/**
+ * Determine whether the CTA box should be displayed on the current view.
+ *
+ * @return bool
+ */
+function should_display_cta() {
+    if ( ! function_exists( 'beyond_gotham_get_cta_settings' ) ) {
+        return true;
+    }
+
+    $settings = beyond_gotham_get_cta_settings();
+
+    $scope    = isset( $settings['visibility_scope'] ) && is_array( $settings['visibility_scope'] ) ? $settings['visibility_scope'] : array();
+    $excluded = isset( $settings['exclude_pages'] ) && is_array( $settings['exclude_pages'] ) ? array_map( 'absint', $settings['exclude_pages'] ) : array();
+
+    $queried_id = get_queried_object_id();
+
+    if ( $queried_id && in_array( (int) $queried_id, $excluded, true ) ) {
+        return false;
+    }
+
+    if ( empty( $scope ) ) {
+        return false;
+    }
+
+    $conditions = array(
+        'front_page' => is_front_page(),
+        'posts'      => is_singular( 'post' ),
+        'courses'    => is_singular( 'bg_course' ),
+        'products'   => function_exists( 'is_product' ) ? is_product() : false,
+    );
+
+    if ( in_array( 'all', $scope, true ) ) {
+        return apply_filters( 'beyond_gotham_should_display_cta', true, $settings, $conditions );
+    }
+
+    foreach ( $conditions as $key => $result ) {
+        if ( in_array( $key, $scope, true ) && $result ) {
+            return apply_filters( 'beyond_gotham_should_display_cta', true, $settings, $conditions );
+        }
+    }
+
+    return apply_filters( 'beyond_gotham_should_display_cta', false, $settings, $conditions );
+}
+
 require_once get_template_directory() . '/inc/customizer.php';
 require_once get_template_directory() . '/inc/rest-api.php';
 require_once get_template_directory() . '/inc/blocks.php';
