@@ -234,6 +234,159 @@ function beyond_gotham_sanitize_cta_alignment( $value ) {
 }
 
 /**
+ * Format a numeric value as a pixel-based CSS value.
+ *
+ * @param float $value      Numeric value to format.
+ * @param bool  $allow_zero Whether zero is allowed.
+ * @return string
+ */
+function beyond_gotham_format_px_value( $value, $allow_zero = false ) {
+    $value = beyond_gotham_sanitize_positive_float( $value );
+
+    if ( $value <= 0 && ! $allow_zero ) {
+        return '';
+    }
+
+    $precision = ( $value < 10 ) ? 1 : 0;
+    $rounded   = round( $value, $precision );
+
+    if ( $rounded <= 0 && ! $allow_zero ) {
+        return '';
+    }
+
+    return $rounded . 'px';
+}
+
+/**
+ * Restrict max width units for layout controls.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_dimension_unit( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( 'px', '%' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return 'px';
+}
+
+/**
+ * Sanitize aspect ratio choices for thumbnails.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_aspect_ratio_choice( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( '16-9', '4-3', '1-1' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return '16-9';
+}
+
+/**
+ * Default layout values for global UI controls.
+ *
+ * @return array
+ */
+function beyond_gotham_get_ui_layout_defaults() {
+    return array(
+        'header_height'             => 96,
+        'header_padding_top'        => 24,
+        'header_padding_bottom'     => 24,
+        'footer_min_height'         => 240,
+        'footer_margin_top'         => 64,
+        'button_padding_vertical'   => 14,
+        'button_padding_horizontal' => 28,
+        'button_border_radius'      => 999,
+        'thumbnail_aspect_ratio'    => '16-9',
+        'thumbnail_max_width_value' => 100,
+        'thumbnail_max_width_unit'  => '%',
+        'content_max_width'         => 1200,
+        'content_section_spacing'   => 48,
+    );
+}
+
+/**
+ * Retrieve layout values merged with defaults.
+ *
+ * @return array
+ */
+function beyond_gotham_get_ui_layout_settings() {
+    $defaults = beyond_gotham_get_ui_layout_defaults();
+
+    $header_height         = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_header_height', $defaults['header_height'] ) );
+    $header_padding_top    = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_header_padding_top', $defaults['header_padding_top'] ) );
+    $header_padding_bottom = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_header_padding_bottom', $defaults['header_padding_bottom'] ) );
+
+    $footer_min_height = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_footer_min_height', $defaults['footer_min_height'] ) );
+    $footer_margin_top = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_footer_margin_top', $defaults['footer_margin_top'] ) );
+
+    $button_padding_vertical   = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_button_padding_vertical', $defaults['button_padding_vertical'] ) );
+    $button_padding_horizontal = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_button_padding_horizontal', $defaults['button_padding_horizontal'] ) );
+    $button_border_radius      = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_button_border_radius', $defaults['button_border_radius'] ) );
+
+    $thumbnail_ratio      = beyond_gotham_sanitize_aspect_ratio_choice( get_theme_mod( 'beyond_gotham_thumbnail_aspect_ratio', $defaults['thumbnail_aspect_ratio'] ) );
+    $thumb_width_value    = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_thumbnail_max_width_value', $defaults['thumbnail_max_width_value'] ) );
+    $thumb_width_unit     = beyond_gotham_sanitize_dimension_unit( get_theme_mod( 'beyond_gotham_thumbnail_max_width_unit', $defaults['thumbnail_max_width_unit'] ) );
+    $thumbnail_max_width  = $thumb_width_value > 0 ? beyond_gotham_format_css_size( $thumb_width_value, $thumb_width_unit ) : '';
+
+    $content_max_width       = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_content_max_width', $defaults['content_max_width'] ) );
+    $content_section_spacing = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_content_section_spacing', $defaults['content_section_spacing'] ) );
+
+    $ratio_map = array(
+        '16-9' => '16 / 9',
+        '4-3'  => '4 / 3',
+        '1-1'  => '1 / 1',
+    );
+
+    return array(
+        'header'    => array(
+            'height'         => $header_height,
+            'height_css'     => beyond_gotham_format_px_value( $header_height ),
+            'padding_top'    => $header_padding_top,
+            'padding_top_css'    => beyond_gotham_format_px_value( $header_padding_top, true ),
+            'padding_bottom' => $header_padding_bottom,
+            'padding_bottom_css' => beyond_gotham_format_px_value( $header_padding_bottom, true ),
+        ),
+        'footer'    => array(
+            'min_height'    => $footer_min_height,
+            'min_height_css' => beyond_gotham_format_px_value( $footer_min_height ),
+            'margin_top'    => $footer_margin_top,
+            'margin_top_css' => beyond_gotham_format_px_value( $footer_margin_top, true ),
+        ),
+        'buttons'   => array(
+            'padding_vertical'   => $button_padding_vertical,
+            'padding_vertical_css'   => beyond_gotham_format_px_value( $button_padding_vertical, true ),
+            'padding_horizontal' => $button_padding_horizontal,
+            'padding_horizontal_css' => beyond_gotham_format_px_value( $button_padding_horizontal, true ),
+            'border_radius'      => $button_border_radius,
+            'border_radius_css'  => beyond_gotham_format_px_value( $button_border_radius, true ),
+        ),
+        'thumbnails' => array(
+            'aspect_ratio'     => $thumbnail_ratio,
+            'aspect_ratio_css' => isset( $ratio_map[ $thumbnail_ratio ] ) ? $ratio_map[ $thumbnail_ratio ] : $ratio_map['16-9'],
+            'max_width_value'  => $thumb_width_value,
+            'max_width_unit'   => $thumb_width_unit,
+            'max_width_css'    => $thumbnail_max_width,
+        ),
+        'content'   => array(
+            'max_width'       => $content_max_width,
+            'max_width_css'   => beyond_gotham_format_px_value( $content_max_width ),
+            'section_spacing' => $content_section_spacing,
+            'section_spacing_css' => beyond_gotham_format_px_value( $content_section_spacing, true ),
+        ),
+    );
+}
+
+/**
  * Convert a hex color to an rgba string.
  *
  * @param string $color Hex color.
@@ -680,6 +833,33 @@ function beyond_gotham_get_cta_settings() {
     );
 }
 
+if ( class_exists( 'WP_Customize_Control' ) && ! class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+    /**
+     * Simple heading control for grouping customizer fields.
+     */
+    class Beyond_Gotham_Customize_Heading_Control extends WP_Customize_Control {
+        /**
+         * Control type.
+         *
+         * @var string
+         */
+        public $type = 'beyond-gotham-heading';
+
+        /**
+         * Render the control content.
+         */
+        public function render_content() {
+            if ( ! empty( $this->label ) ) {
+                echo '<span class="customize-control-title">' . esc_html( $this->label ) . '</span>';
+            }
+
+            if ( ! empty( $this->description ) ) {
+                echo '<p class="description customize-control-description">' . esc_html( $this->description ) . '</p>';
+            }
+        }
+    }
+}
+
 /**
  * Register Customizer settings, sections and controls.
  *
@@ -744,11 +924,11 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     );
 
     $wp_customize->add_section(
-        'beyond_gotham_cta_layout',
+        'beyond_gotham_ui_layout',
         array(
-            'title'       => __( 'Call-to-Action Layout', 'beyond_gotham' ),
+            'title'       => __( 'UI Layout & Abstände', 'beyond_gotham' ),
             'priority'    => 41,
-            'description' => __( 'Steuere Position und Größe der CTA-Box auf Landingpages und Beitragsseiten.', 'beyond_gotham' ),
+            'description' => __( 'Passe Position, Größe und Abstände zentral an.', 'beyond_gotham' ),
         )
     );
 
@@ -1296,6 +1476,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         )
     );
 
+    $layout_defaults     = beyond_gotham_get_ui_layout_defaults();
     $cta_layout_defaults = beyond_gotham_get_cta_layout_defaults();
     $cta_size_presets    = beyond_gotham_get_cta_size_presets();
     $cta_preset_choices  = array();
@@ -1305,6 +1486,199 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     }
 
     $cta_preset_choices['custom'] = __( 'Individuell', 'beyond_gotham' );
+
+    $layout_priority = 5;
+
+    if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_ui_layout_header_heading',
+                array(
+                    'section'     => 'beyond_gotham_ui_layout',
+                    'label'       => __( 'Header', 'beyond_gotham' ),
+                    'description' => __( 'Steuerung von Höhe und vertikalen Abständen der Kopfzeile.', 'beyond_gotham' ),
+                    'priority'    => $layout_priority,
+                )
+            )
+        );
+    }
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_header_height',
+        array(
+            'default'           => $layout_defaults['header_height'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_header_height_control',
+        array(
+            'label'       => __( 'Höhe (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_header_height',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 48,
+                'max'  => 320,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_header_padding_top',
+        array(
+            'default'           => $layout_defaults['header_padding_top'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_header_padding_top_control',
+        array(
+            'label'       => __( 'Padding oben (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_header_padding_top',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 160,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_header_padding_bottom',
+        array(
+            'default'           => $layout_defaults['header_padding_bottom'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_header_padding_bottom_control',
+        array(
+            'label'       => __( 'Padding unten (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_header_padding_bottom',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 160,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_ui_layout_footer_heading',
+                array(
+                    'section'     => 'beyond_gotham_ui_layout',
+                    'label'       => __( 'Footer', 'beyond_gotham' ),
+                    'description' => __( 'Höhe und Abstand der Fußzeile zum Inhalt.', 'beyond_gotham' ),
+                    'priority'    => $layout_priority,
+                )
+            )
+        );
+    }
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_footer_min_height',
+        array(
+            'default'           => $layout_defaults['footer_min_height'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_footer_min_height_control',
+        array(
+            'label'       => __( 'Mindesthöhe (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_footer_min_height',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 80,
+                'max'  => 600,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_footer_margin_top',
+        array(
+            'default'           => $layout_defaults['footer_margin_top'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_footer_margin_top_control',
+        array(
+            'label'       => __( 'Abstand zum Content (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_footer_margin_top',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 240,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_ui_layout_cta_heading',
+                array(
+                    'section'     => 'beyond_gotham_ui_layout',
+                    'label'       => __( 'CTA-Box', 'beyond_gotham' ),
+                    'description' => __( 'Steuere Breite, Höhe und Ausrichtung der Call-to-Action.', 'beyond_gotham' ),
+                    'priority'    => $layout_priority,
+                )
+            )
+        );
+    }
+
+    $layout_priority += 5;
 
     $wp_customize->add_setting(
         'beyond_gotham_cta_size_preset',
@@ -1320,7 +1694,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         'beyond_gotham_cta_size_preset_control',
         array(
             'label'       => __( 'Größen-Preset', 'beyond_gotham' ),
-            'section'     => 'beyond_gotham_cta_layout',
+            'section'     => 'beyond_gotham_ui_layout',
             'settings'    => 'beyond_gotham_cta_size_preset',
             'type'        => 'select',
             'choices'     => $cta_preset_choices,
@@ -1342,7 +1716,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         'beyond_gotham_cta_max_width_value_control',
         array(
             'label'           => __( 'Maximale Breite', 'beyond_gotham' ),
-            'section'         => 'beyond_gotham_cta_layout',
+            'section'         => 'beyond_gotham_ui_layout',
             'settings'        => 'beyond_gotham_cta_max_width_value',
             'type'            => 'number',
             'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
@@ -1369,7 +1743,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         'beyond_gotham_cta_max_width_unit_control',
         array(
             'label'           => __( 'Einheit der Breite', 'beyond_gotham' ),
-            'section'         => 'beyond_gotham_cta_layout',
+            'section'         => 'beyond_gotham_ui_layout',
             'settings'        => 'beyond_gotham_cta_max_width_unit',
             'type'            => 'radio',
             'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
@@ -1395,7 +1769,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         'beyond_gotham_cta_min_height_control',
         array(
             'label'           => __( 'Innenhöhe (min-height)', 'beyond_gotham' ),
-            'section'         => 'beyond_gotham_cta_layout',
+            'section'         => 'beyond_gotham_ui_layout',
             'settings'        => 'beyond_gotham_cta_min_height',
             'type'            => 'range',
             'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
@@ -1422,7 +1796,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         'beyond_gotham_cta_position_control',
         array(
             'label'    => __( 'Position der CTA-Box', 'beyond_gotham' ),
-            'section'  => 'beyond_gotham_cta_layout',
+            'section'  => 'beyond_gotham_ui_layout',
             'settings' => 'beyond_gotham_cta_position',
             'type'     => 'select',
             'choices'  => array(
@@ -1447,13 +1821,288 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         'beyond_gotham_cta_alignment_control',
         array(
             'label'    => __( 'Ausrichtung innerhalb des Containers', 'beyond_gotham' ),
-            'section'  => 'beyond_gotham_cta_layout',
+            'section'  => 'beyond_gotham_ui_layout',
             'settings' => 'beyond_gotham_cta_alignment',
             'type'     => 'radio',
             'choices'  => array(
                 'left'   => __( 'Links', 'beyond_gotham' ),
                 'center' => __( 'Zentriert', 'beyond_gotham' ),
                 'right'  => __( 'Rechts', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_ui_layout_buttons_heading',
+                array(
+                    'section'     => 'beyond_gotham_ui_layout',
+                    'label'       => __( 'Buttons', 'beyond_gotham' ),
+                    'description' => __( 'Globale Steuerung für Button-Größen und Rundungen.', 'beyond_gotham' ),
+                    'priority'    => $layout_priority,
+                )
+            )
+        );
+    }
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_button_padding_vertical',
+        array(
+            'default'           => $layout_defaults['button_padding_vertical'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_button_padding_vertical_control',
+        array(
+            'label'       => __( 'Padding vertikal (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_button_padding_vertical',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 120,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_button_padding_horizontal',
+        array(
+            'default'           => $layout_defaults['button_padding_horizontal'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_button_padding_horizontal_control',
+        array(
+            'label'       => __( 'Padding horizontal (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_button_padding_horizontal',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 200,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_button_border_radius',
+        array(
+            'default'           => $layout_defaults['button_border_radius'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_button_border_radius_control',
+        array(
+            'label'       => __( 'Border Radius (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_button_border_radius',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 999,
+                'step' => 1,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_ui_layout_thumbnails_heading',
+                array(
+                    'section'     => 'beyond_gotham_ui_layout',
+                    'label'       => __( 'Artikelbilder', 'beyond_gotham' ),
+                    'description' => __( 'Bestimme Seitenverhältnis und maximale Breite für Thumbnails.', 'beyond_gotham' ),
+                    'priority'    => $layout_priority,
+                )
+            )
+        );
+    }
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_thumbnail_aspect_ratio',
+        array(
+            'default'           => $layout_defaults['thumbnail_aspect_ratio'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_aspect_ratio_choice',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_thumbnail_aspect_ratio_control',
+        array(
+            'label'    => __( 'Seitenverhältnis', 'beyond_gotham' ),
+            'section'  => 'beyond_gotham_ui_layout',
+            'settings' => 'beyond_gotham_thumbnail_aspect_ratio',
+            'type'     => 'select',
+            'choices'  => array(
+                '16-9' => '16:9',
+                '4-3'  => '4:3',
+                '1-1'  => '1:1',
+            ),
+            'priority' => $layout_priority,
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_thumbnail_max_width_value',
+        array(
+            'default'           => $layout_defaults['thumbnail_max_width_value'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_thumbnail_max_width_value_control',
+        array(
+            'label'       => __( 'Maximale Breite', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_thumbnail_max_width_value',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 40,
+                'max'  => 2400,
+                'step' => 1,
+            ),
+            'description' => __( 'Wert ohne Einheit. Unten auswählen, ob in Pixel oder Prozent.', 'beyond_gotham' ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_thumbnail_max_width_unit',
+        array(
+            'default'           => $layout_defaults['thumbnail_max_width_unit'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_dimension_unit',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_thumbnail_max_width_unit_control',
+        array(
+            'label'    => __( 'Einheit der Maximalbreite', 'beyond_gotham' ),
+            'section'  => 'beyond_gotham_ui_layout',
+            'settings' => 'beyond_gotham_thumbnail_max_width_unit',
+            'type'     => 'radio',
+            'choices'  => array(
+                'px' => __( 'Pixel (px)', 'beyond_gotham' ),
+                '%'  => __( 'Prozent (%)', 'beyond_gotham' ),
+            ),
+            'priority' => $layout_priority,
+        )
+    );
+
+    $layout_priority += 5;
+
+    if ( class_exists( 'Beyond_Gotham_Customize_Heading_Control' ) ) {
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_ui_layout_content_heading',
+                array(
+                    'section'     => 'beyond_gotham_ui_layout',
+                    'label'       => __( 'Content-Margins', 'beyond_gotham' ),
+                    'description' => __( 'Definiere maximale Breite und vertikalen Abstand für Inhalte.', 'beyond_gotham' ),
+                    'priority'    => $layout_priority,
+                )
+            )
+        );
+    }
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_content_max_width',
+        array(
+            'default'           => $layout_defaults['content_max_width'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_content_max_width_control',
+        array(
+            'label'       => __( 'Maximale Inhaltsbreite (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_content_max_width',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 640,
+                'max'  => 2400,
+                'step' => 10,
+            ),
+        )
+    );
+
+    $layout_priority += 5;
+
+    $wp_customize->add_setting(
+        'beyond_gotham_content_section_spacing',
+        array(
+            'default'           => $layout_defaults['content_section_spacing'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_content_section_spacing_control',
+        array(
+            'label'       => __( 'Abstand zwischen Sections (px)', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_ui_layout',
+            'settings'    => 'beyond_gotham_content_section_spacing',
+            'type'        => 'number',
+            'priority'    => $layout_priority,
+            'input_attrs' => array(
+                'min'  => 0,
+                'max'  => 240,
+                'step' => 1,
             ),
         )
     );
@@ -1907,9 +2556,15 @@ function beyond_gotham_get_customizer_css() {
     $font_size     = (float) get_theme_mod( 'beyond_gotham_body_font_size', 16 );
     $font_unit     = beyond_gotham_sanitize_font_unit( get_theme_mod( 'beyond_gotham_body_font_size_unit', 'px' ) );
     $line_height   = (float) get_theme_mod( 'beyond_gotham_body_line_height', 1.6 );
-    $presets       = beyond_gotham_get_typography_presets();
-    $nav_layout    = beyond_gotham_get_nav_layout_settings();
-    $sticky_offset = isset( $nav_layout['sticky_offset'] ) ? absint( $nav_layout['sticky_offset'] ) : 0;
+    $presets        = beyond_gotham_get_typography_presets();
+    $nav_layout     = beyond_gotham_get_nav_layout_settings();
+    $ui_layout      = beyond_gotham_get_ui_layout_settings();
+    $header_layout  = isset( $ui_layout['header'] ) ? $ui_layout['header'] : array();
+    $footer_layout  = isset( $ui_layout['footer'] ) ? $ui_layout['footer'] : array();
+    $buttons_layout = isset( $ui_layout['buttons'] ) ? $ui_layout['buttons'] : array();
+    $thumbnail_layout = isset( $ui_layout['thumbnails'] ) ? $ui_layout['thumbnails'] : array();
+    $content_layout = isset( $ui_layout['content'] ) ? $ui_layout['content'] : array();
+    $sticky_offset  = isset( $nav_layout['sticky_offset'] ) ? absint( $nav_layout['sticky_offset'] ) : 0;
 
     if ( empty( $nav_layout['sticky'] ) ) {
         $sticky_offset = 0;
@@ -1930,8 +2585,67 @@ function beyond_gotham_get_customizer_css() {
     $line_height       = max( 1.1, min( 2.6, $line_height ) );
     $line_height_value = rtrim( rtrim( sprintf( '%.2f', $line_height ), '0' ), '.' );
 
+    $layout_root_vars = array();
+
+    if ( ! empty( $header_layout['height_css'] ) ) {
+        $layout_root_vars['--site-header-height'] = $header_layout['height_css'];
+    }
+
+    if ( isset( $header_layout['padding_top_css'] ) && '' !== $header_layout['padding_top_css'] ) {
+        $layout_root_vars['--site-header-padding-top'] = $header_layout['padding_top_css'];
+    }
+
+    if ( isset( $header_layout['padding_bottom_css'] ) && '' !== $header_layout['padding_bottom_css'] ) {
+        $layout_root_vars['--site-header-padding-bottom'] = $header_layout['padding_bottom_css'];
+    }
+
+    if ( ! empty( $footer_layout['min_height_css'] ) ) {
+        $layout_root_vars['--site-footer-min-height'] = $footer_layout['min_height_css'];
+    }
+
+    if ( isset( $footer_layout['margin_top_css'] ) && '' !== $footer_layout['margin_top_css'] ) {
+        $layout_root_vars['--site-footer-margin-top'] = $footer_layout['margin_top_css'];
+    }
+
+    if ( isset( $buttons_layout['padding_vertical_css'] ) && '' !== $buttons_layout['padding_vertical_css'] ) {
+        $layout_root_vars['--ui-button-padding-y'] = $buttons_layout['padding_vertical_css'];
+    }
+
+    if ( isset( $buttons_layout['padding_horizontal_css'] ) && '' !== $buttons_layout['padding_horizontal_css'] ) {
+        $layout_root_vars['--ui-button-padding-x'] = $buttons_layout['padding_horizontal_css'];
+    }
+
+    if ( isset( $buttons_layout['border_radius_css'] ) && '' !== $buttons_layout['border_radius_css'] ) {
+        $layout_root_vars['--ui-button-radius'] = $buttons_layout['border_radius_css'];
+    }
+
+    if ( isset( $thumbnail_layout['aspect_ratio_css'] ) && '' !== $thumbnail_layout['aspect_ratio_css'] ) {
+        $layout_root_vars['--post-thumbnail-aspect-ratio'] = $thumbnail_layout['aspect_ratio_css'];
+    }
+
+    if ( isset( $thumbnail_layout['max_width_css'] ) && '' !== $thumbnail_layout['max_width_css'] ) {
+        $layout_root_vars['--post-thumbnail-max-width'] = $thumbnail_layout['max_width_css'];
+    }
+
+    if ( ! empty( $content_layout['max_width_css'] ) ) {
+        $layout_root_vars['--content-max-width'] = $content_layout['max_width_css'];
+    }
+
+    if ( isset( $content_layout['section_spacing_css'] ) && '' !== $content_layout['section_spacing_css'] ) {
+        $layout_root_vars['--content-section-gap'] = $content_layout['section_spacing_css'];
+    }
+
     $css = ':root {';
     $css .= '--bg-sticky-offset: ' . $sticky_offset . 'px;';
+
+    foreach ( $layout_root_vars as $var_name => $value ) {
+        if ( '' === $value ) {
+            continue;
+        }
+
+        $css .= $var_name . ': ' . $value . ';';
+    }
+
     $css .= '}' . PHP_EOL;
 
     foreach ( $palettes as $mode => $palette ) {
@@ -2114,6 +2828,108 @@ function beyond_gotham_get_customizer_css() {
         }
     }
 
+    $layout_css = '';
+
+    $header_rules = array();
+
+    if ( ! empty( $header_layout['height_css'] ) ) {
+        $header_rules[] = 'min-height: var(--site-header-height, ' . $header_layout['height_css'] . ');';
+    }
+
+    if ( isset( $header_layout['padding_top_css'] ) && '' !== $header_layout['padding_top_css'] ) {
+        $header_rules[] = 'padding-top: var(--site-header-padding-top, ' . $header_layout['padding_top_css'] . ');';
+    }
+
+    if ( isset( $header_layout['padding_bottom_css'] ) && '' !== $header_layout['padding_bottom_css'] ) {
+        $header_rules[] = 'padding-bottom: var(--site-header-padding-bottom, ' . $header_layout['padding_bottom_css'] . ');';
+    }
+
+    if ( ! empty( $header_rules ) ) {
+        $layout_css .= '.site-header {' . implode( ' ', $header_rules ) . '}';
+    }
+
+    $footer_rules = array();
+
+    if ( ! empty( $footer_layout['min_height_css'] ) ) {
+        $footer_rules[] = 'min-height: var(--site-footer-min-height, ' . $footer_layout['min_height_css'] . ');';
+    }
+
+    if ( isset( $footer_layout['margin_top_css'] ) && '' !== $footer_layout['margin_top_css'] ) {
+        $footer_rules[] = 'margin-top: var(--site-footer-margin-top, ' . $footer_layout['margin_top_css'] . ');';
+    }
+
+    if ( ! empty( $footer_rules ) ) {
+        $layout_css .= '.site-footer {' . implode( ' ', $footer_rules ) . '}';
+    }
+
+    $button_rules = array();
+
+    if ( isset( $buttons_layout['padding_vertical_css'], $buttons_layout['padding_horizontal_css'] ) && ( '' !== $buttons_layout['padding_vertical_css'] || '' !== $buttons_layout['padding_horizontal_css'] ) ) {
+        $vertical_fallback   = '' !== $buttons_layout['padding_vertical_css'] ? $buttons_layout['padding_vertical_css'] : '0px';
+        $horizontal_fallback = '' !== $buttons_layout['padding_horizontal_css'] ? $buttons_layout['padding_horizontal_css'] : '0px';
+        $button_rules[] = 'padding: var(--ui-button-padding-y, ' . $vertical_fallback . ') var(--ui-button-padding-x, ' . $horizontal_fallback . ');';
+    }
+
+    if ( isset( $buttons_layout['border_radius_css'] ) && '' !== $buttons_layout['border_radius_css'] ) {
+        $button_rules[] = 'border-radius: var(--ui-button-radius, ' . $buttons_layout['border_radius_css'] . ');';
+    }
+
+    if ( ! empty( $button_rules ) ) {
+        $button_selectors = array(
+            '.bg-button',
+            '.wp-block-button__link',
+            '.wp-block-button .wp-block-button__link',
+            '.wp-element-button',
+            'button',
+            'input[type="submit"]',
+            'input[type="button"]',
+            'input[type="reset"]',
+        );
+
+        $layout_css .= implode( ', ', array_unique( $button_selectors ) ) . ' {' . implode( ' ', $button_rules ) . '}';
+    }
+
+    $thumbnail_container_rules = array();
+
+    if ( isset( $thumbnail_layout['max_width_css'] ) && '' !== $thumbnail_layout['max_width_css'] ) {
+        $thumbnail_container_rules[] = 'max-width: var(--post-thumbnail-max-width, ' . $thumbnail_layout['max_width_css'] . ');';
+        $thumbnail_container_rules[] = 'margin-left: auto;';
+        $thumbnail_container_rules[] = 'margin-right: auto;';
+    }
+
+    if ( ! empty( $thumbnail_container_rules ) ) {
+        $layout_css .= '.post-thumbnail, .article-hero, .entry-thumbnail {' . implode( ' ', $thumbnail_container_rules ) . '}';
+    }
+
+    $thumbnail_image_rules = array( 'width: 100%;', 'height: auto;', 'object-fit: cover;' );
+
+    if ( isset( $thumbnail_layout['aspect_ratio_css'] ) && '' !== $thumbnail_layout['aspect_ratio_css'] ) {
+        $thumbnail_image_rules[] = 'aspect-ratio: var(--post-thumbnail-aspect-ratio, ' . $thumbnail_layout['aspect_ratio_css'] . ');';
+    }
+
+    if ( isset( $thumbnail_layout['max_width_css'] ) && '' !== $thumbnail_layout['max_width_css'] ) {
+        $thumbnail_image_rules[] = 'max-width: var(--post-thumbnail-max-width, ' . $thumbnail_layout['max_width_css'] . ');';
+    }
+
+    $layout_css .= '.post-thumbnail img, .post-thumbnail picture, .article-hero img, .post-hero {' . implode( ' ', $thumbnail_image_rules ) . '}';
+
+    $content_rules = array();
+
+    if ( ! empty( $content_layout['max_width_css'] ) ) {
+        $content_rules[] = 'max-width: var(--content-max-width, ' . $content_layout['max_width_css'] . ');';
+        $content_rules[] = 'margin-left: auto;';
+        $content_rules[] = 'margin-right: auto;';
+        $content_rules[] = 'width: min(100%, var(--content-max-width, ' . $content_layout['max_width_css'] . '));';
+    }
+
+    if ( ! empty( $content_rules ) ) {
+        $layout_css .= '.site-container, .site-main, .site-content {' . implode( ' ', $content_rules ) . '}';
+    }
+
+    if ( isset( $content_layout['section_spacing_css'] ) && '' !== $content_layout['section_spacing_css'] ) {
+        $layout_css .= '.site-container > * + *, .site-main > * + *, .site-content > * + * {margin-top: var(--content-section-gap, ' . $content_layout['section_spacing_css'] . ');}';
+    }
+
     $body_rules = array();
 
     if ( isset( $presets[ $body_font_key ] ) ) {
@@ -2126,6 +2942,8 @@ function beyond_gotham_get_customizer_css() {
     if ( ! empty( $body_rules ) ) {
         $css .= 'body {' . implode( ' ', $body_rules ) . '}';
     }
+
+    $css .= $layout_css;
 
     if ( isset( $presets[ $heading_key ] ) ) {
         $css .= 'h1, h2, h3, h4, h5, h6 {font-family: ' . $presets[ $heading_key ]['stack'] . ';}';
@@ -2229,6 +3047,7 @@ function beyond_gotham_customize_preview_js() {
 
     $cta_layout  = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
     $cta_presets = function_exists( 'beyond_gotham_get_cta_size_presets' ) ? beyond_gotham_get_cta_size_presets() : array();
+    $ui_layout   = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
 
     wp_localize_script(
         $handle,
@@ -2245,6 +3064,7 @@ function beyond_gotham_customize_preview_js() {
             ),
             'ctaLayout'           => $cta_layout,
             'ctaSizePresets'      => $cta_presets,
+            'uiLayout'            => $ui_layout,
             'defaults'             => $color_defaults,
             'colorDefaults'        => $color_defaults,
             'contrastThreshold'    => 4.5,

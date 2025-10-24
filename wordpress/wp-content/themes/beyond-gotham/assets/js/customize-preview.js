@@ -149,6 +149,66 @@
         return sanitizedValue + 'px';
     }
 
+    function formatPxValue(value, allowZero) {
+        var number = toPositiveFloat(value);
+
+        if (!allowZero && number <= 0) {
+            return '';
+        }
+
+        if (allowZero && number < 0) {
+            number = 0;
+        }
+
+        if (!allowZero && number <= 0) {
+            return '';
+        }
+
+        var precision = number < 10 ? 1 : 0;
+        var factor = Math.pow(10, precision);
+        var rounded = Math.round(number * factor) / factor;
+
+        if (!allowZero && rounded <= 0) {
+            return '';
+        }
+
+        return rounded + 'px';
+    }
+
+    var THUMBNAIL_ASPECT_MAP = {
+        '16-9': '16 / 9',
+        '4-3': '4 / 3',
+        '1-1': '1 / 1'
+    };
+
+    function sanitizeAspectChoice(value) {
+        if (typeof value !== 'string') {
+            return '16-9';
+        }
+
+        var normalized = value.trim().toLowerCase();
+
+        if (THUMBNAIL_ASPECT_MAP[normalized]) {
+            return normalized;
+        }
+
+        return '16-9';
+    }
+
+    function sanitizeThumbnailUnit(value) {
+        if (typeof value !== 'string') {
+            return 'px';
+        }
+
+        var normalized = value.trim().toLowerCase();
+
+        if (normalized === '%') {
+            return '%';
+        }
+
+        return 'px';
+    }
+
     function applyChoiceClass(element, choices, activeClass) {
         if (!element || !element.classList || !Array.isArray(choices)) {
             return;
@@ -191,6 +251,78 @@
         position: sanitizePosition(rawCtaLayout.position),
         alignment: sanitizeAlignment(rawCtaLayout.alignment)
     };
+
+    var rawUiLayout = (data && (data.uiLayout || data.ui_layout)) ? (data.uiLayout || data.ui_layout) : {};
+    var headerData = rawUiLayout.header || {};
+    var footerData = rawUiLayout.footer || {};
+    var buttonData = rawUiLayout.buttons || {};
+    var thumbnailData = rawUiLayout.thumbnails || {};
+    var contentData = rawUiLayout.content || {};
+
+    var headerLayoutState = {
+        height: toPositiveFloat(typeof headerData.height !== 'undefined' ? headerData.height : headerData.height_value || headerData.heightValue),
+        paddingTop: toPositiveFloat(typeof headerData.padding_top !== 'undefined' ? headerData.padding_top : headerData.paddingTop),
+        paddingBottom: toPositiveFloat(typeof headerData.padding_bottom !== 'undefined' ? headerData.padding_bottom : headerData.paddingBottom)
+    };
+
+    var footerLayoutState = {
+        minHeight: toPositiveFloat(typeof footerData.min_height !== 'undefined' ? footerData.min_height : footerData.minHeight),
+        marginTop: toPositiveFloat(typeof footerData.margin_top !== 'undefined' ? footerData.margin_top : footerData.marginTop)
+    };
+
+    var buttonLayoutState = {
+        paddingVertical: toPositiveFloat(typeof buttonData.padding_vertical !== 'undefined' ? buttonData.padding_vertical : buttonData.paddingVertical),
+        paddingHorizontal: toPositiveFloat(typeof buttonData.padding_horizontal !== 'undefined' ? buttonData.padding_horizontal : buttonData.paddingHorizontal),
+        borderRadius: toPositiveFloat(typeof buttonData.border_radius !== 'undefined' ? buttonData.border_radius : buttonData.borderRadius)
+    };
+
+    var thumbnailLayoutState = {
+        aspectRatio: sanitizeAspectChoice(thumbnailData.aspect_ratio || thumbnailData.aspectRatio),
+        maxWidthValue: toPositiveFloat(typeof thumbnailData.max_width_value !== 'undefined' ? thumbnailData.max_width_value : thumbnailData.maxWidthValue),
+        maxWidthUnit: sanitizeThumbnailUnit(thumbnailData.max_width_unit || thumbnailData.maxWidthUnit)
+    };
+
+    var contentLayoutState = {
+        maxWidth: toPositiveFloat(typeof contentData.max_width !== 'undefined' ? contentData.max_width : contentData.maxWidth),
+        sectionSpacing: toPositiveFloat(typeof contentData.section_spacing !== 'undefined' ? contentData.section_spacing : contentData.sectionSpacing)
+    };
+
+    function applyHeaderLayout() {
+        setCSSVariable('--site-header-height', formatPxValue(headerLayoutState.height, false));
+        setCSSVariable('--site-header-padding-top', formatPxValue(headerLayoutState.paddingTop, true));
+        setCSSVariable('--site-header-padding-bottom', formatPxValue(headerLayoutState.paddingBottom, true));
+    }
+
+    function applyFooterLayout() {
+        setCSSVariable('--site-footer-min-height', formatPxValue(footerLayoutState.minHeight, false));
+        setCSSVariable('--site-footer-margin-top', formatPxValue(footerLayoutState.marginTop, true));
+    }
+
+    function applyButtonLayout() {
+        setCSSVariable('--ui-button-padding-y', formatPxValue(buttonLayoutState.paddingVertical, true));
+        setCSSVariable('--ui-button-padding-x', formatPxValue(buttonLayoutState.paddingHorizontal, true));
+        setCSSVariable('--ui-button-radius', formatPxValue(buttonLayoutState.borderRadius, true));
+    }
+
+    function applyThumbnailLayout() {
+        var ratioKey = sanitizeAspectChoice(thumbnailLayoutState.aspectRatio);
+        var ratioValue = THUMBNAIL_ASPECT_MAP[ratioKey] || THUMBNAIL_ASPECT_MAP['16-9'];
+        var widthCss = formatWidthValue(thumbnailLayoutState.maxWidthValue, sanitizeThumbnailUnit(thumbnailLayoutState.maxWidthUnit));
+
+        setCSSVariable('--post-thumbnail-aspect-ratio', ratioValue);
+        setCSSVariable('--post-thumbnail-max-width', widthCss);
+    }
+
+    function applyContentLayout() {
+        setCSSVariable('--content-max-width', formatPxValue(contentLayoutState.maxWidth, false));
+        setCSSVariable('--content-section-gap', formatPxValue(contentLayoutState.sectionSpacing, true));
+    }
+
+    applyHeaderLayout();
+    applyFooterLayout();
+    applyButtonLayout();
+    applyThumbnailLayout();
+    applyContentLayout();
 
     var contrastThresholdRaw = (data && typeof data.contrastThreshold !== 'undefined') ? parseFloat(data.contrastThreshold) : 4.5;
     var contrastThreshold = (!isNaN(contrastThresholdRaw) && contrastThresholdRaw > 0) ? contrastThresholdRaw : 4.5;
@@ -1072,6 +1204,136 @@ function updateCTALayout() {
 
         value.bind(function (newValue) {
             updateStickyOffset(newValue, true);
+        });
+    });
+
+    api('beyond_gotham_header_height', function (value) {
+        headerLayoutState.height = toPositiveFloat(value.get());
+        applyHeaderLayout();
+
+        value.bind(function (newValue) {
+            headerLayoutState.height = toPositiveFloat(newValue);
+            applyHeaderLayout();
+        });
+    });
+
+    api('beyond_gotham_header_padding_top', function (value) {
+        headerLayoutState.paddingTop = toPositiveFloat(value.get());
+        applyHeaderLayout();
+
+        value.bind(function (newValue) {
+            headerLayoutState.paddingTop = toPositiveFloat(newValue);
+            applyHeaderLayout();
+        });
+    });
+
+    api('beyond_gotham_header_padding_bottom', function (value) {
+        headerLayoutState.paddingBottom = toPositiveFloat(value.get());
+        applyHeaderLayout();
+
+        value.bind(function (newValue) {
+            headerLayoutState.paddingBottom = toPositiveFloat(newValue);
+            applyHeaderLayout();
+        });
+    });
+
+    api('beyond_gotham_footer_min_height', function (value) {
+        footerLayoutState.minHeight = toPositiveFloat(value.get());
+        applyFooterLayout();
+
+        value.bind(function (newValue) {
+            footerLayoutState.minHeight = toPositiveFloat(newValue);
+            applyFooterLayout();
+        });
+    });
+
+    api('beyond_gotham_footer_margin_top', function (value) {
+        footerLayoutState.marginTop = toPositiveFloat(value.get());
+        applyFooterLayout();
+
+        value.bind(function (newValue) {
+            footerLayoutState.marginTop = toPositiveFloat(newValue);
+            applyFooterLayout();
+        });
+    });
+
+    api('beyond_gotham_button_padding_vertical', function (value) {
+        buttonLayoutState.paddingVertical = toPositiveFloat(value.get());
+        applyButtonLayout();
+
+        value.bind(function (newValue) {
+            buttonLayoutState.paddingVertical = toPositiveFloat(newValue);
+            applyButtonLayout();
+        });
+    });
+
+    api('beyond_gotham_button_padding_horizontal', function (value) {
+        buttonLayoutState.paddingHorizontal = toPositiveFloat(value.get());
+        applyButtonLayout();
+
+        value.bind(function (newValue) {
+            buttonLayoutState.paddingHorizontal = toPositiveFloat(newValue);
+            applyButtonLayout();
+        });
+    });
+
+    api('beyond_gotham_button_border_radius', function (value) {
+        buttonLayoutState.borderRadius = toPositiveFloat(value.get());
+        applyButtonLayout();
+
+        value.bind(function (newValue) {
+            buttonLayoutState.borderRadius = toPositiveFloat(newValue);
+            applyButtonLayout();
+        });
+    });
+
+    api('beyond_gotham_thumbnail_aspect_ratio', function (value) {
+        thumbnailLayoutState.aspectRatio = sanitizeAspectChoice(value.get());
+        applyThumbnailLayout();
+
+        value.bind(function (newValue) {
+            thumbnailLayoutState.aspectRatio = sanitizeAspectChoice(newValue);
+            applyThumbnailLayout();
+        });
+    });
+
+    api('beyond_gotham_thumbnail_max_width_value', function (value) {
+        thumbnailLayoutState.maxWidthValue = toPositiveFloat(value.get());
+        applyThumbnailLayout();
+
+        value.bind(function (newValue) {
+            thumbnailLayoutState.maxWidthValue = toPositiveFloat(newValue);
+            applyThumbnailLayout();
+        });
+    });
+
+    api('beyond_gotham_thumbnail_max_width_unit', function (value) {
+        thumbnailLayoutState.maxWidthUnit = sanitizeThumbnailUnit(value.get());
+        applyThumbnailLayout();
+
+        value.bind(function (newValue) {
+            thumbnailLayoutState.maxWidthUnit = sanitizeThumbnailUnit(newValue);
+            applyThumbnailLayout();
+        });
+    });
+
+    api('beyond_gotham_content_max_width', function (value) {
+        contentLayoutState.maxWidth = toPositiveFloat(value.get());
+        applyContentLayout();
+
+        value.bind(function (newValue) {
+            contentLayoutState.maxWidth = toPositiveFloat(newValue);
+            applyContentLayout();
+        });
+    });
+
+    api('beyond_gotham_content_section_spacing', function (value) {
+        contentLayoutState.sectionSpacing = toPositiveFloat(value.get());
+        applyContentLayout();
+
+        value.bind(function (newValue) {
+            contentLayoutState.sectionSpacing = toPositiveFloat(newValue);
+            applyContentLayout();
         });
     });
 
