@@ -18,6 +18,9 @@ if ( ! function_exists( 'beyond_gotham_theme_setup' ) ) {
 
         add_theme_support( 'title-tag' );
         add_theme_support( 'post-thumbnails' );
+        add_image_size( 'bg-card', 640, 400, true );
+        add_image_size( 'bg-thumb', 320, 200, true );
+        add_image_size( 'bg-hero', 1440, 720, true );
         add_theme_support( 'custom-logo', array(
             'height'      => 120,
             'width'       => 120,
@@ -85,10 +88,123 @@ if ( ! function_exists( 'beyond_gotham_theme_setup' ) ) {
         register_nav_menus( array(
             'primary' => __( 'Primary Menu', 'beyond_gotham' ),
             'footer'  => __( 'Footer Menu', 'beyond_gotham' ),
+            'menu-2'  => __( 'Social Links Menu', 'beyond_gotham' ),
         ) );
     }
 }
 add_action( 'after_setup_theme', 'beyond_gotham_theme_setup' );
+
+/**
+ * Extend body classes with Beyond Gotham layout helpers.
+ *
+ * @param array $classes Default body classes.
+ * @return array
+ */
+function beyond_gotham_body_classes( $classes ) {
+    $classes[] = 'bg-site';
+    $classes[] = 'bg-has-sticky-header';
+    $classes[] = 'bg-ui-loading';
+
+    return array_unique( $classes );
+}
+add_filter( 'body_class', 'beyond_gotham_body_classes' );
+
+/**
+ * Detect social network slug from URL.
+ *
+ * @param string $url Social URL.
+ * @return string
+ */
+function beyond_gotham_detect_social_network( $url ) {
+    if ( ! $url ) {
+        return '';
+    }
+
+    $host = wp_parse_url( $url, PHP_URL_HOST );
+    if ( ! $host ) {
+        return '';
+    }
+
+    $networks = array(
+        'twitter'   => array( 'twitter.com', 'x.com' ),
+        'instagram' => array( 'instagram.com' ),
+        'facebook'  => array( 'facebook.com' ),
+        'linkedin'  => array( 'linkedin.com' ),
+        'youtube'   => array( 'youtube.com', 'youtu.be' ),
+        'mastodon'  => array( 'mastodon.social' ),
+        'github'    => array( 'github.com' ),
+    );
+
+    foreach ( $networks as $slug => $candidates ) {
+        foreach ( $candidates as $candidate ) {
+            if ( false !== stripos( $host, $candidate ) ) {
+                return $slug;
+            }
+        }
+    }
+
+    return sanitize_title( str_replace( 'www.', '', $host ) );
+}
+
+/**
+ * Adjust navigation link attributes for accessibility and styling.
+ *
+ * @param array    $atts  Default attributes.
+ * @param WP_Post  $item  Menu item instance.
+ * @param stdClass $args  Menu arguments.
+ * @param int      $depth Menu depth.
+ *
+ * @return array
+ */
+function beyond_gotham_nav_menu_link_attributes( $atts, $item, $args, $depth ) {
+    $classes = isset( $item->classes ) ? (array) $item->classes : array();
+
+    if ( isset( $args->theme_location ) && 'primary' === $args->theme_location ) {
+        $current_classes = array( 'current-menu-item', 'current_page_parent', 'current-menu-ancestor', 'current_page_ancestor' );
+        if ( array_intersect( $current_classes, $classes ) ) {
+            $atts['aria-current'] = 'page';
+        }
+    }
+
+    if ( isset( $args->theme_location ) && 'menu-2' === $args->theme_location ) {
+        $atts['class'] = isset( $atts['class'] ) ? $atts['class'] . ' bg-social-link' : 'bg-social-link';
+
+        if ( ! empty( $item->title ) ) {
+            $atts['aria-label'] = $item->title;
+        }
+
+        $network = beyond_gotham_detect_social_network( $item->url );
+        if ( $network ) {
+            $atts['data-network'] = $network;
+        }
+    }
+
+    return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'beyond_gotham_nav_menu_link_attributes', 10, 4 );
+
+/**
+ * Inject icon markup for social navigation links.
+ *
+ * @param stdClass $args Menu arguments.
+ * @param WP_Post  $item Menu item instance.
+ * @param int      $depth Menu depth.
+ *
+ * @return stdClass
+ */
+function beyond_gotham_nav_menu_item_args( $args, $item, $depth ) {
+    if ( isset( $args->theme_location ) && 'menu-2' === $args->theme_location ) {
+        $initial = function_exists( 'mb_substr' )
+            ? mb_strtoupper( mb_substr( $item->title, 0, 2 ) )
+            : strtoupper( substr( $item->title, 0, 2 ) );
+
+        $args->link_before = '<span class="bg-social-link__icon" aria-hidden="true" data-initial="' . esc_attr( $initial ) . '"></span><span class="bg-social-link__text">';
+        $args->link_after  = '</span>';
+    }
+
+    return $args;
+}
+add_filter( 'nav_menu_item_args', 'beyond_gotham_nav_menu_item_args', 10, 3 );
 
 /**
  * Add a custom class to the admin body when using the block editor.
@@ -131,6 +247,20 @@ function beyond_gotham_enqueue_assets() {
         array(),
         $theme_version,
         true
+    );
+
+    wp_localize_script(
+        'beyond-gotham-theme',
+        'BG_AJAX',
+        array(
+            'ajax_url' => admin_url( 'admin-ajax.php' ),
+            'nonce'    => wp_create_nonce( 'bg_ajax_nonce' ),
+            'messages' => array(
+                'genericError' => __( 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.', 'beyond_gotham' ),
+                'rateLimited'  => __( 'Bitte versuchen Sie es in einigen Minuten erneut.', 'beyond_gotham' ),
+                'sending'      => __( 'Wird gesendet …', 'beyond_gotham' ),
+            ),
+        )
     );
 }
 add_action( 'wp_enqueue_scripts', 'beyond_gotham_enqueue_assets' );

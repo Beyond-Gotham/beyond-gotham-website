@@ -1,0 +1,113 @@
+.bg-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 100%;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.bg-card__media {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.bg-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.bg-card__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(51, 209, 255, 0.2), rgba(51, 209, 255, 0.05));
+}
+
+.bg-card__body {
+  padding: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bg-card__badge {
+  align-self: flex-start;
+  display: inline-flex;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(51, 209, 255, 0.12);
+  color: var(--accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bg-card__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.bg-card__title a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.bg-card__title a:hover,
+.bg-card__title a:focus-visible {
+  color: var(--accent);
+}
+
+.bg-card__excerpt {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.bg-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+}
+
+.bg-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.bg-social-link__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bg-social-link__icon::before {
+  content: attr(data-initial);
+}
+
+.bg-social-link__text {
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .bg-card__body {
+    padding: 1.25rem;
+  }
+}

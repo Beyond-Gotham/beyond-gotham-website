@@ -1,173 +1,328 @@
 <?php
-/* Template Name: Landingpage */
+/*
+ * Template Name: Landingpage
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+global $post;
+
+if ( ! function_exists( 'beyond_gotham_landing_reading_time' ) ) {
+    /**
+     * Estimate reading time for a given post.
+     *
+     * @param int|WP_Post|null $post_id Optional post reference.
+     * @return string
+     */
+    function beyond_gotham_landing_reading_time( $post_id = null ) {
+        $content = get_post_field( 'post_content', $post_id );
+        $word_count = $content ? str_word_count( wp_strip_all_tags( $content ) ) : 0;
+
+        if ( $word_count <= 0 ) {
+            return '';
+        }
+
+        $minutes = max( 1, (int) ceil( $word_count / 200 ) );
+
+        return sprintf(
+            _n( '%d Minute Lesezeit', '%d Minuten Lesezeit', $minutes, 'beyond_gotham' ),
+            $minutes
+        );
+    }
+}
 
 get_header();
 ?>
 
-<main id="primary" class="site-main beyond-landing">
-    <?php
-    $hero_query = new WP_Query(
-        array(
-            'category_name'  => 'reportagen',
-            'posts_per_page' => 1,
-        )
-    );
-    ?>
-
-    <section class="beyond-hero" aria-label="Top Story">
-        <?php if ( $hero_query->have_posts() ) : ?>
-            <?php
-            while ( $hero_query->have_posts() ) :
-                $hero_query->the_post();
-                $hero_category = get_the_category();
-                $hero_label    = ! empty( $hero_category ) ? $hero_category[0]->name : esc_html__( 'Reportagen', 'beyond-gotham' );
-                ?>
-                <article <?php post_class( 'beyond-hero__article' ); ?>>
-                    <div class="beyond-hero__media">
-                        <?php if ( has_post_thumbnail() ) : ?>
-                            <a class="beyond-hero__image-link" href="<?php the_permalink(); ?>" aria-label="<?php the_title_attribute(); ?>">
-                                <?php the_post_thumbnail( 'large', array( 'class' => 'beyond-hero__image' ) ); ?>
-                            </a>
-                        <?php else : ?>
-                            <div class="beyond-hero__image beyond-hero__image--placeholder" aria-hidden="true">
-                                <span><?php esc_html_e( 'Beitragsbild Platzhalter', 'beyond-gotham' ); ?></span>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="beyond-hero__content">
-                        <span class="beyond-hero__category"><?php echo esc_html( $hero_label ); ?></span>
-                        <h1 class="beyond-hero__title">
-                            <a href="<?php the_permalink(); ?>">
-                                <?php the_title(); ?>
-                            </a>
-                        </h1>
-                        <div class="beyond-hero__excerpt">
-                            <?php the_excerpt(); ?>
-                        </div>
-                    </div>
-                </article>
-            <?php endwhile; ?>
-        <?php else : ?>
-            <article class="beyond-hero__article beyond-hero__article--placeholder">
-                <div class="beyond-hero__media">
-                    <div class="beyond-hero__image beyond-hero__image--placeholder" aria-hidden="true">
-                        <span><?php esc_html_e( 'Beitragsbild Platzhalter', 'beyond-gotham' ); ?></span>
-                    </div>
-                </div>
-                <div class="beyond-hero__content">
-                    <span class="beyond-hero__category"><?php esc_html_e( 'Reportagen', 'beyond-gotham' ); ?></span>
-                    <h1 class="beyond-hero__title"><?php esc_html_e( 'Titel der Aufmacher-Geschichte', 'beyond-gotham' ); ?></h1>
-                    <div class="beyond-hero__excerpt">
-                        <p><?php esc_html_e( 'Kurzer Platzhalter-Teaser für den Aufmacher.', 'beyond-gotham' ); ?></p>
-                    </div>
-                </div>
-            </article>
-        <?php endif; ?>
-        <?php wp_reset_postdata(); ?>
-    </section>
-
-    <?php
-    $category_sections = array(
-        'dossiers'    => esc_html__( 'Dossiers', 'beyond-gotham' ),
-        'interviews' => esc_html__( 'Interviews', 'beyond-gotham' ),
-        'osint'      => esc_html__( 'OSINT', 'beyond-gotham' ),
-    );
-
-    foreach ( $category_sections as $category_slug => $section_title ) :
-        $category_obj = get_category_by_slug( $category_slug );
-        $section_link = $category_obj ? get_category_link( $category_obj->term_id ) : '#';
-
-        $section_posts = new WP_Query(
-            array(
-                'posts_per_page' => 4,
-                'category_name'  => $category_slug,
-            )
-        );
-        ?>
-        <section class="beyond-section beyond-section--<?php echo esc_attr( $category_slug ); ?>">
-            <header class="beyond-section__header">
-                <h2 class="beyond-section__title">
-                    <a href="<?php echo esc_url( $section_link ); ?>">
-                        <?php echo esc_html( $section_title ); ?>
+<main id="primary" class="site-main landing">
+    <section class="landing-hero" aria-labelledby="landing-hero-title">
+        <div class="landing-hero__grid">
+            <div class="landing-hero__content" data-bg-animate>
+                <span class="landing-hero__eyebrow"><?php esc_html_e( 'AZAV-zertifizierte Weiterbildung', 'beyond_gotham' ); ?></span>
+                <h1 class="landing-hero__title" id="landing-hero-title">
+                    <?php esc_html_e( 'Investigativer Journalismus neu gedacht', 'beyond_gotham' ); ?>
+                </h1>
+                <p class="landing-hero__lead">
+                    <?php esc_html_e( 'Beyond Gotham verbindet OSINT, Datenanalyse und Einsatztraining zu einem praxisorientierten Curriculum für moderne Recherchenteams.', 'beyond_gotham' ); ?>
+                </p>
+                <div class="landing-hero__actions">
+                    <a class="bg-button bg-button--primary" href="<?php echo esc_url( home_url( '/kurse/' ) ); ?>">
+                        <?php esc_html_e( 'Kurse entdecken', 'beyond_gotham' ); ?>
                     </a>
-                </h2>
-            </header>
-            <div class="beyond-section__grid">
-                <?php if ( $section_posts->have_posts() ) : ?>
-                    <?php
-                    while ( $section_posts->have_posts() ) :
-                        $section_posts->the_post();
-                        ?>
-                        <article <?php post_class( 'beyond-card' ); ?>>
-                            <div class="beyond-card__media">
-                                <?php if ( has_post_thumbnail() ) : ?>
-                                    <a class="beyond-card__image-link" href="<?php the_permalink(); ?>" aria-label="<?php the_title_attribute(); ?>">
-                                        <?php the_post_thumbnail( 'medium', array( 'class' => 'beyond-card__image' ) ); ?>
-                                    </a>
-                                <?php else : ?>
-                                    <div class="beyond-card__image beyond-card__image--placeholder" aria-hidden="true">
-                                        <span><?php esc_html_e( 'Bild Platzhalter', 'beyond-gotham' ); ?></span>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="beyond-card__content">
-                                <h3 class="beyond-card__title">
-                                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                                </h3>
-                                <div class="beyond-card__excerpt">
-                                    <?php the_excerpt(); ?>
-                                </div>
-                                <a class="beyond-card__link" href="<?php the_permalink(); ?>">
-                                    <?php esc_html_e( 'Zum Beitrag', 'beyond-gotham' ); ?>
-                                </a>
-                            </div>
-                        </article>
-                    <?php endwhile; ?>
-                <?php else : ?>
-                    <article class="beyond-card beyond-card--placeholder">
-                        <div class="beyond-card__media">
-                            <div class="beyond-card__image beyond-card__image--placeholder" aria-hidden="true">
-                                <span><?php esc_html_e( 'Bild Platzhalter', 'beyond-gotham' ); ?></span>
-                            </div>
-                        </div>
-                        <div class="beyond-card__content">
-                            <h3 class="beyond-card__title"><?php esc_html_e( 'Titel des Beitrags', 'beyond-gotham' ); ?></h3>
-                            <div class="beyond-card__excerpt">
-                                <p><?php esc_html_e( 'Platzhalter-Teaser für diese Kategorie.', 'beyond-gotham' ); ?></p>
-                            </div>
-                            <a class="beyond-card__link" href="<?php echo esc_url( $section_link ); ?>">
-                                <?php esc_html_e( 'Alle Beiträge ansehen', 'beyond-gotham' ); ?>
-                            </a>
-                        </div>
-                    </article>
-                <?php endif; ?>
+                    <a class="bg-button bg-button--ghost" data-bg-scroll="#landing-newsletter" href="#landing-newsletter">
+                        <?php esc_html_e( 'Newsletter abonnieren', 'beyond_gotham' ); ?>
+                    </a>
+                </div>
+                <dl class="landing-hero__stats">
+                    <div>
+                        <dt><?php esc_html_e( 'Absolvent:innen', 'beyond_gotham' ); ?></dt>
+                        <dd>500+</dd>
+                    </div>
+                    <div>
+                        <dt><?php esc_html_e( 'Zufriedenheit', 'beyond_gotham' ); ?></dt>
+                        <dd>95%</dd>
+                    </div>
+                    <div>
+                        <dt><?php esc_html_e( 'Partnerorganisationen', 'beyond_gotham' ); ?></dt>
+                        <dd>12+</dd>
+                    </div>
+                </dl>
             </div>
-        </section>
-        <?php wp_reset_postdata(); ?>
-    <?php endforeach; ?>
-
-    <?php
-    $course_page = get_page_by_path( 'bg_course' );
-    $course_link = $course_page ? get_permalink( $course_page ) : '#';
-    ?>
-    <section class="beyond-section beyond-section--weiterbildung">
-        <div class="beyond-section__content beyond-section__content--cta">
-            <h2 class="beyond-section__title"><?php esc_html_e( 'Weiterbildung', 'beyond-gotham' ); ?></h2>
-            <p><?php esc_html_e( 'Mehr über unsere Weiterbildung erfahren.', 'beyond-gotham' ); ?></p>
-            <a class="beyond-section__cta" href="<?php echo esc_url( $course_link ); ?>">
-                <?php esc_html_e( 'Zur Kursübersicht', 'beyond-gotham' ); ?>
-            </a>
+            <div class="landing-hero__media" aria-hidden="true" data-bg-animate>
+                <div class="landing-hero__media-frame">
+                    <div class="landing-hero__media-gradient"></div>
+                    <div class="landing-hero__media-terminal">
+                        <span class="landing-hero__prompt">$ launch beyond-gotham --preset osint</span>
+                        <span class="landing-hero__line landing-hero__line--accent">✓ Graph engine ready</span>
+                        <span class="landing-hero__line landing-hero__line--accent">✓ Verification layer active</span>
+                        <span class="landing-hero__line landing-hero__line--accent">✓ Field training module synced</span>
+                        <span class="landing-hero__cursor" aria-hidden="true">_</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="beyond-section beyond-section--newsletter" aria-label="Newsletter">
-        <div class="beyond-section__content beyond-section__content--newsletter">
-            <h2 class="beyond-section__title"><?php esc_html_e( 'Bleibe auf dem Laufenden', 'beyond-gotham' ); ?></h2>
-            <p><?php esc_html_e( 'Trage deine E-Mail-Adresse ein, um regelmäßig Neuigkeiten zu erhalten.', 'beyond-gotham' ); ?></p>
-            <form class="beyond-newsletter__form" action="#" method="post">
-                <label class="screen-reader-text" for="beyond-newsletter-email"><?php esc_html_e( 'E-Mail-Adresse', 'beyond-gotham' ); ?></label>
-                <input type="email" id="beyond-newsletter-email" name="beyond-newsletter-email" placeholder="<?php esc_attr_e( 'E-Mail-Adresse', 'beyond-gotham' ); ?>" required />
-                <button type="submit"><?php esc_html_e( 'Anmelden', 'beyond-gotham' ); ?></button>
+    <section class="landing-social" aria-labelledby="landing-social-title">
+        <div class="landing-social__inner" data-bg-animate>
+            <div class="landing-social__header">
+                <h2 class="landing-social__title" id="landing-social-title"><?php esc_html_e( 'Stay Connected', 'beyond_gotham' ); ?></h2>
+                <p class="landing-social__intro"><?php esc_html_e( 'Folgen Sie unseren Einsatz- und Recherche-Updates auf allen Kanälen.', 'beyond_gotham' ); ?></p>
+            </div>
+            <?php if ( has_nav_menu( 'menu-2' ) ) : ?>
+                <?php
+                wp_nav_menu(
+                    array(
+                        'theme_location' => 'menu-2',
+                        'menu_class'     => 'landing-social__menu',
+                        'container'      => false,
+                        'depth'          => 1,
+                    )
+                );
+                ?>
+            <?php else : ?>
+                <p class="landing-social__notice"><?php esc_html_e( 'Füge deine Social Links im Menü-Manager hinzu, um sie hier anzuzeigen.', 'beyond_gotham' ); ?></p>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <?php
+    $landing_sections = array(
+        array(
+            'title' => __( 'Latest Sports News', 'beyond_gotham' ),
+            'slug'  => 'sport',
+        ),
+        array(
+            'title' => __( 'Local News', 'beyond_gotham' ),
+            'slug'  => 'reportagen',
+        ),
+        array(
+            'title'    => __( 'Arts & Culture', 'beyond_gotham' ),
+            'slug'     => 'interviews',
+            'fallback' => 'dossiers',
+        ),
+    );
+
+    foreach ( $landing_sections as $section ) :
+        $category_slug = $section['slug'];
+        $category      = get_category_by_slug( $category_slug );
+        $query_args    = array(
+            'post_type'           => 'post',
+            'posts_per_page'      => 6,
+            'ignore_sticky_posts' => true,
+            'category_name'       => $category_slug,
+        );
+
+        $query = new WP_Query( $query_args );
+
+        if ( ! $query->have_posts() && ! empty( $section['fallback'] ) ) {
+            wp_reset_postdata();
+            $category_slug             = $section['fallback'];
+            $category                  = get_category_by_slug( $category_slug );
+            $query_args['category_name'] = $category_slug;
+            $query                     = new WP_Query( $query_args );
+        }
+
+        if ( ! $query->have_posts() ) {
+            continue;
+        }
+
+        $has_carousel = $query->post_count > 4;
+        $archive_url  = $category instanceof WP_Term ? get_category_link( $category ) : get_post_type_archive_link( 'post' );
+        ?>
+        <section class="landing-feed" aria-label="<?php echo esc_attr( $section['title'] ); ?>">
+            <div class="landing-feed__header" data-bg-animate>
+                <h2 class="landing-feed__title"><?php echo esc_html( $section['title'] ); ?></h2>
+                <a class="landing-feed__more" href="<?php echo esc_url( $archive_url ); ?>">
+                    <?php esc_html_e( 'Mehr', 'beyond_gotham' ); ?>
+                </a>
+            </div>
+            <div class="landing-feed__content<?php echo $has_carousel ? ' landing-feed__content--carousel' : ''; ?>"<?php echo $has_carousel ? ' data-bg-carousel' : ''; ?>>
+                <div class="bg-grid<?php echo $has_carousel ? ' bg-grid--carousel' : ''; ?>"<?php echo $has_carousel ? ' data-bg-carousel-track' : ''; ?>>
+                    <?php
+                    while ( $query->have_posts() ) :
+                        $query->the_post();
+                        $post_id   = get_the_ID();
+                        $permalink = get_permalink();
+                        $badge     = '';
+
+                        if ( $category instanceof WP_Term ) {
+                            $badge = $category->name;
+                        } else {
+                            $post_categories = get_the_category();
+                            if ( ! empty( $post_categories ) ) {
+                                $badge = $post_categories[0]->name;
+                            }
+                        }
+                        ?>
+                        <article class="bg-card" data-bg-animate>
+                            <a class="bg-card__media" href="<?php echo esc_url( $permalink ); ?>">
+                                <?php
+                                if ( has_post_thumbnail() ) {
+                                    the_post_thumbnail( 'bg-card', array( 'class' => 'bg-card__image' ) );
+                                } else {
+                                    echo '<span class="bg-card__placeholder" aria-hidden="true"></span>';
+                                }
+                                ?>
+                            </a>
+                            <div class="bg-card__body">
+                                <?php if ( $badge ) : ?>
+                                    <span class="bg-card__badge"><?php echo esc_html( $badge ); ?></span>
+                                <?php endif; ?>
+                                <h3 class="bg-card__title">
+                                    <a href="<?php echo esc_url( $permalink ); ?>"><?php the_title(); ?></a>
+                                </h3>
+                                <div class="bg-card__meta">
+                                    <time class="bg-card__meta-item" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>">
+                                        <?php echo esc_html( get_the_date( 'd.m.Y' ) ); ?>
+                                    </time>
+                                    <?php $reading_time = beyond_gotham_landing_reading_time( $post_id ); ?>
+                                    <?php if ( $reading_time ) : ?>
+                                        <span class="bg-card__meta-item"><?php echo esc_html( $reading_time ); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </article>
+                        <?php
+                    endwhile;
+                    ?>
+                </div>
+                <?php if ( $has_carousel ) : ?>
+                    <div class="bg-carousel__controls" aria-hidden="false">
+                        <button class="bg-carousel__button" type="button" data-bg-carousel-prev aria-label="<?php esc_attr_e( 'Vorherige Beiträge', 'beyond_gotham' ); ?>">
+                            <span aria-hidden="true">&#8592;</span>
+                        </button>
+                        <button class="bg-carousel__button" type="button" data-bg-carousel-next aria-label="<?php esc_attr_e( 'Nächste Beiträge', 'beyond_gotham' ); ?>">
+                            <span aria-hidden="true">&#8594;</span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </section>
+        <?php
+        wp_reset_postdata();
+    endforeach;
+    ?>
+
+    <section class="bg-section" id="landing-features">
+        <div class="bg-section__header" data-bg-animate>
+            <h2 class="bg-section__title"><?php esc_html_e( 'Warum Beyond Gotham?', 'beyond_gotham' ); ?></h2>
+            <p class="bg-section__subtitle"><?php esc_html_e( 'Wir kombinieren investigatives Handwerk mit Technologie und Safety-Training.', 'beyond_gotham' ); ?></p>
+        </div>
+        <div class="features-grid">
+            <?php
+            $features = array(
+                array(
+                    'title' => __( 'OSINT Deep Dives', 'beyond_gotham' ),
+                    'text'  => __( 'Strukturierte Recherche-Playbooks, Analysen und Open-Source-Verifikation für komplexe Lagen.', 'beyond_gotham' ),
+                ),
+                array(
+                    'title' => __( 'Datenjournalismus', 'beyond_gotham' ),
+                    'text'  => __( 'Lerne, aus Daten Geschichten zu formen: Scraping, Cleaning und Storytelling mit evidenzbasierten Insights.', 'beyond_gotham' ),
+                ),
+                array(
+                    'title' => __( 'Humanitäre Ersthilfe', 'beyond_gotham' ),
+                    'text'  => __( 'Tactical Casualty Care, Stress-Szenarien und Resilienztraining für Einsätze in Krisenregionen.', 'beyond_gotham' ),
+                ),
+                array(
+                    'title' => __( 'Mentor:innen aus der Praxis', 'beyond_gotham' ),
+                    'text'  => __( 'Investigative Journalist:innen, Analyst:innen und Einsatzkräfte begleiten jede Kohorte persönlich.', 'beyond_gotham' ),
+                ),
+                array(
+                    'title' => __( 'Remote & Onsite', 'beyond_gotham' ),
+                    'text'  => __( 'Hybride Lernformate: Live-Online-Sessions, Field Labs vor Ort und Simulationen in unserem Trainingshub.', 'beyond_gotham' ),
+                ),
+                array(
+                    'title' => __( 'Förderfähig via Bildungsgutschein', 'beyond_gotham' ),
+                    'text'  => __( 'AZAV-zertifiziert mit voll digitalem Anmeldeprozess inklusive Upload von Voucher-Dokumenten.', 'beyond_gotham' ),
+                ),
+            );
+
+            foreach ( $features as $feature ) :
+                ?>
+                <article class="feature-card" data-bg-animate>
+                    <h3 class="feature-card__title"><?php echo esc_html( $feature['title'] ); ?></h3>
+                    <p class="feature-card__text"><?php echo esc_html( $feature['text'] ); ?></p>
+                </article>
+                <?php
+            endforeach;
+            ?>
+        </div>
+    </section>
+
+    <section class="bg-section bg-section--split" id="landing-testimonials">
+        <div class="bg-section__header" data-bg-animate>
+            <h2 class="bg-section__title"><?php esc_html_e( 'Stimmen unserer Alumni', 'beyond_gotham' ); ?></h2>
+            <p class="bg-section__subtitle"><?php esc_html_e( 'Ergebnisse, die in Newsrooms und Einsatzteams Wirkung zeigen.', 'beyond_gotham' ); ?></p>
+        </div>
+        <div class="testimonials">
+            <?php
+            $testimonials = array(
+                array(
+                    'name'  => __( 'Jasmin K., Investigativreporterin', 'beyond_gotham' ),
+                    'quote' => __( '„Die OSINT-Methodik von Beyond Gotham hat meine Recherchearbeit auf ein neues Niveau gehoben. Unsere Redaktion konnte dank der Trainings zwei große Datenlecks aufdecken.“', 'beyond_gotham' ),
+                ),
+                array(
+                    'name'  => __( 'Daniel F., Einsatzleiter NGO', 'beyond_gotham' ),
+                    'quote' => __( '„Die Kombination aus Sicherheitsbriefings und Datenanalyse ist einzigartig. Unser Team fühlt sich erstmals wirklich vorbereitet auf Kriseneinsätze.“', 'beyond_gotham' ),
+                ),
+                array(
+                    'name'  => __( 'Lea S., Datenjournalistin', 'beyond_gotham' ),
+                    'quote' => __( '„Vom ersten Tag an praxisnah – wir haben echte Fälle aufgearbeitet und Tools integriert, die wir jetzt täglich einsetzen.“', 'beyond_gotham' ),
+                ),
+            );
+
+            foreach ( $testimonials as $testimonial ) :
+                ?>
+                <figure class="testimonial" data-bg-animate>
+                    <blockquote class="testimonial__quote"><?php echo esc_html( $testimonial['quote'] ); ?></blockquote>
+                    <figcaption class="testimonial__author"><?php echo esc_html( $testimonial['name'] ); ?></figcaption>
+                </figure>
+                <?php
+            endforeach;
+            ?>
+        </div>
+    </section>
+
+    <section class="bg-section bg-section--accent" id="landing-cta">
+        <div class="cta" data-bg-animate>
+            <h2 class="cta__title"><?php esc_html_e( 'Bereit für die nächste Kohorte?', 'beyond_gotham' ); ?></h2>
+            <p class="cta__lead"><?php esc_html_e( 'Sichere dir deinen Platz und kombiniere journalistisches Handwerk mit taktischer Einsatzkompetenz.', 'beyond_gotham' ); ?></p>
+            <a class="bg-button bg-button--primary" href="<?php echo esc_url( home_url( '/kurse/' ) ); ?>"><?php esc_html_e( 'Alle Kurse ansehen', 'beyond_gotham' ); ?></a>
+        </div>
+    </section>
+
+    <section class="bg-section bg-section--newsletter" id="landing-newsletter">
+        <div class="newsletter" data-bg-animate>
+            <div class="newsletter__content">
+                <h2 class="newsletter__title"><?php esc_html_e( 'Newsletter & Einsatzbriefing', 'beyond_gotham' ); ?></h2>
+                <p class="newsletter__text"><?php esc_html_e( 'Monatliches Briefing mit Kursupdates, Einsatzreports und exklusiven Ressourcen. Jederzeit kündbar.', 'beyond_gotham' ); ?></p>
+            </div>
+            <form class="newsletter__form" action="<?php echo esc_url( home_url( '/' ) ); ?>" method="post">
+                <label class="screen-reader-text" for="newsletter-email"><?php esc_html_e( 'E-Mail Adresse', 'beyond_gotham' ); ?></label>
+                <input class="newsletter__input" type="email" id="newsletter-email" name="newsletter_email" placeholder="<?php esc_attr_e( 'Ihre E-Mail-Adresse', 'beyond_gotham' ); ?>" required>
+                <button class="bg-button bg-button--primary" type="submit"><?php esc_html_e( 'Anmelden', 'beyond_gotham' ); ?></button>
+                <p class="newsletter__legal"><?php esc_html_e( 'Mit Klick auf „Anmelden“ stimmen Sie dem Erhalt des Newsletters laut Datenschutzerklärung zu.', 'beyond_gotham' ); ?></p>
             </form>
         </div>
     </section>
