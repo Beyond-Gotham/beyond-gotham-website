@@ -1,4 +1,5 @@
 @use "base/variables";
+@use "base/fonts";
 @use "base/global";
 @use "base/accessibility";
 @use "layout/header";
@@ -7,7 +8,6 @@
 @use "components/buttons";
 @use "components/enrollment";
 @use "pages/landing";
-@use "pages/landing-updated";
 @use "pages/courses";
 @use "pages/archive";
 @use "pages/courses-archive";

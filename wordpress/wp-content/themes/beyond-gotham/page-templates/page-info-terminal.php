@@ -25,8 +25,21 @@ get_header();
                     </div>
                     <div class="product-hero__media" aria-hidden="true">
                         <?php if ( has_post_thumbnail() ) : ?>
-                            <figure class="product-hero__figure">
-                                <?php the_post_thumbnail( 'large', array( 'class' => 'product-hero__image' ) ); ?>
+                            <figure class="product-hero__figure" data-bg-skeleton>
+                                <?php
+                                echo wp_get_attachment_image(
+                                    get_post_thumbnail_id(),
+                                    'large',
+                                    false,
+                                    array(
+                                        'class'         => 'product-hero__image',
+                                        'loading'       => 'eager',
+                                        'decoding'      => 'async',
+                                        'fetchpriority' => 'high',
+                                        'sizes'         => '(min-width: 1024px) 640px, 90vw',
+                                    )
+                                );
+                                ?>
                             </figure>
                         <?php else : ?>
                             <div class="product-hero__placeholder" role="img" aria-label="Illustration des InfoTerminal Dashboards">

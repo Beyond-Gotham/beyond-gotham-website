@@ -1,0 +1,16 @@
+{
+  "name": "beyond-gotham-theme",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "cssnano": "^6.1.2",
+    "esbuild": "^0.19.5",
+    "postcss": "^8.4.31",
+    "sass": "^1.69.5"
+  }
+}
