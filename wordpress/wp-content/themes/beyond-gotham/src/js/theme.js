@@ -542,13 +542,50 @@
     let enabled = bar.getAttribute('data-enabled') === 'true';
     let showDesktop = bar.getAttribute('data-show-desktop') !== 'false';
     let showMobile = bar.getAttribute('data-show-mobile') !== 'false';
-    let delayMs = parseInt(bar.getAttribute('data-delay'), 10);
+    let delayMs = 0;
+    let triggerType = 'delay';
+    let scrollDepth = 50;
+    let triggerSelector = '';
     let dismissed = false;
     let hasShown = false;
     let timer = null;
     let isInternalUpdate = false;
+    let scrollListener = null;
+    let elementObserver = null;
 
-    delayMs = Number.isNaN(delayMs) ? 0 : Math.max(0, delayMs);
+    const readDelay = () => {
+      const value = parseInt(bar.getAttribute('data-delay'), 10);
+      return Number.isNaN(value) ? 0 : Math.max(0, value);
+    };
+
+    const readTriggerType = () => {
+      const value = (bar.getAttribute('data-trigger') || '').toLowerCase();
+      if (value === 'scroll' || value === 'element') {
+        return value;
+      }
+
+      return 'delay';
+    };
+
+    const readScrollDepth = () => {
+      const value = parseFloat(bar.getAttribute('data-scroll-depth'));
+
+      if (Number.isNaN(value)) {
+        return 50;
+      }
+
+      return Math.max(0, Math.min(100, value));
+    };
+
+    const readTriggerSelector = () => {
+      const value = bar.getAttribute('data-trigger-selector');
+      return typeof value === 'string' ? value.trim() : '';
+    };
+
+    delayMs = readDelay();
+    triggerType = readTriggerType();
+    scrollDepth = readScrollDepth();
+    triggerSelector = readTriggerSelector();
 
     const setAttributeInternal = (name, value) => {
       isInternalUpdate = true;
@@ -582,12 +619,25 @@
       }
     };
 
+    const cleanupTriggerListeners = () => {
+      if (scrollListener) {
+        window.removeEventListener('scroll', scrollListener);
+        scrollListener = null;
+      }
+
+      if (elementObserver) {
+        elementObserver.disconnect();
+        elementObserver = null;
+      }
+    };
+
     const hideSticky = (permanent = false) => {
       window.clearTimeout(timer);
       bar.classList.remove('visible');
       bar.setAttribute('aria-hidden', 'true');
 
       if (permanent) {
+        cleanupTriggerListeners();
         setAttributeInternal('hidden', 'hidden');
       }
     };
@@ -597,6 +647,7 @@
         return;
       }
 
+      cleanupTriggerListeners();
       removeAttributeInternal('hidden');
       bar.setAttribute('aria-hidden', 'false');
       setDeviceHidden(false);
@@ -608,7 +659,7 @@
       hasShown = true;
     };
 
-    const scheduleShow = () => {
+    const triggerAfterDelay = () => {
       window.clearTimeout(timer);
 
       if (!enabled || dismissed) {
@@ -627,7 +678,125 @@
       bar.setAttribute('aria-hidden', 'true');
       bar.classList.remove('visible');
 
+      if (delayMs <= 0) {
+        showSticky();
+        return;
+      }
+
       timer = window.setTimeout(showSticky, delayMs);
+    };
+
+    const setupScrollTrigger = () => {
+      const threshold = Math.max(0, Math.min(1, scrollDepth / 100));
+
+      if (threshold <= 0) {
+        triggerAfterDelay();
+        return;
+      }
+
+      const handleScroll = () => {
+        if (!enabled || dismissed || hasShown || !isDeviceAllowed()) {
+          return;
+        }
+
+        const docEl = document.documentElement;
+        const body = document.body;
+        const scrollTop = window.scrollY || window.pageYOffset || (docEl ? docEl.scrollTop : 0) || 0;
+        const docHeight = docEl ? docEl.scrollHeight : 0;
+        const bodyHeight = body ? body.scrollHeight : 0;
+        const maxScrollable = Math.max(docHeight, bodyHeight) - window.innerHeight;
+        const progress = maxScrollable > 0 ? scrollTop / maxScrollable : 1;
+
+        if (progress >= threshold) {
+          cleanupTriggerListeners();
+          triggerAfterDelay();
+        }
+      };
+
+      scrollListener = handleScroll;
+
+      try {
+        window.addEventListener('scroll', scrollListener, { passive: true });
+      } catch (error) {
+        window.addEventListener('scroll', scrollListener);
+      }
+
+      handleScroll();
+    };
+
+    const setupElementTrigger = () => {
+      const selector = triggerSelector;
+
+      if (!selector) {
+        triggerAfterDelay();
+        return;
+      }
+
+      let target = null;
+
+      try {
+        target = document.querySelector(selector);
+      } catch (error) {
+        target = null;
+      }
+
+      if (!target) {
+        triggerAfterDelay();
+        return;
+      }
+
+      if (typeof window.IntersectionObserver !== 'function') {
+        triggerAfterDelay();
+        return;
+      }
+
+      elementObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            cleanupTriggerListeners();
+            triggerAfterDelay();
+          }
+        });
+      });
+
+      elementObserver.observe(target);
+    };
+
+    const prepareForTrigger = () => {
+      setDeviceHidden(false);
+      removeAttributeInternal('hidden');
+      bar.setAttribute('aria-hidden', 'true');
+      bar.classList.remove('visible');
+    };
+
+    const startTrigger = () => {
+      window.clearTimeout(timer);
+      cleanupTriggerListeners();
+
+      if (!enabled || dismissed) {
+        hideSticky(true);
+        return;
+      }
+
+      if (!isDeviceAllowed()) {
+        setDeviceHidden(true);
+        hideSticky(true);
+        return;
+      }
+
+      prepareForTrigger();
+
+      if (triggerType === 'scroll') {
+        setupScrollTrigger();
+        return;
+      }
+
+      if (triggerType === 'element') {
+        setupElementTrigger();
+        return;
+      }
+
+      triggerAfterDelay();
     };
 
     const updateFromAttributes = () => {
@@ -645,8 +814,10 @@
       showDesktop = bar.getAttribute('data-show-desktop') !== 'false';
       showMobile = bar.getAttribute('data-show-mobile') !== 'false';
 
-      const attrDelay = parseInt(bar.getAttribute('data-delay'), 10);
-      delayMs = Number.isNaN(attrDelay) ? 0 : Math.max(0, attrDelay);
+      delayMs = readDelay();
+      triggerType = readTriggerType();
+      scrollDepth = readScrollDepth();
+      triggerSelector = readTriggerSelector();
 
       const allowed = isDeviceAllowed();
       setDeviceHidden(!allowed);
@@ -673,14 +844,10 @@
         return;
       }
 
-      scheduleShow();
+      startTrigger();
     };
 
     updateFromAttributes();
-
-    if (enabled && !dismissed && !hasShown) {
-      scheduleShow();
-    }
 
     if (close) {
       close.addEventListener('click', () => {
@@ -711,6 +878,9 @@
         if (
           name === 'data-enabled' ||
           name === 'data-delay' ||
+          name === 'data-trigger' ||
+          name === 'data-scroll-depth' ||
+          name === 'data-trigger-selector' ||
           name === 'data-show-desktop' ||
           name === 'data-show-mobile' ||
           name === 'hidden'
@@ -753,7 +923,7 @@
         if (hasShown) {
           showSticky();
         } else {
-          scheduleShow();
+          startTrigger();
         }
       };
 

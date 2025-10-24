@@ -137,6 +137,59 @@ function beyond_gotham_sanitize_checkbox( $value ) {
 }
 
 /**
+ * Sanitize the sticky CTA trigger type.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_sticky_cta_trigger( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( 'delay', 'scroll', 'element' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return 'delay';
+}
+
+/**
+ * Sanitize the sticky CTA scroll depth percentage.
+ *
+ * @param mixed $value Raw value.
+ * @return int
+ */
+function beyond_gotham_sanitize_sticky_cta_scroll_depth( $value ) {
+    $value = is_numeric( $value ) ? (int) $value : 0;
+
+    if ( $value < 0 ) {
+        return 0;
+    }
+
+    if ( $value > 100 ) {
+        return 100;
+    }
+
+    return $value;
+}
+
+/**
+ * Sanitize a CSS selector string.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_css_selector( $value ) {
+    $value = is_string( $value ) ? trim( $value ) : '';
+
+    if ( '' === $value ) {
+        return '';
+    }
+
+    return sanitize_text_field( $value );
+}
+
+/**
  * Sanitize numeric values that may include decimals.
  *
  * @param mixed $value Raw value.
@@ -623,6 +676,56 @@ function beyond_gotham_customize_is_nav_sticky_active( $control ) {
 }
 
 /**
+ * Retrieve the configured sticky CTA trigger type inside the customizer.
+ *
+ * @param WP_Customize_Control $control Customizer control instance.
+ * @return string
+ */
+function beyond_gotham_customize_get_sticky_cta_trigger_value( $control ) {
+    if ( ! $control instanceof WP_Customize_Control ) {
+        return 'delay';
+    }
+
+    $setting = $control->manager->get_setting( 'beyond_gotham_sticky_cta_trigger' );
+
+    if ( ! $setting ) {
+        return 'delay';
+    }
+
+    return beyond_gotham_sanitize_sticky_cta_trigger( $setting->value() );
+}
+
+/**
+ * Determine whether the sticky CTA trigger is set to delay.
+ *
+ * @param WP_Customize_Control $control Customizer control instance.
+ * @return bool
+ */
+function beyond_gotham_customize_is_sticky_cta_trigger_delay( $control ) {
+    return 'delay' === beyond_gotham_customize_get_sticky_cta_trigger_value( $control );
+}
+
+/**
+ * Determine whether the sticky CTA trigger is set to scroll depth.
+ *
+ * @param WP_Customize_Control $control Customizer control instance.
+ * @return bool
+ */
+function beyond_gotham_customize_is_sticky_cta_trigger_scroll( $control ) {
+    return 'scroll' === beyond_gotham_customize_get_sticky_cta_trigger_value( $control );
+}
+
+/**
+ * Determine whether the sticky CTA trigger is set to a target element.
+ *
+ * @param WP_Customize_Control $control Customizer control instance.
+ * @return bool
+ */
+function beyond_gotham_customize_is_sticky_cta_trigger_element( $control ) {
+    return 'element' === beyond_gotham_customize_get_sticky_cta_trigger_value( $control );
+}
+
+/**
  * Retrieve default CTA values for reuse.
  *
  * @return array
@@ -799,6 +902,9 @@ function beyond_gotham_get_sticky_cta_defaults() {
         'content'      => '',
         'link'         => '',
         'delay'        => 5,
+        'trigger'      => 'delay',
+        'scroll_depth' => 50,
+        'trigger_selector' => '',
         'background'   => '#0b1d2a',
         'text_color'   => '#ffffff',
         'button_color' => '#33d1ff',
@@ -819,6 +925,9 @@ function beyond_gotham_get_sticky_cta_settings() {
     $content      = get_theme_mod( 'beyond_gotham_sticky_cta_content', $defaults['content'] );
     $link         = beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_sticky_cta_link', $defaults['link'] ) );
     $delay        = absint( get_theme_mod( 'beyond_gotham_sticky_cta_delay', $defaults['delay'] ) );
+    $trigger      = beyond_gotham_sanitize_sticky_cta_trigger( get_theme_mod( 'beyond_gotham_sticky_cta_trigger', $defaults['trigger'] ) );
+    $scroll_depth = beyond_gotham_sanitize_sticky_cta_scroll_depth( get_theme_mod( 'beyond_gotham_sticky_cta_scroll_depth', $defaults['scroll_depth'] ) );
+    $selector     = beyond_gotham_sanitize_css_selector( get_theme_mod( 'beyond_gotham_sticky_cta_trigger_selector', $defaults['trigger_selector'] ) );
     $background   = sanitize_hex_color( get_theme_mod( 'beyond_gotham_sticky_cta_background_color', $defaults['background'] ) );
     $text_color   = sanitize_hex_color( get_theme_mod( 'beyond_gotham_sticky_cta_text_color', $defaults['text_color'] ) );
     $button_color = sanitize_hex_color( get_theme_mod( 'beyond_gotham_sticky_cta_button_color', $defaults['button_color'] ) );
@@ -842,8 +951,9 @@ function beyond_gotham_get_sticky_cta_settings() {
         4.5
     );
 
-    $enabled  = $active && ( $has_content || $has_link ) && $has_device;
-    $delay_ms = max( 0, $delay ) * 1000;
+    $enabled    = $active && ( $has_content || $has_link ) && $has_device;
+    $delay_safe = max( 0, $delay );
+    $delay_ms   = ( 'delay' === $trigger ? $delay_safe : 0 ) * 1000;
 
     $settings = array(
         'active'            => $active,
@@ -851,6 +961,9 @@ function beyond_gotham_get_sticky_cta_settings() {
         'link'              => $link,
         'delay'             => $delay,
         'delay_ms'          => $delay_ms,
+        'trigger'           => $trigger,
+        'scroll_depth'      => $scroll_depth,
+        'trigger_selector'  => $selector,
         'background'        => $background,
         'text_color'        => $text_color,
         'button_color'      => $button_color,
@@ -2017,6 +2130,79 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     );
 
     $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_trigger',
+        array(
+            'default'           => $sticky_defaults['trigger'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_sticky_cta_trigger',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_trigger_control',
+        array(
+            'label'    => __( 'Einblendung auslösen durch', 'beyond_gotham' ),
+            'section'  => 'beyond_gotham_cta_sticky',
+            'settings' => 'beyond_gotham_sticky_cta_trigger',
+            'type'     => 'radio',
+            'choices'  => array(
+                'delay'   => __( 'Zeitverzögerung', 'beyond_gotham' ),
+                'scroll'  => __( 'Scrolltiefe (in %)', 'beyond_gotham' ),
+                'element' => __( 'Element im Viewport', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_scroll_depth',
+        array(
+            'default'           => $sticky_defaults['scroll_depth'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_sticky_cta_scroll_depth',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_scroll_depth_control',
+        array(
+            'label'           => __( 'Scrolltiefe für Einblendung (%)', 'beyond_gotham' ),
+            'section'         => 'beyond_gotham_cta_sticky',
+            'settings'        => 'beyond_gotham_sticky_cta_scroll_depth',
+            'type'            => 'range',
+            'input_attrs'     => array(
+                'min'  => 10,
+                'max'  => 90,
+                'step' => 5,
+            ),
+            'active_callback' => 'beyond_gotham_customize_is_sticky_cta_trigger_scroll',
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_sticky_cta_trigger_selector',
+        array(
+            'default'           => $sticky_defaults['trigger_selector'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_css_selector',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_sticky_cta_trigger_selector_control',
+        array(
+            'label'           => __( 'CSS-Selektor für Auslöser', 'beyond_gotham' ),
+            'section'         => 'beyond_gotham_cta_sticky',
+            'settings'        => 'beyond_gotham_sticky_cta_trigger_selector',
+            'type'            => 'text',
+            'description'     => __( 'Beispiel: .article-footer – sobald das Element sichtbar wird, erscheint die Sticky-Leiste.', 'beyond_gotham' ),
+            'active_callback' => 'beyond_gotham_customize_is_sticky_cta_trigger_element',
+        )
+    );
+
+    $wp_customize->add_setting(
         'beyond_gotham_sticky_cta_delay',
         array(
             'default'           => $sticky_defaults['delay'],
@@ -2038,6 +2224,7 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
                 'max'  => 20,
                 'step' => 1,
             ),
+            'active_callback' => 'beyond_gotham_customize_is_sticky_cta_trigger_delay',
         )
     );
 
