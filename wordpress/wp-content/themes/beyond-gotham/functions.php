@@ -27,6 +27,7 @@ if ( ! function_exists( 'beyond_gotham_theme_setup' ) ) {
         add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
         add_theme_support( 'editor-styles' );
         add_editor_style( 'dist/style.css' );
+        add_theme_support( 'woocommerce' );
 
         register_nav_menus( array(
             'primary' => __( 'Primary Menu', 'beyond_gotham' ),
@@ -58,3 +59,121 @@ function beyond_gotham_enqueue_assets() {
     );
 }
 add_action( 'wp_enqueue_scripts', 'beyond_gotham_enqueue_assets' );
+
+/**
+ * Customize WooCommerce wrappers to align with the theme layout.
+ */
+function beyond_gotham_woocommerce_wrapper_before() {
+    echo '<main id="primary" class="site-main bg-woocommerce"><div class="bg-woocommerce__inner">';
+}
+
+/**
+ * Close the custom WooCommerce wrapper.
+ */
+function beyond_gotham_woocommerce_wrapper_after() {
+    echo '</div></main>';
+}
+
+remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
+remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
+add_action( 'woocommerce_before_main_content', 'beyond_gotham_woocommerce_wrapper_before', 10 );
+add_action( 'woocommerce_after_main_content', 'beyond_gotham_woocommerce_wrapper_after', 10 );
+
+/**
+ * Ensure shop buttons use the Beyond Gotham CTA styling.
+ *
+ * @param array           $args    Arguments used to generate the button.
+ * @param WC_Product|null $product The related product instance.
+ *
+ * @return array
+ */
+function beyond_gotham_woocommerce_add_to_cart_args( $args, $product ) {
+    if ( isset( $args['class'] ) ) {
+        $args['class'] .= ' bg-cta-button';
+    } else {
+        $args['class'] = 'bg-cta-button';
+    }
+
+    return $args;
+}
+add_filter( 'woocommerce_loop_add_to_cart_args', 'beyond_gotham_woocommerce_add_to_cart_args', 10, 2 );
+
+/**
+ * Ensure the single product add to cart button uses the CTA styling.
+ *
+ * @param string     $classes Button classes string.
+ * @param WC_Product $product Product instance.
+ *
+ * @return string
+ */
+function beyond_gotham_single_add_to_cart_classes( $classes, $product ) {
+    if ( false === strpos( $classes, 'bg-cta-button' ) ) {
+        $classes .= ' bg-cta-button';
+    }
+
+    return $classes;
+}
+add_filter( 'woocommerce_product_single_add_to_cart_classes', 'beyond_gotham_single_add_to_cart_classes', 10, 2 );
+
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_price', 10 );
+
+/**
+ * Output the single product price within the Beyond Gotham price wrapper.
+ */
+function beyond_gotham_single_product_price() {
+    echo '<div class="bg-price">';
+    woocommerce_template_single_price();
+    echo '</div>';
+}
+add_action( 'woocommerce_single_product_summary', 'beyond_gotham_single_product_price', 10 );
+
+/**
+ * Replace the default WooCommerce loop wrappers with a grid container.
+ *
+ * @param string $markup The default opening markup.
+ *
+ * @return string
+ */
+function beyond_gotham_woocommerce_product_loop_start( $markup ) {
+    return '<div class="product-grid">';
+}
+add_filter( 'woocommerce_product_loop_start', 'beyond_gotham_woocommerce_product_loop_start' );
+
+/**
+ * Close the custom product grid container.
+ *
+ * @param string $markup The default closing markup.
+ *
+ * @return string
+ */
+function beyond_gotham_woocommerce_product_loop_end( $markup ) {
+    return '</div>';
+}
+add_filter( 'woocommerce_product_loop_end', 'beyond_gotham_woocommerce_product_loop_end' );
+
+/**
+ * Add a placeholder shipping information tab on single product pages.
+ *
+ * @param array $tabs Existing WooCommerce product tabs.
+ *
+ * @return array
+ */
+function beyond_gotham_woocommerce_product_tabs( $tabs ) {
+    $tabs['bg_shipping'] = array(
+        'title'    => __( 'Shipping', 'beyond_gotham' ),
+        'priority' => 35,
+        'callback' => 'beyond_gotham_woocommerce_shipping_tab_content',
+    );
+
+    return $tabs;
+}
+add_filter( 'woocommerce_product_tabs', 'beyond_gotham_woocommerce_product_tabs' );
+
+/**
+ * Output placeholder content for the shipping tab.
+ */
+function beyond_gotham_woocommerce_shipping_tab_content() {
+    echo '<div class="bg-product-shipping">';
+    echo '<p>' . esc_html__( 'Shipping details will be updated soon. Expect fast, secure delivery across Gotham and beyond.', 'beyond_gotham' ) . '</p>';
+    echo '</div>';
+}
