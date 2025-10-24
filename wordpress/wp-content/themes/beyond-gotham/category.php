@@ -18,6 +18,10 @@ $category_description = category_description();
         <?php endif; ?>
     </header>
 
+    <?php if ( function_exists( 'beyond_gotham_is_social_sharing_enabled_for' ) && beyond_gotham_is_social_sharing_enabled_for( 'category' ) ) : ?>
+        <?php get_template_part( 'template-parts/share-buttons' ); ?>
+    <?php endif; ?>
+
     <?php if ( have_posts() ) : ?>
         <div class="archive__layout">
             <section class="archive__grid">

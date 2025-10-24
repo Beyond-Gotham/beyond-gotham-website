@@ -19,6 +19,9 @@ get_header();
                 <div class="article-content typography-content">
                     <?php the_content(); ?>
                 </div>
+                <?php if ( function_exists( 'beyond_gotham_is_social_sharing_enabled_for' ) && beyond_gotham_is_social_sharing_enabled_for( 'page' ) ) : ?>
+                    <?php get_template_part( 'template-parts/share-buttons' ); ?>
+                <?php endif; ?>
             </article>
             <?php
             if ( comments_open() || get_comments_number() ) {

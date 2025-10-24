@@ -81,12 +81,9 @@ $author_avatar   = get_avatar( $author_id, 120, '', esc_attr( get_the_author() )
     </div>
 
     <footer class="article-footer">
-        <div class="social-share" aria-label="<?php esc_attr_e( 'Artikel teilen', 'beyond_gotham' ); ?>">
-            <span class="social-share__label"><?php esc_html_e( 'Teilen:', 'beyond_gotham' ); ?></span>
-            <div class="social-share__buttons" aria-hidden="true">
-                <span class="social-share__placeholder"><?php esc_html_e( 'Social Sharing Buttons folgen in Kürze.', 'beyond_gotham' ); ?></span>
-            </div>
-        </div>
+        <?php if ( function_exists( 'beyond_gotham_is_social_sharing_enabled_for' ) && beyond_gotham_is_social_sharing_enabled_for( 'post' ) ) : ?>
+            <?php get_template_part( 'template-parts/share-buttons' ); ?>
+        <?php endif; ?>
 
         <?php if ( $author_bio || $author_avatar ) : ?>
             <section class="article-author" aria-label="<?php esc_attr_e( 'Über die Autorin oder den Autor', 'beyond_gotham' ); ?>">
