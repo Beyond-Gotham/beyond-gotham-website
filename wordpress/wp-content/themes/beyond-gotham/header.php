@@ -18,7 +18,17 @@
     <div class="site-header__inner">
         <div class="site-branding">
             <?php
-            if ( has_custom_logo() ) {
+            $brand_logo_id = function_exists( 'beyond_gotham_get_brand_logo_id' ) ? beyond_gotham_get_brand_logo_id() : 0;
+
+            if ( $brand_logo_id ) {
+                $logo_markup = wp_get_attachment_image( $brand_logo_id, 'full', false, array( 'class' => 'custom-logo' ) );
+
+                if ( $logo_markup ) {
+                    echo '<div class="site-logo">';
+                    echo '<a href="' . esc_url( home_url( '/' ) ) . '" class="custom-logo-link" rel="home">' . $logo_markup . '</a>';
+                    echo '</div>';
+                }
+            } elseif ( has_custom_logo() ) {
                 echo '<div class="site-logo">';
                 the_custom_logo();
                 echo '</div>';
@@ -42,6 +52,9 @@
             </span>
         </button>
 
+        <?php
+        $custom_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
+        ?>
         <nav class="site-nav" id="primary-navigation" aria-label="<?php esc_attr_e( 'Hauptnavigation', 'beyond_gotham' ); ?>" data-bg-nav>
             <?php
             if ( has_nav_menu( 'primary' ) ) {
@@ -69,6 +82,8 @@
                         'depth'          => 1,
                     )
                 );
+            } elseif ( ! empty( $custom_social_links ) ) {
+                beyond_gotham_render_social_links( $custom_social_links );
             }
             ?>
         </nav>

@@ -19,7 +19,23 @@
         }
         ?>
     </nav>
-    <p class="site-info">&copy; <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></p>
+    <?php
+    $footer_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
+    if ( ! empty( $footer_social_links ) ) :
+        ?>
+        <div class="site-footer__social">
+            <?php beyond_gotham_render_social_links( $footer_social_links ); ?>
+        </div>
+    <?php endif; ?>
+    <p class="site-info">
+        <?php
+        if ( function_exists( 'beyond_gotham_get_footer_text' ) ) {
+            echo beyond_gotham_get_footer_text(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        } else {
+            echo '&copy; ' . esc_html( date_i18n( 'Y' ) ) . ' ' . esc_html( get_bloginfo( 'name' ) );
+        }
+        ?>
+    </p>
 </footer><!-- #colophon -->
 
 <?php wp_footer(); ?>

@@ -1,0 +1,38 @@
+{
+  "apiVersion": 2,
+  "name": "beyond-gotham/highlight-box",
+  "title": "Highlight-Kasten",
+  "category": "design",
+  "icon": "star-filled",
+  "description": "Hebt wichtige Hinweise oder Callouts mit einer auffälligen Box hervor.",
+  "keywords": ["callout", "hinweis", "highlight"],
+  "textdomain": "beyond_gotham",
+  "style": "file:./style.css",
+  "editorStyle": "file:./editor.css",
+  "editorScript": "file:./index.js",
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"],
+    "anchor": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "source": "html",
+      "selector": "h3"
+    },
+    "content": {
+      "type": "string",
+      "source": "html",
+      "selector": ".bg-highlight-box__content"
+    },
+    "ctaText": {
+      "type": "string",
+      "default": ""
+    },
+    "ctaUrl": {
+      "type": "string",
+      "default": ""
+    }
+  }
+}
