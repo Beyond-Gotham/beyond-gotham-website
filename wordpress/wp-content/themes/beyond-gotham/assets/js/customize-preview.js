@@ -87,6 +87,194 @@
         }
     }
 
+    var SOCIALBAR_SELECTOR = '.socialbar[data-location]';
+    var SOCIALBAR_VARIANTS = ['minimal', 'boxed', 'pill', 'labelled'];
+    var SOCIALBAR_VARIANT_CLASSES = SOCIALBAR_VARIANTS.map(function (variant) {
+        return 'socialbar--' + variant;
+    });
+
+    var socialbarState = {
+        variant: 'minimal',
+        surface: {
+            background: null,
+            icon: null
+        },
+        variants: {}
+    };
+
+    function sanitizeHexColor(value) {
+        if (typeof value !== 'string') {
+            return '';
+        }
+
+        var trimmed = value.trim();
+
+        if (!trimmed) {
+            return '';
+        }
+
+        if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(trimmed)) {
+            return trimmed;
+        }
+
+        return '';
+    }
+
+    function sanitizeSocialbarVariant(value) {
+        if (typeof value !== 'string') {
+            return 'minimal';
+        }
+
+        var normalized = value.trim().toLowerCase();
+
+        if (SOCIALBAR_VARIANTS.indexOf(normalized) !== -1) {
+            return normalized;
+        }
+
+        return 'minimal';
+    }
+
+    function getSocialbarElements() {
+        return getNodes(SOCIALBAR_SELECTOR);
+    }
+
+    function ensureVariantState(variant) {
+        if (!socialbarState.variants[variant]) {
+            socialbarState.variants[variant] = {
+                background: null,
+                hover: null,
+                icon: null
+            };
+        }
+
+        return socialbarState.variants[variant];
+    }
+
+    function applySocialbarVariantClasses(variant) {
+        var nodes = getSocialbarElements();
+        if (!nodes.length) {
+            return;
+        }
+
+        var className = 'socialbar--' + variant;
+
+        nodes.forEach(function (node) {
+            SOCIALBAR_VARIANT_CLASSES.forEach(function (candidate) {
+                node.classList.remove(candidate);
+            });
+
+            node.classList.add(className);
+            node.setAttribute('data-variant', variant);
+        });
+    }
+
+    function applySocialbarStyles() {
+        var nodes = getSocialbarElements();
+        if (!nodes.length) {
+            return;
+        }
+
+        var variantState = ensureVariantState(socialbarState.variant);
+        var backgroundState = variantState.background;
+        var hoverState = variantState.hover;
+        var iconState = variantState.icon;
+        var surfaceBackgroundState = socialbarState.surface.background;
+        var surfaceIconState = socialbarState.surface.icon;
+
+        nodes.forEach(function (node) {
+            if (surfaceBackgroundState !== null) {
+                if (surfaceBackgroundState) {
+                    node.style.setProperty('--socialbar-surface', surfaceBackgroundState);
+                } else {
+                    node.style.removeProperty('--socialbar-surface');
+                }
+            }
+
+            if (backgroundState !== null) {
+                if (backgroundState) {
+                    node.style.setProperty('--socialbar-bg', backgroundState);
+                } else {
+                    node.style.removeProperty('--socialbar-bg');
+                }
+            }
+
+            if (hoverState !== null) {
+                if (hoverState) {
+                    node.style.setProperty('--socialbar-hover', hoverState);
+                } else {
+                    node.style.removeProperty('--socialbar-hover');
+                }
+            }
+
+            var resolvedIconState;
+
+            if (iconState === null) {
+                resolvedIconState = surfaceIconState;
+            } else if (iconState) {
+                resolvedIconState = iconState;
+            } else {
+                resolvedIconState = '';
+            }
+
+            if (resolvedIconState !== null) {
+                if (resolvedIconState) {
+                    node.style.setProperty('--socialbar-icon', resolvedIconState);
+                } else {
+                    node.style.removeProperty('--socialbar-icon');
+                }
+            }
+        });
+    }
+
+    function setSocialbarVariant(value) {
+        socialbarState.variant = sanitizeSocialbarVariant(value);
+        applySocialbarVariantClasses(socialbarState.variant);
+        applySocialbarStyles();
+    }
+
+    function setSocialbarSurfaceBackground(value) {
+        if (value === null || typeof value === 'undefined') {
+            socialbarState.surface.background = null;
+        } else {
+            var sanitized = sanitizeHexColor(value);
+            socialbarState.surface.background = sanitized || (value ? sanitized : '');
+        }
+        applySocialbarStyles();
+    }
+
+    function setSocialbarSurfaceIcon(value) {
+        if (value === null || typeof value === 'undefined') {
+            socialbarState.surface.icon = null;
+        } else {
+            var sanitized = sanitizeHexColor(value);
+            socialbarState.surface.icon = sanitized || (value ? sanitized : '');
+        }
+        applySocialbarStyles();
+    }
+
+    function setSocialbarVariantColor(variant, key, value) {
+        if (SOCIALBAR_VARIANTS.indexOf(variant) === -1) {
+            return;
+        }
+
+        var variantState = ensureVariantState(variant);
+
+        if (['background', 'hover', 'icon'].indexOf(key) === -1) {
+            return;
+        }
+
+        if (value === null || typeof value === 'undefined') {
+            variantState[key] = null;
+        } else {
+            var sanitized = sanitizeHexColor(value);
+            variantState[key] = sanitized || (value ? sanitized : '');
+        }
+
+        if (variant === socialbarState.variant) {
+            applySocialbarStyles();
+        }
+    }
+
     var CTA_POSITION_CLASSES = ['cta-top', 'cta-bottom', 'cta-fixed'];
     var CTA_ALIGNMENT_CLASSES = ['cta-align-left', 'cta-align-center', 'cta-align-right'];
     function sanitizePosition(value) {
@@ -1387,6 +1575,44 @@ function updateCTALayout() {
         applyChoiceClass(el, CTA_ALIGNMENT_CLASSES, alignmentClass);
     });
 }
+    api('beyond_gotham_socialbar_style_variant', function (value) {
+        setSocialbarVariant(value.get());
+
+        value.bind(function (newValue) {
+            setSocialbarVariant(newValue);
+        });
+    });
+
+    api('beyond_gotham_socialbar_background_color', function (value) {
+        setSocialbarSurfaceBackground(value.get());
+
+        value.bind(function (newValue) {
+            setSocialbarSurfaceBackground(newValue);
+        });
+    });
+
+    api('beyond_gotham_socialbar_icon_color', function (value) {
+        setSocialbarSurfaceIcon(value.get());
+
+        value.bind(function (newValue) {
+            setSocialbarSurfaceIcon(newValue);
+        });
+    });
+
+    SOCIALBAR_VARIANTS.forEach(function (variant) {
+        ['background', 'hover', 'icon'].forEach(function (type) {
+            var settingId = 'beyond_gotham_socialbar_' + variant + '_' + type + '_color';
+
+            api(settingId, function (setting) {
+                setSocialbarVariantColor(variant, type, setting.get());
+
+                setting.bind(function (newValue) {
+                    setSocialbarVariantColor(variant, type, newValue);
+                });
+            });
+        });
+    });
+
     api('beyond_gotham_nav_orientation', function (value) {
         setOrientation(value.get());
 
