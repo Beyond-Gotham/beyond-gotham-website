@@ -24,33 +24,23 @@
     $footer_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
     $show_footer_social  = get_theme_mod( 'beyond_gotham_footer_show_social', true );
 
-    if ( function_exists( 'beyond_gotham_get_social_icon_svgs' ) ) {
-        $icon_map = beyond_gotham_get_social_icon_svgs();
-
-        $footer_social_links = array_filter(
-            $footer_social_links,
-            static function ( $url, $network ) use ( $icon_map ) {
-                return ! empty( $url ) && isset( $icon_map[ $network ] );
-            },
-            ARRAY_FILTER_USE_BOTH
-        );
-    }
-
     if ( ! empty( $footer_social_links ) ) :
         $wrapper_classes = array();
-        $wrapper_attrs   = 'data-bg-footer-social';
 
         if ( ! $show_footer_social ) {
             $wrapper_classes[] = 'is-hidden';
-            $wrapper_attrs     .= ' hidden aria-hidden="true"';
         }
 
-        beyond_gotham_render_social_links(
-            $footer_social_links,
+        get_template_part(
+            'template-parts/social-icons',
+            null,
             array(
-                'context'            => 'footer-icons',
+                'context'            => 'footer',
+                'links'              => $footer_social_links,
                 'wrapper_classes'    => $wrapper_classes,
-                'wrapper_attributes' => $wrapper_attrs,
+                'wrapper_attributes' => array( 'data-bg-footer-social' => true ),
+                'hidden'             => ! $show_footer_social,
+                'aria_label'         => __( 'Footer Social Media', 'beyond_gotham' ),
             )
         );
     endif;

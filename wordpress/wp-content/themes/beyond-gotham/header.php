@@ -83,7 +83,17 @@
                     )
                 );
             } elseif ( ! empty( $custom_social_links ) ) {
-                beyond_gotham_render_social_links( $custom_social_links );
+                get_template_part(
+                    'template-parts/social-icons',
+                    null,
+                    array(
+                        'context'         => 'header',
+                        'modifiers'       => array( 'compact' ),
+                        'links'           => $custom_social_links,
+                        'wrapper_classes' => array( 'site-nav__social', 'site-nav__social--theme' ),
+                        'aria_label'      => __( 'Social-Media-Links', 'beyond_gotham' ),
+                    )
+                );
             }
             ?>
             <button

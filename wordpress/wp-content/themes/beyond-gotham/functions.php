@@ -244,6 +244,8 @@ function beyond_gotham_detect_social_network( $url ) {
         'youtube'   => array( 'youtube.com', 'youtu.be' ),
         'mastodon'  => array( 'mastodon.social' ),
         'github'    => array( 'github.com' ),
+        'tiktok'    => array( 'tiktok.com' ),
+        'telegram'  => array( 't.me', 'telegram.me', 'telegram.org' ),
     );
 
     foreach ( $networks as $slug => $candidates ) {

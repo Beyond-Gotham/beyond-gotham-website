@@ -3245,6 +3245,101 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     );
 
     $wp_customize->add_setting(
+        'beyond_gotham_social_facebook',
+        array(
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_optional_url',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_social_facebook_control',
+        array(
+            'label'       => __( 'Facebook URL', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_social_facebook',
+            'type'        => 'url',
+            'description' => __( 'Beispiel: https://www.facebook.com/beyondgotham', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_social_instagram',
+        array(
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_optional_url',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_social_instagram_control',
+        array(
+            'label'       => __( 'Instagram URL', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_social_instagram',
+            'type'        => 'url',
+            'description' => __( 'Beispiel: https://www.instagram.com/beyondgotham', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_social_tiktok',
+        array(
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_optional_url',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_social_tiktok_control',
+        array(
+            'label'       => __( 'TikTok URL', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_social_tiktok',
+            'type'        => 'url',
+            'description' => __( 'Beispiel: https://www.tiktok.com/@beyondgotham', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_social_youtube',
+        array(
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_optional_url',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_social_youtube_control',
+        array(
+            'label'       => __( 'YouTube URL', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_social_youtube',
+            'type'        => 'url',
+            'description' => __( 'Beispiel: https://www.youtube.com/@beyondgotham', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_social_telegram',
+        array(
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_optional_url',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_social_telegram_control',
+        array(
+            'label'       => __( 'Telegram URL', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_social_telegram',
+            'type'        => 'url',
+            'description' => __( 'Beispiel: https://t.me/beyondgotham', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
         'beyond_gotham_social_email',
         array(
             'type'              => 'theme_mod',
@@ -3298,10 +3393,15 @@ function beyond_gotham_get_brand_logo_id() {
  */
 function beyond_gotham_get_social_links() {
     $links = array(
-        'twitter'  => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_twitter', '' ) ),
-        'mastodon' => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_mastodon', '' ) ),
         'github'   => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_github', '' ) ),
         'linkedin' => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_linkedin', '' ) ),
+        'mastodon' => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_mastodon', '' ) ),
+        'twitter'  => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_twitter', '' ) ),
+        'facebook' => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_facebook', '' ) ),
+        'instagram' => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_instagram', '' ) ),
+        'tiktok'    => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_tiktok', '' ) ),
+        'youtube'   => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_youtube', '' ) ),
+        'telegram' => beyond_gotham_sanitize_optional_url( get_theme_mod( 'beyond_gotham_social_telegram', '' ) ),
     );
 
     $email = beyond_gotham_sanitize_optional_email( get_theme_mod( 'beyond_gotham_social_email', '' ) );
@@ -3396,9 +3496,14 @@ function beyond_gotham_get_socialbar_settings() {
 function beyond_gotham_get_social_icon_svgs() {
     return array(
         'github'   => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.011-1.04-.017-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.089-.744.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.776.418-1.304.762-1.604-2.665-.303-5.466-1.332-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.51 11.51 0 0 1 3-.404c1.02.005 2.047.138 3 .404 2.29-1.552 3.297-1.23 3.297-1.23.655 1.653.243 2.873.12 3.176.77.84 1.235 1.911 1.235 3.221 0 4.61-2.804 5.624-5.476 5.921.43.371.823 1.102.823 2.222 0 1.604-.015 2.896-.015 3.286 0 .321.216.694.825.576C20.565 22.092 24 17.592 24 12.297 24 5.373 18.627.297 12 .297z"/></svg>',
-        'twitter'  => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.954 2.573c-.885.389-1.83.654-2.825.775 1.014-.608 1.794-1.571 2.163-2.724-.949.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-2.723 0-4.932 2.206-4.932 4.927 0 .39.045.765.127 1.124-4.094-.205-7.725-2.165-10.161-5.144-.424.722-.666 1.561-.666 2.475 0 1.709.87 3.215 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.6 3.419-1.68 1.319-3.809 2.107-6.102 2.107-.395 0-.779-.023-1.17-.067 2.179 1.394 4.768 2.209 7.557 2.209 9.054 0 14.001-7.496 14.001-13.986 0-.21 0-.423-.016-.637.961-.695 1.8-1.562 2.46-2.549z"/></svg>',
-        'mastodon' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.147 7.144c0-5.213-3.43-6.756-3.43-6.756-1.73-.793-4.707-1.123-7.804-1.153h-.073c-3.098.03-6.073.36-7.804 1.153 0 0-3.43 1.543-3.43 6.756-.045.985-.086 2.16.014 3.411.321 3.663 2.426 7.079 4.854 8.425 1.875 1.041 3.497.999 3.497.999l.079-.094v-1.86s-1.6.511-3.333-.706c-.819-.567-1.341-1.377-1.684-2.188.411.316.959.594 1.645.743 2.851.61 5.363.267 7.996-.175 2.525-.426 4.924-1.46 4.924-1.46s-1.395 2.024-5.076 3.039l.111 2.137s1.624.043 3.5-1c2.428-1.347 4.533-4.763 4.854-8.425.1-1.251.059-2.426.014-3.411zm-4.165 5.163h-2.054V8.29c0-1.053-.446-1.59-1.337-1.59-.987 0-1.48.639-1.48 1.907v2.773h-2.043V8.607c0-1.268-.494-1.907-1.48-1.907-.891 0-1.337.538-1.337 1.59v4.017H7.197V8.211c0-1.053.267-1.907.801-2.462.552-.555 1.276-.835 2.173-.835 1.038 0 1.823.399 2.333 1.197l.5.843.5-.843c.51-.798 1.295-1.197 2.333-1.197.897 0 1.621.28 2.173.835.535.555.801 1.409.801 2.462v4.096z"/></svg>',
         'linkedin' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.451 20.451h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.354V9h3.414v1.561h.047c.476-.9 1.637-1.852 3.37-1.852 3.602 0 4.266 2.37 4.266 5.455v6.287zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM7.119 20.451H3.554V9h3.565v11.451zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0z"/></svg>',
+        'mastodon' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.147 7.144c0-5.213-3.43-6.756-3.43-6.756-1.73-.793-4.707-1.123-7.804-1.153h-.073c-3.098.03-6.073.36-7.804 1.153 0 0-3.43 1.543-3.43 6.756-.045.985-.086 2.16.014 3.411.321 3.663 2.426 7.079 4.854 8.425 1.875 1.041 3.497.999 3.497.999l.079-.094v-1.86s-1.6.511-3.333-.706c-.819-.567-1.341-1.377-1.684-2.188.411.316.959.594 1.645.743 2.851.61 5.363.267 7.996-.175 2.525-.426 4.924-1.46 4.924-1.46s-1.395 2.024-5.076 3.039l.111 2.137s1.624.043 3.5-1c2.428-1.347 4.533-4.763 4.854-8.425.1-1.251.059-2.426.014-3.411zm-4.165 5.163h-2.054V8.29c0-1.053-.446-1.59-1.337-1.59-.987 0-1.48.639-1.48 1.907v2.773h-2.043V8.607c0-1.268-.494-1.907-1.48-1.907-.891 0-1.337.538-1.337 1.59v4.017H7.197V8.211c0-1.053.267-1.907.801-2.462.552-.555 1.276-.835 2.173-.835 1.038 0 1.823.399 2.333 1.197l.5.843.5-.843c.51-.798 1.295-1.197 2.333-1.197.897 0 1.621.28 2.173.835.535.555.801 1.409.801 2.462v4.096z"/></svg>',
+        'twitter'  => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.954 2.573c-.885.389-1.83.654-2.825.775 1.014-.608 1.794-1.571 2.163-2.724-.949.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-2.723 0-4.932 2.206-4.932 4.927 0 .39.045.765.127 1.124-4.094-.205-7.725-2.165-10.161-5.144-.424.722-.666 1.561-.666 2.475 0 1.709.87 3.215 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.6 3.419-1.68 1.319-3.809 2.107-6.102 2.107-.395 0-.779-.023-1.17-.067 2.179 1.394 4.768 2.209 7.557 2.209 9.054 0 14.001-7.496 14.001-13.986 0-.21 0-.423-.016-.637.961-.695 1.8-1.562 2.46-2.549z"/></svg>',
+        'facebook' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg>',
+        'instagram' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7.03.084c-1.277.06-2.149.264-2.911.563-.789.308-1.458.72-2.123 1.388-.665.668-1.075 1.337-1.38 2.127-.295.764-.496 1.637-.552 2.914-.056 1.278-.069 1.689-.063 4.947.006 3.259.021 3.667.083 4.947.061 1.277.264 2.149.564 2.912.308.789.72 1.457 1.388 2.123.668.665 1.337 1.074 2.129 1.38.763.295 1.636.496 2.913.552 1.277.056 1.688.069 4.946.063 3.258-.006 3.668-.021 4.948-.082 1.28-.061 2.147-.265 2.91-.563.789-.309 1.458-.72 2.123-1.388.665-.668 1.075-1.338 1.38-2.128.296-.763.497-1.636.552-2.912.056-1.281.069-1.69.063-4.948-.006-3.258-.021-3.667-.082-4.946-.061-1.28-.265-2.149-.563-2.912-.308-.789-.72-1.457-1.388-2.123C21.298 1.33 20.628.921 19.838.617c-.764-.296-1.636-.497-2.914-.552C15.647.009 15.236-.005 11.977.001 8.718.008 8.31.021 7.03.084Zm.14 21.693c-1.17-.051-1.805-.245-2.229-.408-.561-.216-.96-.477-1.382-.895-.422-.418-.681-.819-.9-1.378-.165-.424-.362-1.058-.417-2.228-.059-1.265-.072-1.645-.071-4.848-.007-3.204.005-3.583.06-4.848.05-1.169.246-1.805.408-2.228.216-.561.476-.96.895-1.382.419-.422.818-.681 1.378-.9.423-.165 1.058-.361 2.227-.417 1.266-.06 1.645-.072 4.848-.079 3.203-.007 3.584.005 4.85.061 1.169.051 1.805.245 2.228.408.561.216.96.476 1.382.895.422.419.682.818.901 1.379.165.422.361 1.056.417 2.226.06 1.266.074 1.645.08 4.848.006 3.203-.006 3.583-.061 4.848-.051 1.17-.245 1.806-.408 2.229-.216.56-.476.96-.896 1.381-.419.422-.818.681-1.378.9-.422.165-1.058.362-2.226.417-1.266.06-1.645.072-4.85.079-3.204.007-3.582-.006-4.848-.061ZM16.953 5.586a1.44 1.44 0 1 0 1.437-1.442 1.44 1.44 0 0 0-1.437 1.442ZM5.839 12.012c.007 3.403 2.77 6.156 6.173 6.15 3.403-.007 6.157-2.77 6.15-6.173-.006-3.403-2.771-6.157-6.174-6.15-3.403.007-6.156 2.771-6.15 6.173ZM8 12.008a4 4 0 1 1 4.008 3.992A4 4 0 0 1 8 12.008Z"/></svg>',
+        'tiktok'    => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
+        'youtube'   => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+        'telegram'  => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>',
         'email'    => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20 4H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V6c0-1.1-.9-2-2-2Zm0 2v.01L12 13 4 6.01V6Zm-16 12V8l8 6 8-6v10Z"/></svg>',
     );
 }
@@ -3419,10 +3524,15 @@ function beyond_gotham_render_social_links( $links = null, $args = array() ) {
     }
 
     $labels = array(
-        'twitter'  => __( 'Twitter', 'beyond_gotham' ),
-        'mastodon' => __( 'Mastodon', 'beyond_gotham' ),
         'github'   => __( 'GitHub', 'beyond_gotham' ),
         'linkedin' => __( 'LinkedIn', 'beyond_gotham' ),
+        'mastodon' => __( 'Mastodon', 'beyond_gotham' ),
+        'twitter'  => __( 'X (Twitter)', 'beyond_gotham' ),
+        'facebook' => __( 'Facebook', 'beyond_gotham' ),
+        'instagram' => __( 'Instagram', 'beyond_gotham' ),
+        'tiktok'   => __( 'TikTok', 'beyond_gotham' ),
+        'youtube'  => __( 'YouTube', 'beyond_gotham' ),
+        'telegram' => __( 'Telegram', 'beyond_gotham' ),
         'email'    => __( 'E-Mail', 'beyond_gotham' ),
     );
 
@@ -3434,64 +3544,37 @@ function beyond_gotham_render_social_links( $links = null, $args = array() ) {
     );
 
     if ( 'footer-icons' === $args['context'] ) {
-        $icons = beyond_gotham_get_social_icon_svgs();
-        $items = array();
-
-        foreach ( $links as $network => $url ) {
-            if ( empty( $url ) || ! isset( $icons[ $network ] ) ) {
-                continue;
-            }
-
-            $items[] = array(
-                'network' => $network,
-                'url'     => $url,
-                'label'   => isset( $labels[ $network ] ) ? $labels[ $network ] : ucfirst( $network ),
-            );
-        }
-
-        if ( empty( $items ) ) {
-            return;
-        }
-
-        $wrapper_classes = array( 'footer-social-icons' );
+        $wrapper_classes = array();
+        $wrapper_attributes = array();
+        $hidden = false;
 
         if ( ! empty( $args['wrapper_classes'] ) ) {
-            $additional_classes = is_array( $args['wrapper_classes'] ) ? $args['wrapper_classes'] : array( $args['wrapper_classes'] );
+            $wrapper_classes = is_array( $args['wrapper_classes'] ) ? $args['wrapper_classes'] : array( $args['wrapper_classes'] );
+        }
 
-            foreach ( $additional_classes as $class_name ) {
-                if ( ! is_string( $class_name ) || '' === $class_name ) {
-                    continue;
+        if ( ! empty( $args['wrapper_attributes'] ) ) {
+            if ( is_string( $args['wrapper_attributes'] ) ) {
+                $wrapper_attributes = $args['wrapper_attributes'];
+                if ( false !== strpos( $args['wrapper_attributes'], 'hidden' ) ) {
+                    $hidden = true;
                 }
-
-                $wrapper_classes[] = $class_name;
+            } else {
+                $wrapper_attributes = $args['wrapper_attributes'];
             }
         }
 
-        $wrapper_classes = array_unique(
-            array_map(
-                'sanitize_html_class',
-                array_filter( $wrapper_classes )
+        get_template_part(
+            'template-parts/social-icons',
+            null,
+            array(
+                'context'            => 'footer',
+                'links'              => $links,
+                'wrapper_classes'    => $wrapper_classes,
+                'wrapper_attributes' => $wrapper_attributes,
+                'hidden'             => $hidden,
+                'aria_label'         => __( 'Footer Social Media', 'beyond_gotham' ),
             )
         );
-
-        $wrapper_attributes = '';
-
-        if ( ! empty( $args['wrapper_attributes'] ) ) {
-            $wrapper_attributes = ' ' . trim( $args['wrapper_attributes'] );
-        }
-
-        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '"' . $wrapper_attributes . ' role="list">';
-
-        foreach ( $items as $item ) {
-            $is_mail = 0 === strpos( $item['url'], 'mailto:' );
-            $attrs   = $is_mail ? '' : ' target="_blank" rel="noopener"';
-
-            echo '<a class="footer-social-icons__link" href="' . esc_url( $item['url'] ) . '"' . $attrs . ' aria-label="' . esc_attr( $item['label'] ) . '" role="listitem">';
-            echo $icons[ $item['network'] ]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo '</a>';
-        }
-
-        echo '</div>';
 
         return;
     }
@@ -3543,10 +3626,15 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
     }
 
     $labels = array(
-        'twitter'  => __( 'Twitter', 'beyond_gotham' ),
-        'mastodon' => __( 'Mastodon', 'beyond_gotham' ),
         'github'   => __( 'GitHub', 'beyond_gotham' ),
         'linkedin' => __( 'LinkedIn', 'beyond_gotham' ),
+        'mastodon' => __( 'Mastodon', 'beyond_gotham' ),
+        'twitter'  => __( 'X (Twitter)', 'beyond_gotham' ),
+        'facebook' => __( 'Facebook', 'beyond_gotham' ),
+        'instagram' => __( 'Instagram', 'beyond_gotham' ),
+        'tiktok'   => __( 'TikTok', 'beyond_gotham' ),
+        'youtube'  => __( 'YouTube', 'beyond_gotham' ),
+        'telegram' => __( 'Telegram', 'beyond_gotham' ),
         'email'    => __( 'E-Mail', 'beyond_gotham' ),
     );
 
