@@ -58,4 +58,16 @@ $cta_class_attribute = implode( ' ', array_unique( array_filter( $cta_classes ) 
     <a class="bg-button bg-button--primary" data-bg-cta-button<?php echo $cta_url ? ' href="' . esc_url( $cta_url ) . '"' : ' aria-disabled="true"'; ?>>
         <?php echo esc_html( $cta_label ); ?>
     </a>
+    <?php
+    get_template_part(
+        'template-parts/social-icons',
+        null,
+        array(
+            'context'         => 'cta',
+            'modifiers'       => array( 'compact' ),
+            'wrapper_classes' => array( 'cta__social-icons' ),
+            'aria_label'      => __( 'Social Media Call to Action', 'beyond_gotham' ),
+        )
+    );
+    ?>
 </section>
