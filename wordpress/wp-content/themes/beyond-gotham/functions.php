@@ -150,6 +150,14 @@ function beyond_gotham_body_classes( $classes ) {
         $classes[] = 'bg-has-sticky-header';
     }
 
+    if ( function_exists( 'beyond_gotham_get_cta_layout_settings' ) ) {
+        $cta_layout = beyond_gotham_get_cta_layout_settings();
+
+        if ( isset( $cta_layout['show_mobile'] ) && ! $cta_layout['show_mobile'] ) {
+            $classes[] = 'hide-cta-mobile';
+        }
+    }
+
     return array_unique( $classes );
 }
 add_filter( 'body_class', 'beyond_gotham_body_classes' );
