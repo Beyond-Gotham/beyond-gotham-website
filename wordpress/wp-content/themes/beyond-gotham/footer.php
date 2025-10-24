@@ -6,57 +6,6 @@
  */
 ?>
 <footer id="colophon" class="site-footer">
-    <?php
-    $footer_cta_settings = function_exists( 'beyond_gotham_get_cta_settings' ) ? beyond_gotham_get_cta_settings() : array();
-    $footer_cta_text     = isset( $footer_cta_settings['text'] ) ? $footer_cta_settings['text'] : '';
-    $footer_cta_label    = isset( $footer_cta_settings['label'] ) ? $footer_cta_settings['label'] : '';
-    $footer_cta_url      = isset( $footer_cta_settings['url'] ) ? $footer_cta_settings['url'] : '';
-    $footer_text_clean   = trim( wp_strip_all_tags( $footer_cta_text ) );
-    $footer_label_clean  = trim( $footer_cta_label );
-    $footer_cta_empty    = ( '' === $footer_text_clean ) && ( '' === $footer_label_clean );
-    $footer_cta_classes  = 'cta site-footer__cta';
-    $footer_cta_attrs    = '';
-    $footer_cta_style    = '';
-
-    $footer_layout_settings = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
-    $footer_layout_classes  = isset( $footer_layout_settings['class_list'] ) ? (array) $footer_layout_settings['class_list'] : array();
-
-    if ( ! empty( $footer_layout_classes ) ) {
-        $footer_cta_classes .= ' ' . implode( ' ', array_map( 'sanitize_html_class', $footer_layout_classes ) );
-    }
-
-    if ( ! empty( $footer_layout_settings['style_map'] ) && is_array( $footer_layout_settings['style_map'] ) ) {
-        $style_chunks = array();
-
-        foreach ( $footer_layout_settings['style_map'] as $property => $value ) {
-            $property = is_string( $property ) ? trim( $property ) : '';
-            $value    = is_string( $value ) ? trim( $value ) : '';
-
-            if ( '' === $property || '' === $value ) {
-                continue;
-            }
-
-            $style_chunks[] = $property . ': ' . $value . ';';
-        }
-
-        if ( ! empty( $style_chunks ) ) {
-            $footer_cta_style = ' style="' . esc_attr( implode( ' ', $style_chunks ) ) . '"';
-        }
-    }
-
-    if ( $footer_cta_empty ) {
-        $footer_cta_classes .= ' site-footer__cta--empty';
-        $footer_cta_attrs    = ' hidden aria-hidden="true"';
-    }
-    ?>
-    <div class="<?php echo esc_attr( $footer_cta_classes ); ?>" data-bg-cta<?php echo $footer_cta_attrs; ?><?php echo $footer_cta_style; ?>>
-        <?php if ( $footer_cta_text ) : ?>
-            <p class="cta__lead" data-bg-cta-text><?php echo $footer_cta_text; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
-        <?php endif; ?>
-        <a class="bg-button bg-button--primary" data-bg-cta-button<?php echo $footer_cta_url ? ' href="' . esc_url( $footer_cta_url ) . '"' : ' aria-disabled="true"'; ?>>
-            <?php echo esc_html( $footer_cta_label ); ?>
-        </a>
-    </div>
     <nav class="footer-navigation" aria-label="<?php esc_attr_e( 'Footer Navigation', 'beyond_gotham' ); ?>">
         <?php
         if ( has_nav_menu( 'footer' ) ) {
