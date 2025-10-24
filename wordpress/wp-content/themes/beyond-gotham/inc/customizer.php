@@ -137,6 +137,50 @@ function beyond_gotham_sanitize_checkbox( $value ) {
 }
 
 /**
+ * Sanitize the CTA visibility scope selections.
+ *
+ * @param mixed $value Raw value.
+ * @return array
+ */
+function beyond_gotham_sanitize_cta_visibility_scope( $value ) {
+    $allowed = array( 'front_page', 'posts', 'courses', 'products', 'all' );
+
+    if ( is_string( $value ) ) {
+        $value = array( sanitize_text_field( $value ) );
+    } elseif ( is_array( $value ) ) {
+        $value = array_map( 'sanitize_text_field', $value );
+    } else {
+        $value = array();
+    }
+
+    $value = array_values( array_intersect( array_unique( $value ), $allowed ) );
+
+    if ( in_array( 'all', $value, true ) ) {
+        return array( 'all' );
+    }
+
+    return $value;
+}
+
+/**
+ * Sanitize a list of post or page IDs.
+ *
+ * @param mixed $value Raw value.
+ * @return array
+ */
+function beyond_gotham_sanitize_post_id_list( $value ) {
+    if ( is_string( $value ) ) {
+        $value = wp_parse_id_list( $value );
+    } elseif ( is_array( $value ) ) {
+        $value = array_map( 'absint', $value );
+    } else {
+        $value = array();
+    }
+
+    return array_values( array_filter( array_unique( $value ) ) );
+}
+
+/**
  * Sanitize the social bar mobile position option.
  *
  * @param string $value Raw value.
@@ -892,6 +936,8 @@ function beyond_gotham_get_cta_defaults() {
         'text'   => __( 'Bleibe informiert über neue Kurse, Einsatztrainings und OSINT-Ressourcen.', 'beyond_gotham' ),
         'label'  => __( 'Jetzt abonnieren', 'beyond_gotham' ),
         'url'    => home_url( '/newsletter/' ),
+        'visibility_scope' => array( 'all' ),
+        'exclude_pages'    => array(),
     );
 }
 
@@ -1040,11 +1086,18 @@ function beyond_gotham_get_cta_settings() {
     $text  = get_theme_mod( 'beyond_gotham_cta_text', $defaults['text'] );
     $label = get_theme_mod( 'beyond_gotham_cta_button_label', $defaults['label'] );
     $url   = get_theme_mod( 'beyond_gotham_cta_button_url', $defaults['url'] );
+    $scope = get_theme_mod( 'beyond_gotham_cta_visibility_scope', $defaults['visibility_scope'] );
+    $exclude_pages = get_theme_mod( 'beyond_gotham_cta_exclude_pages', $defaults['exclude_pages'] );
+
+    $scope         = beyond_gotham_sanitize_cta_visibility_scope( $scope );
+    $exclude_pages = beyond_gotham_sanitize_post_id_list( $exclude_pages );
 
     return array(
-        'text'  => wp_kses_post( $text ),
-        'label' => sanitize_text_field( $label ),
-        'url'   => beyond_gotham_sanitize_optional_url( $url ),
+        'text'             => wp_kses_post( $text ),
+        'label'            => sanitize_text_field( $label ),
+        'url'              => beyond_gotham_sanitize_optional_url( $url ),
+        'visibility_scope' => $scope,
+        'exclude_pages'    => $exclude_pages,
     );
 }
 
@@ -1918,6 +1971,80 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
             'settings'    => 'beyond_gotham_cta_button_url',
             'type'        => 'url',
             'description' => __( 'Verlinke zu deinem Newsletter- oder Landingpage-Tool.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_visibility_scope',
+        array(
+            'default'           => $cta_defaults['visibility_scope'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_cta_visibility_scope',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_visibility_scope_control',
+        array(
+            'label'       => __( 'Sichtbarkeit der CTA-Box', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta',
+            'settings'    => 'beyond_gotham_cta_visibility_scope',
+            'type'        => 'select',
+            'choices'     => array(
+                'front_page' => __( 'Startseite anzeigen', 'beyond_gotham' ),
+                'posts'      => __( 'Nur bei Blog-Artikeln anzeigen', 'beyond_gotham' ),
+                'courses'    => __( 'Nur bei Kursseiten (bg_course)', 'beyond_gotham' ),
+                'products'   => __( 'Nur auf Produktseiten', 'beyond_gotham' ),
+                'all'        => __( 'Auf allen Seiten anzeigen', 'beyond_gotham' ),
+            ),
+            'input_attrs' => array(
+                'multiple' => 'multiple',
+                'size'     => 5,
+            ),
+            'description' => __( 'Halte Strg (Windows) oder Cmd (Mac), um mehrere Optionen auszuwählen.', 'beyond_gotham' ),
+        )
+    );
+
+    $page_choices = array();
+    $pages        = get_pages(
+        array(
+            'sort_column' => 'post_title',
+            'sort_order'  => 'ASC',
+            'post_type'   => 'page',
+            'post_status' => array( 'publish', 'private' ),
+        )
+    );
+
+    foreach ( $pages as $page ) {
+        $title = $page->post_title ? $page->post_title : sprintf( __( '(Ohne Titel) #%d', 'beyond_gotham' ), $page->ID );
+        /* translators: 1: Page title, 2: Page ID. */
+        $page_choices[ $page->ID ] = sprintf( __( '%1$s (ID: %2$d)', 'beyond_gotham' ), $title, $page->ID );
+    }
+
+    $page_select_size = max( 3, min( 10, count( $page_choices ) ) );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_exclude_pages',
+        array(
+            'default'           => $cta_defaults['exclude_pages'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_post_id_list',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_exclude_pages_control',
+        array(
+            'label'       => __( 'CTA auf bestimmten Seiten ausblenden', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta',
+            'settings'    => 'beyond_gotham_cta_exclude_pages',
+            'type'        => 'select',
+            'choices'     => $page_choices,
+            'input_attrs' => array(
+                'multiple' => 'multiple',
+                'size'     => (string) $page_select_size,
+            ),
+            'description' => __( 'Verstecke die CTA-Box auf ausgewählten Seiten. Halte Strg (Windows) oder Cmd (Mac), um mehrere Seiten zu markieren.', 'beyond_gotham' ),
         )
     );
 
