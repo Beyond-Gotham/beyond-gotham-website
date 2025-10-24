@@ -51,7 +51,9 @@ require get_template_directory() . '/inc/customizer/cta.php';
 require get_template_directory() . '/inc/customizer/footer.php';
 require get_template_directory() . '/inc/customizer/social.php';
 require get_template_directory() . '/inc/customizer/social-sharing.php';
-require get_template_directory() . '/inc/customizer/post-meta.php';
+if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
+    require get_template_directory() . '/inc/customizer/post-meta.php';
+}
 require get_template_directory() . '/inc/customizer/styles.php';
 ```
 
@@ -146,6 +148,9 @@ Zeitersparnis: ~80%
 - Desktop/Mobile Sichtbarkeit pro Feld
 - Sortier-Priorität
 - Multi-Post-Type Support (Posts, Pages, Kurse)
+
+> ℹ️  Die Felddefinitionen stammen zentral aus `inc/post-meta.php`. Zusätzliche Metafelder werden über den Filter
+> `beyond_gotham_post_meta_fields` registriert – das Customizer-Modul deklariert keine eigenen Helper-Funktionen mehr.
 
 **Customizer Sections:** 1
 **Funktionen:** 6

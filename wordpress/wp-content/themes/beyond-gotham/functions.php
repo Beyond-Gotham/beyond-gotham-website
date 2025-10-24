@@ -746,7 +746,9 @@ function should_display_cta() {
     return apply_filters( 'beyond_gotham_should_display_cta', false, $settings, $conditions );
 }
 
-require_once get_template_directory() . '/inc/post-meta.php';
+if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
+    require_once get_template_directory() . '/inc/post-meta.php';
+}
 require_once get_template_directory() . '/inc/customizer/loader.php';
 require_once get_template_directory() . '/inc/rest-api.php';
 require_once get_template_directory() . '/inc/blocks.php';

@@ -9,7 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-require_once dirname( __DIR__ ) . '/post-meta.php';
+// Load the shared helper definitions if the theme bootstrap did not do it already.
+if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
+    require_once dirname( __DIR__ ) . '/post-meta.php';
+}
 
 /**
  * Registers post meta controls with the customizer.

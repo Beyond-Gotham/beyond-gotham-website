@@ -9,7 +9,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once get_template_directory() . '/inc/post-meta.php';
+// Ensure the shared post meta helpers are available without redeclaring them.
+if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
+        require_once get_template_directory() . '/inc/post-meta.php';
+}
+
+// The customizer module consumes the helpers from inc/post-meta.php. Additional fields should
+// be registered via the `beyond_gotham_post_meta_fields` filter instead of redefining the helpers.
 
 // =============================================================================
 // Customizer Registration
