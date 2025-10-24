@@ -5,7 +5,6 @@
  * @package beyond_gotham
  */
 
-$categories_list = get_the_category_list( ', ' );
 $author_id       = get_the_author_meta( 'ID' );
 $author_bio      = get_the_author_meta( 'description', $author_id );
 $author_avatar   = get_avatar( $author_id, 120, '', esc_attr( get_the_author() ) );
@@ -38,33 +37,20 @@ $author_avatar   = get_avatar( $author_id, 120, '', esc_attr( get_the_author() )
         <div class="article-header__inner">
             <?php the_title( '<h1 class="article-title">', '</h1>' ); ?>
 
-            <div class="article-meta" aria-label="<?php esc_attr_e( 'Beitragsinformationen', 'beyond_gotham' ); ?>">
-                <span class="article-meta__item article-meta__date">
-                    <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
-                </span>
-
-                <span class="article-meta__item article-meta__author">
-                    <?php
-                    printf(
-                        /* translators: %s: post author. */
-                        esc_html__( 'Von %s', 'beyond_gotham' ),
-                        sprintf( '<span class="article-meta__author-name">%s</span>', esc_html( get_the_author() ) )
-                    );
-                    ?>
-                </span>
-
-                <?php if ( $categories_list ) : ?>
-                    <span class="article-meta__item article-meta__categories">
-                        <?php
-                        printf(
-                            /* translators: %s: list of categories. */
-                            esc_html__( 'In %s', 'beyond_gotham' ),
-                            wp_kses_post( $categories_list )
-                        );
-                        ?>
-                    </span>
-                <?php endif; ?>
-            </div>
+            <?php if ( function_exists( 'beyond_gotham_render_post_meta' ) ) : ?>
+                <?php
+                beyond_gotham_render_post_meta(
+                    get_the_ID(),
+                    array(
+                        'container_tag'         => 'div',
+                        'container_class'       => 'article-meta',
+                        'item_base_class'       => 'article-meta__item',
+                        'item_key_class_prefix' => 'article-meta__',
+                        'aria_label'            => __( 'Beitragsinformationen', 'beyond_gotham' ),
+                    )
+                );
+                ?>
+            <?php endif; ?>
         </div>
     </header>
 

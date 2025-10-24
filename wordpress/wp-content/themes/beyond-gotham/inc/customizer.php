@@ -137,6 +137,22 @@ function beyond_gotham_sanitize_checkbox( $value ) {
 }
 
 /**
+ * Sanitize meta order values.
+ *
+ * @param mixed $value Raw value.
+ * @return int
+ */
+function beyond_gotham_sanitize_post_meta_order( $value ) {
+    $value = absint( $value );
+
+    if ( $value > 999 ) {
+        return 999;
+    }
+
+    return $value;
+}
+
+/**
  * Sanitize the CTA visibility scope selections.
  *
  * @param mixed $value Raw value.
@@ -1376,6 +1392,118 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     );
 
     $share_defaults = beyond_gotham_get_social_share_defaults();
+
+    $wp_customize->add_section(
+        'post_meta_settings',
+        array(
+            'title'       => __( 'Beitragsmetadaten', 'beyond_gotham' ),
+            'priority'    => 55,
+            'description' => __( 'Wähle für jeden Inhaltstyp aus, welche Metadaten sichtbar sind. Die Reihenfolge wird über die Priorität gesteuert (kleinere Zahlen erscheinen zuerst).', 'beyond_gotham' ),
+        )
+    );
+
+    $meta_post_types = beyond_gotham_get_post_meta_post_types();
+    $meta_fields     = beyond_gotham_get_post_meta_fields();
+    $meta_defaults   = beyond_gotham_get_post_meta_defaults();
+    $meta_priority   = 1;
+
+    foreach ( $meta_post_types as $post_type => $type_args ) {
+        $type_label = isset( $type_args['label'] ) ? $type_args['label'] : $post_type;
+
+        $wp_customize->add_control(
+            new Beyond_Gotham_Customize_Heading_Control(
+                $wp_customize,
+                'beyond_gotham_post_meta_heading_' . $post_type,
+                array(
+                    'label'       => $type_label,
+                    'section'     => 'post_meta_settings',
+                    'priority'    => $meta_priority,
+                    'description' => __( 'Steuere Sichtbarkeit nach Gerät und sortiere die Metadaten nach Priorität.', 'beyond_gotham' ),
+                )
+            )
+        );
+
+        $meta_priority++;
+
+        foreach ( $meta_fields as $field_key => $field ) {
+            $field_label  = isset( $field['control_label'] ) ? $field['control_label'] : ucfirst( $field_key );
+            $field_config = isset( $meta_defaults[ $post_type ][ $field_key ] ) ? $meta_defaults[ $post_type ][ $field_key ] : array(
+                'order'        => isset( $field['default_order'] ) ? (int) $field['default_order'] : 10,
+                'show_desktop' => false,
+                'show_mobile'  => false,
+            );
+
+            $base_id = sprintf( 'beyond_gotham_meta_%s_%s', $post_type, $field_key );
+
+            $wp_customize->add_setting(
+                $base_id . '_desktop',
+                array(
+                    'default'           => $field_config['show_desktop'],
+                    'type'              => 'theme_mod',
+                    'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                )
+            );
+
+            $wp_customize->add_control(
+                $base_id . '_desktop',
+                array(
+                    'type'     => 'checkbox',
+                    'section'  => 'post_meta_settings',
+                    'label'    => sprintf( __( '%s auf Desktop anzeigen', 'beyond_gotham' ), $field_label ),
+                    'priority' => $meta_priority,
+                )
+            );
+
+            $meta_priority++;
+
+            $wp_customize->add_setting(
+                $base_id . '_mobile',
+                array(
+                    'default'           => $field_config['show_mobile'],
+                    'type'              => 'theme_mod',
+                    'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                )
+            );
+
+            $wp_customize->add_control(
+                $base_id . '_mobile',
+                array(
+                    'type'     => 'checkbox',
+                    'section'  => 'post_meta_settings',
+                    'label'    => sprintf( __( '%s auf Mobilgeräten anzeigen', 'beyond_gotham' ), $field_label ),
+                    'priority' => $meta_priority,
+                )
+            );
+
+            $meta_priority++;
+
+            $wp_customize->add_setting(
+                $base_id . '_order',
+                array(
+                    'default'           => $field_config['order'],
+                    'type'              => 'theme_mod',
+                    'sanitize_callback' => 'beyond_gotham_sanitize_post_meta_order',
+                )
+            );
+
+            $wp_customize->add_control(
+                $base_id . '_order',
+                array(
+                    'type'        => 'number',
+                    'section'     => 'post_meta_settings',
+                    'label'       => sprintf( __( 'Reihenfolge für %s', 'beyond_gotham' ), $field_label ),
+                    'description' => __( 'Niedrigere Werte werden zuerst angezeigt.', 'beyond_gotham' ),
+                    'priority'    => $meta_priority,
+                    'input_attrs' => array(
+                        'min'  => 0,
+                        'step' => 1,
+                    ),
+                )
+            );
+
+            $meta_priority++;
+        }
+    }
 
     $wp_customize->add_section(
         'beyond_gotham_social_sharing',
