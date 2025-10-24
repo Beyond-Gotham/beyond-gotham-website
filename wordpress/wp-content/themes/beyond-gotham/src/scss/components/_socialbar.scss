@@ -4,18 +4,20 @@
   align-items: center;
   gap: 1rem;
   padding: 0.5rem 1rem;
-  background: var(--socialbar-bg, #111);
+  background: var(--socialbar-surface, #111);
   color: var(--socialbar-icon, #fff);
   z-index: 999;
-  a {
+
+  &__link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
     color: inherit;
     border-radius: 999px;
-    padding: 0.25rem;
     text-decoration: none;
-    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease;
 
     &:focus-visible {
       outline: 2px solid currentColor;
@@ -23,23 +25,40 @@
     }
   }
 
-  a:hover,
-  a:focus,
-  a:focus-visible {
-    background-color: rgba(255, 255, 255, 0.12);
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+
+    svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+      fill: currentColor;
+      background: transparent;
+      border-radius: 0;
+      padding: 0;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
   }
 
-  a svg {
-    width: 24px;
-    height: 24px;
-    fill: currentColor;
-    transition: transform 0.2s ease;
+  &__label {
+    display: none;
+    font-size: 0.875rem;
   }
 
-  a:hover svg,
-  a:focus svg,
-  a:focus-visible svg {
-    transform: scale(1.15);
+  &__link:hover,
+  &__link:focus,
+  &__link:focus-visible {
+    color: var(--socialbar-icon, #fff);
+  }
+
+  &__link:hover &__icon svg,
+  &__link:focus &__icon svg,
+  &__link:focus-visible &__icon svg {
+    background-color: var(--socialbar-hover, rgba(255, 255, 255, 0.12));
+    transform: scale(1.1);
   }
 }
 
@@ -92,34 +111,85 @@
   }
 }
 
+.socialbar--minimal {
+  .socialbar__icon svg {
+    background: none;
+    border-radius: 0;
+    padding: 0;
+  }
+}
+
+.socialbar--boxed {
+  .socialbar__icon svg {
+    background: var(--socialbar-bg, rgba(255, 255, 255, 0.1));
+    padding: 0.5rem;
+    border-radius: 6px;
+  }
+}
+
+.socialbar--pill {
+  .socialbar__icon svg {
+    background: var(--socialbar-bg, rgba(255, 255, 255, 0.1));
+    padding: 0.5rem;
+    border-radius: 999px;
+  }
+}
+
+.socialbar--labelled {
+  .socialbar__link {
+    gap: 0.4rem;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .socialbar__icon svg {
+    background: var(--socialbar-bg, rgba(255, 255, 255, 0.1));
+    padding: 0.25rem;
+    border-radius: 6px;
+  }
+
+  .socialbar__label {
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 399px) {
+  .socialbar--labelled {
+    .socialbar__label {
+      display: none;
+    }
+  }
+}
+
 .socialbar--icon-monochrom {
-  a {
+  .socialbar__link {
     background: transparent;
   }
 }
 
 .socialbar--icon-farbig {
-  a {
+  .socialbar__link {
     background: transparent;
   }
 
-  a[data-network='twitter'] {
+  .socialbar__link[data-network='twitter'] {
     color: #1da1f2;
   }
 
-  a[data-network='mastodon'] {
+  .socialbar__link[data-network='mastodon'] {
     color: #3088d4;
   }
 
-  a[data-network='github'] {
+  .socialbar__link[data-network='github'] {
     color: #f6f8fa;
   }
 
-  a[data-network='linkedin'] {
+  .socialbar__link[data-network='linkedin'] {
     color: #0a66c2;
   }
 
-  a[data-network='email'] {
+  .socialbar__link[data-network='email'] {
     color: var(--socialbar-icon, #fff);
   }
 }
@@ -128,14 +198,14 @@
   background: var(--socialbar-icon, #fff);
   color: var(--socialbar-bg, #111);
 
-  a {
+  .socialbar__link {
     background: transparent;
     color: inherit;
   }
 
-  a:hover,
-  a:focus,
-  a:focus-visible {
+  .socialbar__link:hover,
+  .socialbar__link:focus,
+  .socialbar__link:focus-visible {
     background: rgba(0, 0, 0, 0.1);
   }
 }
