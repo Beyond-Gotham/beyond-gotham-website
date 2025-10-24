@@ -637,8 +637,8 @@ function beyond_gotham_get_cta_defaults() {
  */
 function beyond_gotham_get_cta_layout_defaults() {
     return array(
-        'width'     => 600,
-        'height'    => 200,
+        'width'     => 200,
+        'height'    => 60,
         'position'  => 'bottom',
         'alignment' => 'center',
     );
