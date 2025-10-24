@@ -747,6 +747,6 @@ function should_display_cta() {
 }
 
 require_once get_template_directory() . '/inc/post-meta.php';
-require_once get_template_directory() . '/inc/customizer.php';
+require_once get_template_directory() . '/inc/customizer/loader.php';
 require_once get_template_directory() . '/inc/rest-api.php';
 require_once get_template_directory() . '/inc/blocks.php';

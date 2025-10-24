@@ -72,7 +72,19 @@ function beyond_gotham_sanitize_checkbox( $value ) {
  * @return float
  */
 function beyond_gotham_sanitize_float( $value ) {
-	return (float) $value;
+        return (float) $value;
+}
+
+/**
+ * Sanitize numeric values ensuring they are non-negative floats.
+ *
+ * @param mixed $value Raw value.
+ * @return float
+ */
+function beyond_gotham_sanitize_positive_float( $value ) {
+        $value = is_numeric( $value ) ? (float) $value : 0.0;
+
+        return $value < 0 ? 0.0 : $value;
 }
 
 /**
@@ -115,15 +127,90 @@ function beyond_gotham_sanitize_font_unit( $value ) {
  * @return array
  */
 function beyond_gotham_sanitize_id_list( $value ) {
-	if ( is_string( $value ) ) {
-		$value = explode( ',', $value );
-	}
+        if ( is_string( $value ) ) {
+                $value = explode( ',', $value );
+        }
 
-	if ( ! is_array( $value ) ) {
-		return array();
-	}
+        if ( ! is_array( $value ) ) {
+                return array();
+        }
 
-	return array_values( array_filter( array_map( 'absint', $value ) ) );
+        return array_values( array_filter( array_map( 'absint', $value ) ) );
+}
+
+/**
+ * Sanitize a list of post IDs ensuring numeric uniqueness.
+ *
+ * @param mixed $value Raw value.
+ * @return array
+ */
+function beyond_gotham_sanitize_post_id_list( $value ) {
+        return beyond_gotham_sanitize_id_list( $value );
+}
+
+/**
+ * Sanitize raw CSS selector strings.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_css_selector( $value ) {
+        $value = is_string( $value ) ? trim( $value ) : '';
+
+        if ( '' === $value ) {
+                return '';
+        }
+
+        return sanitize_text_field( $value );
+}
+
+/**
+ * Format numeric values as pixel CSS strings.
+ *
+ * @param float $value      Numeric value to format.
+ * @param bool  $allow_zero Whether zero values are allowed.
+ * @return string
+ */
+function beyond_gotham_format_px_value( $value, $allow_zero = false ) {
+        $value = beyond_gotham_sanitize_positive_float( $value );
+
+        if ( $value <= 0 && ! $allow_zero ) {
+                return '';
+        }
+
+        $precision = ( $value < 10 ) ? 1 : 0;
+        $rounded   = round( $value, $precision );
+
+        if ( $rounded <= 0 && ! $allow_zero ) {
+                return '';
+        }
+
+        return $rounded . 'px';
+}
+
+/**
+ * Format numeric values as CSS sizes using the supplied unit.
+ *
+ * @param float  $value Numeric value.
+ * @param string $unit  CSS unit (px, rem, etc.).
+ * @return string
+ */
+function beyond_gotham_format_css_size( $value, $unit = 'px' ) {
+        $value = beyond_gotham_sanitize_positive_float( $value );
+        $unit  = in_array( $unit, array( 'px', 'rem', 'em', '%' ), true ) ? $unit : 'px';
+
+        if ( $value <= 0 ) {
+                return '';
+        }
+
+        $precision = ( '%' === $unit ) ? 0 : 1;
+        $rounded   = round( $value, $precision );
+
+        if ( abs( $rounded - round( $rounded ) ) < pow( 10, -$precision ) ) {
+                $rounded = round( $rounded );
+        }
+
+        return $rounded . $unit;
 }
 
 // =============================================================================

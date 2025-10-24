@@ -299,4 +299,3 @@ function beyond_gotham_register_post_meta_customizer( WP_Customize_Manager $wp_c
 		$meta_priority += 5; // Add gap between post types
 	}
 }
-add_action( 'customize_register', 'beyond_gotham_register_post_meta_customizer' );

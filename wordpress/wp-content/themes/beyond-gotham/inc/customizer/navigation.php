@@ -34,8 +34,6 @@ function beyond_gotham_get_navigation_defaults() {
 // Customizer Registration
 // =============================================================================
 
-add_action( 'customize_register', 'beyond_gotham_register_navigation_customizer', 25 );
-
 /**
  * Register navigation settings in the customizer.
  *

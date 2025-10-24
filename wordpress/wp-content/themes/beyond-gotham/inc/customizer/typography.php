@@ -94,8 +94,6 @@ function beyond_gotham_sanitize_typography_choice( $value ) {
 // Customizer Registration
 // =============================================================================
 
-add_action( 'customize_register', 'beyond_gotham_register_typography_customizer', 20 );
-
 /**
  * Register typography settings in the customizer.
  *
