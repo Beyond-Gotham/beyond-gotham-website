@@ -1,0 +1,14 @@
+.wp-block-beyond-gotham-highlight-box {
+  border-radius: 1.25rem;
+  padding: 2rem;
+  border: 1px dashed rgba(51, 209, 255, 0.4);
+  box-shadow: none;
+}
+
+.wp-block-beyond-gotham-highlight-box .bg-highlight-box__content {
+  font-size: 1rem;
+}
+
+.wp-block-beyond-gotham-highlight-box .bg-highlight-box__actions {
+  margin-top: 1.5rem;
+}

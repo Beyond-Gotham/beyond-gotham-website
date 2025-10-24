@@ -480,3 +480,7 @@ function beyond_gotham_enable_modern_image_mimes( $mimes ) {
     return $mimes;
 }
 add_filter( 'upload_mimes', 'beyond_gotham_enable_modern_image_mimes' );
+
+require_once get_template_directory() . '/inc/customizer.php';
+require_once get_template_directory() . '/inc/rest-api.php';
+require_once get_template_directory() . '/inc/blocks.php';

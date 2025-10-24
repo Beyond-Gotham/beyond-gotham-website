@@ -1,0 +1,113 @@
+.wp-block-quote.is-style-bg-quote {
+  position: relative;
+  padding: 2rem 2rem 2rem 3rem;
+  border-left: 4px solid var(--accent);
+  background: rgba(12, 21, 32, 0.7);
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.wp-block-quote.is-style-bg-quote::before {
+  content: '“';
+  position: absolute;
+  left: 1.25rem;
+  top: 1.25rem;
+  font-size: 3rem;
+  color: var(--accent, #33d1ff);
+  opacity: 0.6;
+}
+
+.wp-block-quote.is-style-bg-quote cite {
+  display: block;
+  margin-top: 1.25rem;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.wp-block-button.is-style-bg-button-ghost .wp-block-button__link {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.wp-block-button.is-style-bg-button-ghost .wp-block-button__link:hover,
+.wp-block-button.is-style-bg-button-ghost .wp-block-button__link:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.wp-block-button.is-style-bg-button-outline .wp-block-button__link {
+  background: transparent;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.wp-block-button.is-style-bg-button-outline .wp-block-button__link:hover,
+.wp-block-button.is-style-bg-button-outline .wp-block-button__link:focus-visible {
+  background: var(--accent);
+  color: #001018;
+  transform: translateY(-1px);
+}
+
+.wp-block-group.is-style-bg-callout {
+  padding: 2rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, rgba(51, 209, 255, 0.12), rgba(11, 29, 42, 0.85));
+  border: 1px solid rgba(51, 209, 255, 0.25);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+}
+
+.wp-block-group.is-style-bg-callout > *:first-child {
+  margin-top: 0;
+}
+
+.site-footer {
+  padding: 2rem 1.5rem 2.5rem;
+  background: rgba(12, 21, 32, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  text-align: center;
+}
+
+.site-footer__social {
+  display: flex;
+  justify-content: center;
+}
+
+.site-footer__social .site-nav__social {
+  margin: 0;
+}
+
+.site-nav__social--theme {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.site-footer .site-info {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+}
+
+@media (min-width: 768px) {
+  .site-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+  }
+
+  .site-footer__social {
+    order: 3;
+  }
+}
