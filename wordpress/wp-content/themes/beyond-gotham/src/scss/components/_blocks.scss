@@ -147,11 +147,17 @@
     text-align: center;
 
     .theme-toggle {
-      font-size: 1.25rem;
-      padding: 0.5rem;
-      border: none;
-      background: none;
       cursor: pointer;
+      margin-inline: auto;
+
+      &.toggle-style-filled {
+        min-width: 2.75rem;
+        min-height: 2.75rem;
+      }
+
+      &.toggle-style-system {
+        backdrop-filter: blur(8px);
+      }
     }
   }
 }

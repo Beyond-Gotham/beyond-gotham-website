@@ -137,6 +137,23 @@ function beyond_gotham_sanitize_checkbox( $value ) {
 }
 
 /**
+ * Sanitize the dark mode toggle style selection.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_darkmode_toggle_style( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $allowed = array( 'minimal', 'filled', 'system' );
+
+    if ( in_array( $value, $allowed, true ) ) {
+        return $value;
+    }
+
+    return 'minimal';
+}
+
+/**
  * Sanitize meta order values.
  *
  * @param mixed $value Raw value.
@@ -348,6 +365,30 @@ function beyond_gotham_customize_is_socialbar_variant( $control ) {
     $current = beyond_gotham_sanitize_socialbar_style_variant( $current );
 
     return $target_variant === $current;
+}
+
+/**
+ * Determine if the dark mode tooltip toggle is enabled.
+ *
+ * @param WP_Customize_Control $control Control instance.
+ * @return bool
+ */
+function beyond_gotham_customize_is_darkmode_tooltip_enabled( $control ) {
+    if ( ! $control instanceof WP_Customize_Control ) {
+        return false;
+    }
+
+    $setting = $control->manager->get_setting( 'darkmode_toggle_tooltip' );
+    if ( ! $setting ) {
+        return false;
+    }
+
+    $current = $setting->post_value();
+    if ( null === $current ) {
+        $current = $setting->value();
+    }
+
+    return (bool) $current;
 }
 
 /**
@@ -1419,6 +1460,80 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
             'priority'    => 20,
             'panel'       => 'beyond_gotham_color_modes',
             'description' => __( 'Definiere Farben speziell für den Dark Mode.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_section(
+        'beyond_gotham_darkmode_toggle',
+        array(
+            'title'       => __( 'Darkmode-Toggle', 'beyond_gotham' ),
+            'priority'    => 30,
+            'panel'       => 'beyond_gotham_color_modes',
+            'description' => __( 'Passe Darstellung und Tooltip des Umschalt-Icons an.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'darkmode_toggle_style',
+        array(
+            'default'           => 'minimal',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_darkmode_toggle_style',
+        )
+    );
+
+    $wp_customize->add_control(
+        'darkmode_toggle_style',
+        array(
+            'label'       => __( 'Designstil', 'beyond_gotham' ),
+            'description' => __( 'Bestimme, wie das Icon dargestellt wird.', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_darkmode_toggle',
+            'type'        => 'select',
+            'choices'     => array(
+                'minimal' => __( 'Minimal / Outline', 'beyond_gotham' ),
+                'filled'  => __( 'Gefüllt', 'beyond_gotham' ),
+                'system'  => __( 'Systemabhängig', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'darkmode_toggle_tooltip',
+        array(
+            'default'           => false,
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+        )
+    );
+
+    $wp_customize->add_control(
+        'darkmode_toggle_tooltip',
+        array(
+            'label'       => __( 'Tooltip anzeigen?', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_darkmode_toggle',
+            'type'        => 'checkbox',
+        )
+    );
+
+    $wp_customize->add_setting(
+        'darkmode_toggle_tooltip_text',
+        array(
+            'default'           => __( 'Designmodus wechseln', 'beyond_gotham' ),
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_text_field',
+        )
+    );
+
+    $wp_customize->add_control(
+        'darkmode_toggle_tooltip_text',
+        array(
+            'label'           => __( 'Tooltip-Text', 'beyond_gotham' ),
+            'section'         => 'beyond_gotham_darkmode_toggle',
+            'type'            => 'text',
+            'input_attrs'     => array(
+                'placeholder' => __( 'Designmodus wechseln', 'beyond_gotham' ),
+            ),
+            'active_callback' => 'beyond_gotham_customize_is_darkmode_tooltip_enabled',
         )
     );
 
