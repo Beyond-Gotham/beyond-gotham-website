@@ -359,6 +359,25 @@
     });
   };
 
+  const initStickyHeader = () => {
+    const header = query('.site-header');
+    if (!header) {
+      return;
+    }
+
+    const toggleCondensed = () => {
+      const offset = window.pageYOffset || document.documentElement.scrollTop || 0;
+      if (offset > 80) {
+        header.classList.add('is-condensed');
+      } else {
+        header.classList.remove('is-condensed');
+      }
+    };
+
+    toggleCondensed();
+    window.addEventListener('scroll', toggleCondensed, { passive: true });
+  };
+
   const initCarousels = () => {
     queryAll('[data-bg-carousel]').forEach((carousel) => {
       const track = query('[data-bg-carousel-track]', carousel);
@@ -397,6 +416,7 @@
     initSmoothScroll();
     initEnrollmentForms();
     initFilterForms();
+    initStickyHeader();
     initCarousels();
 
     if (bodyEl) {
