@@ -119,6 +119,11 @@
                 </span>
             </button>
         </nav>
+        <?php
+        if ( function_exists( 'beyond_gotham_render_socialbar' ) ) {
+            beyond_gotham_render_socialbar( 'header' );
+        }
+        ?>
     </div>
 </header>
 <div class="site-nav__overlay" data-bg-nav-overlay aria-hidden="true"></div>

@@ -1,0 +1,141 @@
+.socialbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--socialbar-bg, #111);
+  color: var(--socialbar-icon, #fff);
+  z-index: 999;
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.25rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+
+  a:hover,
+  a:focus,
+  a:focus-visible {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  a svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+    transition: transform 0.2s ease;
+  }
+
+  a:hover svg,
+  a:focus svg,
+  a:focus-visible svg {
+    transform: scale(1.15);
+  }
+}
+
+.socialbar[data-location='header'] {
+  display: none;
+}
+
+.socialbar[data-location='mobile'] {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .socialbar[data-location='header'] {
+    display: flex;
+    margin-left: auto;
+    border-radius: 999px;
+  }
+
+  .socialbar[data-location='mobile'] {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .socialbar[data-location='mobile'] {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    width: 100%;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0));
+  }
+
+  .socialbar[data-location='mobile'][data-position='top'] {
+    top: 0;
+    bottom: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    padding-top: calc(0.5rem + env(safe-area-inset-top, 0));
+    padding-bottom: 0.5rem;
+  }
+
+  .socialbar[data-location='mobile'][data-position='bottom'] {
+    bottom: 0;
+  }
+
+  .socialbar[data-location='header'] {
+    display: none;
+  }
+}
+
+.socialbar--icon-monochrom {
+  a {
+    background: transparent;
+  }
+}
+
+.socialbar--icon-farbig {
+  a {
+    background: transparent;
+  }
+
+  a[data-network='twitter'] {
+    color: #1da1f2;
+  }
+
+  a[data-network='mastodon'] {
+    color: #3088d4;
+  }
+
+  a[data-network='github'] {
+    color: #f6f8fa;
+  }
+
+  a[data-network='linkedin'] {
+    color: #0a66c2;
+  }
+
+  a[data-network='email'] {
+    color: var(--socialbar-icon, #fff);
+  }
+}
+
+.socialbar--icon-invertiert {
+  background: var(--socialbar-icon, #fff);
+  color: var(--socialbar-bg, #111);
+
+  a {
+    background: transparent;
+    color: inherit;
+  }
+
+  a:hover,
+  a:focus,
+  a:focus-visible {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
