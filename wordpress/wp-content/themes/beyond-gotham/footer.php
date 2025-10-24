@@ -16,13 +16,40 @@
     $footer_cta_empty    = ( '' === $footer_text_clean ) && ( '' === $footer_label_clean );
     $footer_cta_classes  = 'cta site-footer__cta';
     $footer_cta_attrs    = '';
+    $footer_cta_style    = '';
+
+    $footer_layout_settings = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
+    $footer_layout_classes  = isset( $footer_layout_settings['class_list'] ) ? (array) $footer_layout_settings['class_list'] : array();
+
+    if ( ! empty( $footer_layout_classes ) ) {
+        $footer_cta_classes .= ' ' . implode( ' ', array_map( 'sanitize_html_class', $footer_layout_classes ) );
+    }
+
+    if ( ! empty( $footer_layout_settings['style_map'] ) && is_array( $footer_layout_settings['style_map'] ) ) {
+        $style_chunks = array();
+
+        foreach ( $footer_layout_settings['style_map'] as $property => $value ) {
+            $property = is_string( $property ) ? trim( $property ) : '';
+            $value    = is_string( $value ) ? trim( $value ) : '';
+
+            if ( '' === $property || '' === $value ) {
+                continue;
+            }
+
+            $style_chunks[] = $property . ': ' . $value . ';';
+        }
+
+        if ( ! empty( $style_chunks ) ) {
+            $footer_cta_style = ' style="' . esc_attr( implode( ' ', $style_chunks ) ) . '"';
+        }
+    }
 
     if ( $footer_cta_empty ) {
         $footer_cta_classes .= ' site-footer__cta--empty';
         $footer_cta_attrs    = ' hidden aria-hidden="true"';
     }
     ?>
-    <div class="<?php echo esc_attr( $footer_cta_classes ); ?>" data-bg-cta<?php echo $footer_cta_attrs; ?>>
+    <div class="<?php echo esc_attr( $footer_cta_classes ); ?>" data-bg-cta<?php echo $footer_cta_attrs; ?><?php echo $footer_cta_style; ?>>
         <?php if ( $footer_cta_text ) : ?>
             <p class="cta__lead" data-bg-cta-text><?php echo $footer_cta_text; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
         <?php endif; ?>

@@ -139,6 +139,18 @@ function beyond_gotham_sanitize_float( $value ) {
 }
 
 /**
+ * Sanitize numeric values and ensure they are not negative.
+ *
+ * @param mixed $value Raw value.
+ * @return float
+ */
+function beyond_gotham_sanitize_positive_float( $value ) {
+    $value = is_numeric( $value ) ? (float) $value : 0.0;
+
+    return ( $value < 0 ) ? 0.0 : $value;
+}
+
+/**
  * Ensure font size units are limited to known values.
  *
  * @param string $value Raw value.
@@ -152,6 +164,73 @@ function beyond_gotham_sanitize_font_unit( $value ) {
     }
 
     return 'px';
+}
+
+/**
+ * Restrict CTA width units to supported values.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_cta_width_unit( $value ) {
+    $value = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+
+    if ( in_array( $value, array( 'px', '%', 'rem' ), true ) ) {
+        return $value;
+    }
+
+    return 'px';
+}
+
+/**
+ * Limit CTA size presets to known choices.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_cta_size_preset( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( 'small', 'medium', 'large', 'custom' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return 'medium';
+}
+
+/**
+ * Limit CTA position values.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_cta_position( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( 'top', 'bottom', 'fixed' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return 'bottom';
+}
+
+/**
+ * Limit CTA alignment values.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_cta_alignment( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( 'left', 'center', 'right' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return 'center';
 }
 
 /**
@@ -414,6 +493,26 @@ function beyond_gotham_customize_is_nav_sticky_active( $control ) {
 }
 
 /**
+ * Determine if the CTA layout controls for custom sizing should be visible.
+ *
+ * @param WP_Customize_Control $control Control instance.
+ * @return bool
+ */
+function beyond_gotham_customize_is_cta_custom_size( $control ) {
+    if ( ! $control instanceof WP_Customize_Control ) {
+        return true;
+    }
+
+    $setting = $control->manager->get_setting( 'beyond_gotham_cta_size_preset' );
+
+    if ( ! $setting ) {
+        return true;
+    }
+
+    return 'custom' === beyond_gotham_sanitize_cta_size_preset( $setting->value() );
+}
+
+/**
  * Retrieve default CTA values for reuse.
  *
  * @return array
@@ -423,6 +522,142 @@ function beyond_gotham_get_cta_defaults() {
         'text'   => __( 'Bleibe informiert über neue Kurse, Einsatztrainings und OSINT-Ressourcen.', 'beyond_gotham' ),
         'label'  => __( 'Jetzt abonnieren', 'beyond_gotham' ),
         'url'    => home_url( '/newsletter/' ),
+    );
+}
+
+/**
+ * Provide dimension presets for the CTA layout.
+ *
+ * @return array
+ */
+function beyond_gotham_get_cta_size_presets() {
+    return array(
+        'small'  => array(
+            'label'            => __( 'Klein', 'beyond_gotham' ),
+            'max_width_value'  => 560,
+            'max_width_unit'   => 'px',
+            'min_height_value' => 240,
+        ),
+        'medium' => array(
+            'label'            => __( 'Mittel (Standard)', 'beyond_gotham' ),
+            'max_width_value'  => 800,
+            'max_width_unit'   => 'px',
+            'min_height_value' => 320,
+        ),
+        'large'  => array(
+            'label'            => __( 'Groß', 'beyond_gotham' ),
+            'max_width_value'  => 100,
+            'max_width_unit'   => '%',
+            'min_height_value' => 380,
+        ),
+    );
+}
+
+/**
+ * Default CTA layout configuration.
+ *
+ * @return array
+ */
+function beyond_gotham_get_cta_layout_defaults() {
+    $presets = beyond_gotham_get_cta_size_presets();
+    $medium  = isset( $presets['medium'] ) ? $presets['medium'] : array();
+
+    return array(
+        'size_preset'      => 'medium',
+        'max_width_value'  => isset( $medium['max_width_value'] ) ? $medium['max_width_value'] : 800,
+        'max_width_unit'   => isset( $medium['max_width_unit'] ) ? $medium['max_width_unit'] : 'px',
+        'min_height_value' => isset( $medium['min_height_value'] ) ? $medium['min_height_value'] : 320,
+        'position'         => 'bottom',
+        'alignment'        => 'center',
+    );
+}
+
+/**
+ * Format CSS size values with units.
+ *
+ * @param float  $value Numeric value.
+ * @param string $unit  CSS unit.
+ * @return string
+ */
+function beyond_gotham_format_css_size( $value, $unit ) {
+    $value = beyond_gotham_sanitize_positive_float( $value );
+    $unit  = beyond_gotham_sanitize_cta_width_unit( $unit );
+
+    if ( $value <= 0 ) {
+        return '';
+    }
+
+    $precision = ( 'rem' === $unit ) ? 2 : 1;
+    $rounded   = round( $value, $precision );
+
+    if ( abs( $rounded - round( $rounded ) ) < pow( 10, -$precision ) ) {
+        $rounded = round( $rounded );
+    }
+
+    return $rounded . $unit;
+}
+
+/**
+ * Retrieve CTA layout settings merged with defaults and presets.
+ *
+ * @return array
+ */
+function beyond_gotham_get_cta_layout_settings() {
+    $defaults         = beyond_gotham_get_cta_layout_defaults();
+    $size_preset      = beyond_gotham_sanitize_cta_size_preset( get_theme_mod( 'beyond_gotham_cta_size_preset', $defaults['size_preset'] ) );
+    $max_width_value  = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_max_width_value', $defaults['max_width_value'] ) );
+    $max_width_unit   = beyond_gotham_sanitize_cta_width_unit( get_theme_mod( 'beyond_gotham_cta_max_width_unit', $defaults['max_width_unit'] ) );
+    $min_height_value = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_min_height', $defaults['min_height_value'] ) );
+    $position         = beyond_gotham_sanitize_cta_position( get_theme_mod( 'beyond_gotham_cta_position', $defaults['position'] ) );
+    $alignment        = beyond_gotham_sanitize_cta_alignment( get_theme_mod( 'beyond_gotham_cta_alignment', $defaults['alignment'] ) );
+    $presets          = beyond_gotham_get_cta_size_presets();
+
+    if ( 'custom' !== $size_preset && isset( $presets[ $size_preset ] ) ) {
+        $preset = $presets[ $size_preset ];
+
+        if ( isset( $preset['max_width_value'] ) ) {
+            $max_width_value = beyond_gotham_sanitize_positive_float( $preset['max_width_value'] );
+        }
+
+        if ( isset( $preset['max_width_unit'] ) ) {
+            $max_width_unit = beyond_gotham_sanitize_cta_width_unit( $preset['max_width_unit'] );
+        }
+
+        if ( isset( $preset['min_height_value'] ) ) {
+            $min_height_value = beyond_gotham_sanitize_positive_float( $preset['min_height_value'] );
+        }
+    }
+
+    $max_width = beyond_gotham_format_css_size( $max_width_value, $max_width_unit );
+    $min_height = $min_height_value > 0 ? beyond_gotham_format_css_size( $min_height_value, 'px' ) : '';
+
+    $classes = array(
+        'cta-' . $position,
+        'cta-align-' . $alignment,
+        'cta-size-' . $size_preset,
+    );
+
+    $style_map = array();
+
+    if ( $max_width ) {
+        $style_map['--cta-max-width'] = $max_width;
+    }
+
+    if ( $min_height ) {
+        $style_map['--cta-min-height'] = $min_height;
+    }
+
+    return array(
+        'size_preset'      => $size_preset,
+        'max_width_value'  => $max_width_value,
+        'max_width_unit'   => $max_width_unit,
+        'max_width'        => $max_width,
+        'min_height_value' => $min_height_value,
+        'min_height'       => $min_height,
+        'position'         => $position,
+        'alignment'        => $alignment,
+        'class_list'       => array_values( array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) ) ),
+        'style_map'        => $style_map,
     );
 }
 
@@ -485,6 +720,15 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
             'title'       => __( 'Call-to-Action', 'beyond_gotham' ),
             'priority'    => 40,
             'description' => __( 'Pflege Text, Button-Beschriftung und Ziel-Link für den Newsletter-Call-to-Action.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_section(
+        'beyond_gotham_cta_layout',
+        array(
+            'title'       => __( 'Call-to-Action Layout', 'beyond_gotham' ),
+            'priority'    => 41,
+            'description' => __( 'Steuere Position und Größe der CTA-Box auf Landingpages und Beitragsseiten.', 'beyond_gotham' ),
         )
     );
 
@@ -1153,6 +1397,168 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
         )
     );
 
+    $cta_layout_defaults = beyond_gotham_get_cta_layout_defaults();
+    $cta_size_presets    = beyond_gotham_get_cta_size_presets();
+    $cta_preset_choices  = array();
+
+    foreach ( $cta_size_presets as $key => $preset ) {
+        $cta_preset_choices[ $key ] = isset( $preset['label'] ) ? $preset['label'] : ucfirst( $key );
+    }
+
+    $cta_preset_choices['custom'] = __( 'Individuell', 'beyond_gotham' );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_size_preset',
+        array(
+            'default'           => $cta_layout_defaults['size_preset'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_cta_size_preset',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_size_preset_control',
+        array(
+            'label'       => __( 'Größen-Preset', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_cta_layout',
+            'settings'    => 'beyond_gotham_cta_size_preset',
+            'type'        => 'select',
+            'choices'     => $cta_preset_choices,
+            'description' => __( 'Wähle eine Vorlage oder passe Breite und Höhe individuell an.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_max_width_value',
+        array(
+            'default'           => $cta_layout_defaults['max_width_value'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_max_width_value_control',
+        array(
+            'label'           => __( 'Maximale Breite', 'beyond_gotham' ),
+            'section'         => 'beyond_gotham_cta_layout',
+            'settings'        => 'beyond_gotham_cta_max_width_value',
+            'type'            => 'number',
+            'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
+            'input_attrs'     => array(
+                'min'  => 40,
+                'max'  => 1600,
+                'step' => 1,
+            ),
+            'description'     => __( 'Gib den Zahlenwert der Breite an. Einheit unten auswählen.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_max_width_unit',
+        array(
+            'default'           => $cta_layout_defaults['max_width_unit'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_cta_width_unit',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_max_width_unit_control',
+        array(
+            'label'           => __( 'Einheit der Breite', 'beyond_gotham' ),
+            'section'         => 'beyond_gotham_cta_layout',
+            'settings'        => 'beyond_gotham_cta_max_width_unit',
+            'type'            => 'radio',
+            'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
+            'choices'         => array(
+                'px'  => __( 'Pixel (px)', 'beyond_gotham' ),
+                '%'   => __( 'Prozent (%)', 'beyond_gotham' ),
+                'rem' => __( 'Rem (rem)', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_min_height',
+        array(
+            'default'           => $cta_layout_defaults['min_height_value'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_positive_float',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_min_height_control',
+        array(
+            'label'           => __( 'Innenhöhe (min-height)', 'beyond_gotham' ),
+            'section'         => 'beyond_gotham_cta_layout',
+            'settings'        => 'beyond_gotham_cta_min_height',
+            'type'            => 'range',
+            'active_callback' => 'beyond_gotham_customize_is_cta_custom_size',
+            'input_attrs'     => array(
+                'min'  => 200,
+                'max'  => 600,
+                'step' => 10,
+            ),
+            'description'     => __( 'Höhe in Pixeln, die innerhalb der CTA mindestens beibehalten wird.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_position',
+        array(
+            'default'           => $cta_layout_defaults['position'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_cta_position',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_position_control',
+        array(
+            'label'    => __( 'Position der CTA-Box', 'beyond_gotham' ),
+            'section'  => 'beyond_gotham_cta_layout',
+            'settings' => 'beyond_gotham_cta_position',
+            'type'     => 'select',
+            'choices'  => array(
+                'top'    => __( 'Oben (unter dem Hero-Bereich)', 'beyond_gotham' ),
+                'bottom' => __( 'Unterhalb des Contents', 'beyond_gotham' ),
+                'fixed'  => __( 'Fixiert am unteren Bildschirmrand', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_cta_alignment',
+        array(
+            'default'           => $cta_layout_defaults['alignment'],
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_cta_alignment',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_cta_alignment_control',
+        array(
+            'label'    => __( 'Ausrichtung innerhalb des Containers', 'beyond_gotham' ),
+            'section'  => 'beyond_gotham_cta_layout',
+            'settings' => 'beyond_gotham_cta_alignment',
+            'type'     => 'radio',
+            'choices'  => array(
+                'left'   => __( 'Links', 'beyond_gotham' ),
+                'center' => __( 'Zentriert', 'beyond_gotham' ),
+                'right'  => __( 'Rechts', 'beyond_gotham' ),
+            ),
+        )
+    );
+
     // Footer text.
     $wp_customize->add_setting(
         'beyond_gotham_footer_text',
@@ -1758,6 +2164,9 @@ function beyond_gotham_customize_preview_js() {
         'quoteBackgroundColor'  => '#161b2a',
     );
 
+    $cta_layout  = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
+    $cta_presets = function_exists( 'beyond_gotham_get_cta_size_presets' ) ? beyond_gotham_get_cta_size_presets() : array();
+
     wp_localize_script(
         $handle,
         'BGCustomizerPreview',
@@ -1771,6 +2180,8 @@ function beyond_gotham_customize_preview_js() {
                 'text'    => '[data-bg-cta-text]',
                 'button'  => '[data-bg-cta-button]',
             ),
+            'ctaLayout'           => $cta_layout,
+            'ctaSizePresets'      => $cta_presets,
             'defaults'             => $color_defaults,
             'contrastThreshold'    => 4.5,
         )
