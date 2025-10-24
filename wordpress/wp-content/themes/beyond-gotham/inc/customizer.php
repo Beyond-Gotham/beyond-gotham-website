@@ -4395,6 +4395,7 @@ function beyond_gotham_get_customizer_css() {
 
     if ( ! empty( $header_layout['height_css'] ) ) {
         $layout_root_vars['--site-header-height'] = $header_layout['height_css'];
+        $layout_root_vars['--header-height']      = $header_layout['height_css'];
     }
 
     if ( isset( $header_layout['padding_top_css'] ) && '' !== $header_layout['padding_top_css'] ) {

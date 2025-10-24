@@ -23,6 +23,8 @@ html {
   --danger: #ff5c5c;
   --danger-rgb: 255, 92, 92;
   --bg-sticky-offset: 0px;
+  --site-header-height: 100px;
+  --header-height: var(--site-header-height);
   --surface-tint-rgb: 15, 23, 42;
   --surface-shadow-rgb: 15, 23, 42;
   --surface-glass-rgb: 248, 250, 255;
