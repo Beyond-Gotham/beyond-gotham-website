@@ -317,7 +317,7 @@ get_header();
     </section>
 
     <section class="bg-section bg-section--accent" id="landing-cta">
-        <div class="cta" data-bg-animate>
+        <div class="cta" data-bg-animate data-bg-cta>
             <h2 class="cta__title"><?php esc_html_e( 'Bereit für die nächste Kohorte?', 'beyond_gotham' ); ?></h2>
             <p class="cta__lead"><?php esc_html_e( 'Sichere dir deinen Platz und kombiniere journalistisches Handwerk mit taktischer Einsatzkompetenz.', 'beyond_gotham' ); ?></p>
             <a class="bg-button bg-button--primary" href="<?php echo esc_url( home_url( '/kurse/' ) ); ?>"><?php esc_html_e( 'Alle Kurse ansehen', 'beyond_gotham' ); ?></a>
@@ -325,17 +325,31 @@ get_header();
     </section>
 
     <section class="bg-section bg-section--newsletter" id="landing-newsletter">
-        <div class="newsletter" data-bg-animate>
+        <?php
+        $cta_settings     = function_exists( 'beyond_gotham_get_cta_settings' ) ? beyond_gotham_get_cta_settings() : array();
+        $cta_text         = isset( $cta_settings['text'] ) ? $cta_settings['text'] : '';
+        $cta_label        = isset( $cta_settings['label'] ) ? $cta_settings['label'] : '';
+        $cta_url          = isset( $cta_settings['url'] ) ? $cta_settings['url'] : '';
+        $cta_text_clean   = trim( wp_strip_all_tags( $cta_text ) );
+        $cta_label_clean  = trim( $cta_label );
+        $cta_is_empty     = ( '' === $cta_text_clean ) && ( '' === $cta_label_clean );
+        $cta_attributes   = $cta_is_empty ? ' hidden aria-hidden="true"' : '';
+        $cta_classes      = 'newsletter';
+
+        if ( $cta_is_empty ) {
+            $cta_classes .= ' newsletter--empty';
+        }
+        ?>
+        <div class="<?php echo esc_attr( $cta_classes ); ?>" data-bg-animate data-bg-cta<?php echo $cta_attributes; ?>>
             <div class="newsletter__content">
                 <h2 class="newsletter__title"><?php esc_html_e( 'Newsletter & Einsatzbriefing', 'beyond_gotham' ); ?></h2>
-                <p class="newsletter__text"><?php esc_html_e( 'Monatliches Briefing mit Kursupdates, Einsatzreports und exklusiven Ressourcen. Jederzeit kündbar.', 'beyond_gotham' ); ?></p>
+                <p class="newsletter__text" data-bg-cta-text><?php echo $cta_text; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
             </div>
-            <form class="newsletter__form" action="<?php echo esc_url( home_url( '/' ) ); ?>" method="post">
-                <label class="screen-reader-text" for="newsletter-email"><?php esc_html_e( 'E-Mail Adresse', 'beyond_gotham' ); ?></label>
-                <input class="newsletter__input" type="email" id="newsletter-email" name="newsletter_email" placeholder="<?php esc_attr_e( 'Ihre E-Mail-Adresse', 'beyond_gotham' ); ?>" required>
-                <button class="bg-button bg-button--primary" type="submit"><?php esc_html_e( 'Anmelden', 'beyond_gotham' ); ?></button>
-                <p class="newsletter__legal"><?php esc_html_e( 'Mit Klick auf „Anmelden“ stimmen Sie dem Erhalt des Newsletters laut Datenschutzerklärung zu.', 'beyond_gotham' ); ?></p>
-            </form>
+            <div class="newsletter__form newsletter__actions">
+                <a class="bg-button bg-button--primary" data-bg-cta-button<?php echo $cta_url ? ' href="' . esc_url( $cta_url ) . '"' : ' aria-disabled="true"'; ?>>
+                    <?php echo esc_html( $cta_label ); ?>
+                </a>
+            </div>
         </div>
     </section>
 </main>
