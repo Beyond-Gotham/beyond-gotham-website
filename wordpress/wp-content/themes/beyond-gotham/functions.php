@@ -9,6 +9,24 @@ if ( ! defined( 'BEYOND_GOTHAM_VERSION' ) ) {
     define( 'BEYOND_GOTHAM_VERSION', '0.1.0' );
 }
 
+if ( ! function_exists( 'beyond_gotham_asset_version' ) ) {
+    /**
+     * Resolve a file version based on the file modification time.
+     *
+     * @param string $relative_path Asset path relative to the theme root.
+     * @return string
+     */
+    function beyond_gotham_asset_version( $relative_path ) {
+        $file_path = trailingslashit( get_template_directory() ) . ltrim( $relative_path, '/' );
+
+        if ( file_exists( $file_path ) ) {
+            return (string) filemtime( $file_path );
+        }
+
+        return BEYOND_GOTHAM_VERSION;
+    }
+}
+
 if ( ! function_exists( 'beyond_gotham_theme_setup' ) ) {
     /**
      * Sets up theme defaults and registers support for various WordPress features.
@@ -232,22 +250,25 @@ add_filter( 'admin_body_class', 'beyond_gotham_editor_body_class' );
  * Enqueue scripts and styles.
  */
 function beyond_gotham_enqueue_assets() {
-    $theme_version = defined( 'WP_DEBUG' ) && WP_DEBUG ? time() : BEYOND_GOTHAM_VERSION;
+    $style_version  = beyond_gotham_asset_version( 'dist/style.css' );
+    $script_version = beyond_gotham_asset_version( 'dist/theme.js' );
 
     wp_enqueue_style(
         'beyond-gotham-style',
         get_template_directory_uri() . '/dist/style.css',
         array(),
-        $theme_version
+        $style_version
     );
 
     wp_enqueue_script(
         'beyond-gotham-theme',
         get_template_directory_uri() . '/dist/theme.js',
         array(),
-        $theme_version,
+        $script_version,
         true
     );
+
+    wp_script_add_data( 'beyond-gotham-theme', 'defer', true );
 
     wp_localize_script(
         'beyond-gotham-theme',
@@ -382,3 +403,80 @@ function beyond_gotham_woocommerce_shipping_tab_content() {
     echo '<p>' . esc_html__( 'Shipping details will be updated soon. Expect fast, secure delivery across Gotham and beyond.', 'beyond_gotham' ) . '</p>';
     echo '</div>';
 }
+
+/**
+ * Ensure lazy loading defaults for images and prefer async decoding.
+ *
+ * @param array        $attr       Existing attributes.
+ * @param WP_Post      $attachment Attachment instance.
+ * @param string|array $size       Image size.
+ *
+ * @return array
+ */
+function beyond_gotham_image_attributes( $attr, $attachment, $size ) {
+    $classes = isset( $attr['class'] ) ? (string) $attr['class'] : '';
+
+    if ( false !== strpos( $classes, 'custom-logo' ) ) {
+        $attr['loading']       = 'eager';
+        $attr['fetchpriority'] = 'high';
+    } elseif ( empty( $attr['loading'] ) ) {
+        $attr['loading'] = 'lazy';
+    }
+
+    if ( empty( $attr['decoding'] ) ) {
+        $attr['decoding'] = 'async';
+    }
+
+    return $attr;
+}
+add_filter( 'wp_get_attachment_image_attributes', 'beyond_gotham_image_attributes', 10, 3 );
+
+/**
+ * Enhance custom logo markup with high priority loading hints.
+ *
+ * @param string $html Custom logo HTML.
+ * @return string
+ */
+function beyond_gotham_custom_logo_attributes( $html ) {
+    if ( false === strpos( $html, 'loading=' ) ) {
+        $html = str_replace( '<img ', '<img loading="eager" decoding="async" fetchpriority="high" ', $html );
+    }
+
+    return $html;
+}
+add_filter( 'get_custom_logo', 'beyond_gotham_custom_logo_attributes' );
+
+/**
+ * Remove emoji scripts and styles for leaner pages.
+ */
+function beyond_gotham_disable_emoji() {
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    remove_action( 'admin_print_styles', 'print_emoji_styles' );
+    remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+    remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+    remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+}
+add_action( 'init', 'beyond_gotham_disable_emoji' );
+
+/**
+ * Remove the wp-embed script on the front end when it is not needed.
+ */
+function beyond_gotham_disable_wp_embed() {
+    wp_deregister_script( 'wp-embed' );
+}
+add_action( 'wp_enqueue_scripts', 'beyond_gotham_disable_wp_embed', 100 );
+
+/**
+ * Allow uploading modern image formats.
+ *
+ * @param array $mimes Allowed mime types.
+ * @return array
+ */
+function beyond_gotham_enable_modern_image_mimes( $mimes ) {
+    $mimes['webp'] = 'image/webp';
+
+    return $mimes;
+}
+add_filter( 'upload_mimes', 'beyond_gotham_enable_modern_image_mimes' );

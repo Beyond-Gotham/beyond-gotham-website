@@ -20,10 +20,21 @@
             : '';
         ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class( 'bg-card' ); ?> data-bg-animate>
-            <a class="bg-card__media" href="<?php the_permalink(); ?>">
+            <a class="bg-card__media" href="<?php the_permalink(); ?>" data-bg-skeleton>
                 <?php
-                if ( has_post_thumbnail() ) {
-                    the_post_thumbnail( 'bg-card', array( 'class' => 'bg-card__image' ) );
+                $thumbnail_id = get_post_thumbnail_id();
+                if ( $thumbnail_id ) {
+                    echo wp_get_attachment_image(
+                        $thumbnail_id,
+                        'bg-card',
+                        false,
+                        array(
+                            'class'    => 'bg-card__image',
+                            'loading'  => 'lazy',
+                            'decoding' => 'async',
+                            'sizes'    => '(min-width: 960px) 320px, (min-width: 600px) 50vw, 100vw',
+                        )
+                    );
                 } else {
                     echo '<span class="bg-card__placeholder" aria-hidden="true"></span>';
                 }

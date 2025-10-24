@@ -14,8 +14,21 @@ $author_avatar   = get_avatar( $author_id, 120, '', esc_attr( get_the_author() )
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'single-article' ); ?>>
     <header class="article-header">
         <?php if ( has_post_thumbnail() ) : ?>
-            <figure class="article-hero">
-                <?php the_post_thumbnail( 'full', array( 'class' => 'post-hero' ) ); ?>
+            <figure class="article-hero" data-bg-skeleton>
+                <?php
+                echo wp_get_attachment_image(
+                    get_post_thumbnail_id(),
+                    'full',
+                    false,
+                    array(
+                        'class'         => 'post-hero',
+                        'loading'       => 'eager',
+                        'decoding'      => 'async',
+                        'fetchpriority' => 'high',
+                        'sizes'         => '100vw',
+                    )
+                );
+                ?>
                 <?php if ( get_the_post_thumbnail_caption() ) : ?>
                     <figcaption class="article-hero__caption"><?php echo wp_kses_post( get_the_post_thumbnail_caption() ); ?></figcaption>
                 <?php endif; ?>
