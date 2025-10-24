@@ -26,7 +26,60 @@ if ( ! function_exists( 'beyond_gotham_theme_setup' ) ) {
         ) );
         add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );
         add_theme_support( 'editor-styles' );
-        add_editor_style( 'dist/style.css' );
+        add_editor_style( 'assets/editor.css' );
+        add_theme_support( 'wp-block-styles' );
+        add_theme_support( 'align-wide' );
+        add_theme_support( 'responsive-embeds' );
+        add_theme_support(
+            'editor-color-palette',
+            array(
+                array(
+                    'name'  => __( 'Gotham Midnight', 'beyond_gotham' ),
+                    'slug'  => 'gotham-midnight',
+                    'color' => '#0b1d2a',
+                ),
+                array(
+                    'name'  => __( 'Skyline Gray', 'beyond_gotham' ),
+                    'slug'  => 'skyline-gray',
+                    'color' => '#4c5b68',
+                ),
+                array(
+                    'name'  => __( 'Signal Yellow', 'beyond_gotham' ),
+                    'slug'  => 'signal-yellow',
+                    'color' => '#f2b705',
+                ),
+                array(
+                    'name'  => __( 'Beacon Red', 'beyond_gotham' ),
+                    'slug'  => 'beacon-red',
+                    'color' => '#d43a3a',
+                ),
+            )
+        );
+        add_theme_support(
+            'editor-font-sizes',
+            array(
+                array(
+                    'name' => __( 'Small', 'beyond_gotham' ),
+                    'size' => 14,
+                    'slug' => 'small',
+                ),
+                array(
+                    'name' => __( 'Default', 'beyond_gotham' ),
+                    'size' => 16,
+                    'slug' => 'default',
+                ),
+                array(
+                    'name' => __( 'Large', 'beyond_gotham' ),
+                    'size' => 20,
+                    'slug' => 'large',
+                ),
+                array(
+                    'name' => __( 'Display', 'beyond_gotham' ),
+                    'size' => 32,
+                    'slug' => 'display',
+                ),
+            )
+        );
         add_theme_support( 'woocommerce' );
 
         register_nav_menus( array(
@@ -36,6 +89,28 @@ if ( ! function_exists( 'beyond_gotham_theme_setup' ) ) {
     }
 }
 add_action( 'after_setup_theme', 'beyond_gotham_theme_setup' );
+
+/**
+ * Add a custom class to the admin body when using the block editor.
+ *
+ * @param string $classes Existing admin body classes.
+ *
+ * @return string
+ */
+function beyond_gotham_editor_body_class( $classes ) {
+    if ( ! function_exists( 'get_current_screen' ) ) {
+        return $classes;
+    }
+
+    $screen = get_current_screen();
+
+    if ( $screen && method_exists( $screen, 'is_block_editor' ) && $screen->is_block_editor() ) {
+        $classes .= ' beyond-gotham-editor';
+    }
+
+    return $classes;
+}
+add_filter( 'admin_body_class', 'beyond_gotham_editor_body_class' );
 
 /**
  * Enqueue scripts and styles.
