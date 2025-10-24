@@ -4,6 +4,8 @@
   background: var(--header-background);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--header-border);
+  min-height: var(--site-header-height, 100px);
+  height: var(--site-header-height, 100px);
 }
 
 body.bg-has-sticky-header .site-header {

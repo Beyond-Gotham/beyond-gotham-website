@@ -57,13 +57,14 @@
             <?php echo esc_html( $footer_cta_label ); ?>
         </a>
     </div>
-    <nav class="footer-navigation" aria-label="<?php esc_attr_e( 'Footer Menu', 'beyond_gotham' ); ?>">
+    <nav class="footer-navigation" aria-label="<?php esc_attr_e( 'Footer Navigation', 'beyond_gotham' ); ?>">
         <?php
         if ( has_nav_menu( 'footer' ) ) {
             wp_nav_menu(
                 array(
                     'theme_location' => 'footer',
                     'menu_id'        => 'footer-menu',
+                    'menu_class'     => 'footer-menu',
                     'container'      => false,
                 )
             );
