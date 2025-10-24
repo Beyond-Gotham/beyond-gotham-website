@@ -6,6 +6,57 @@
   }
 
   const bodyEl = document.body;
+  const themeStorageKey = 'themeMode';
+  const themeClassNames = ['theme-light', 'theme-dark'];
+
+  const getStoredTheme = () => {
+    try {
+      const stored = window.localStorage.getItem(themeStorageKey);
+      return stored === 'dark' || stored === 'light' ? stored : null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const getSystemTheme = () => {
+    if (window.matchMedia) {
+      try {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      } catch (error) {
+        return 'light';
+      }
+    }
+
+    return 'light';
+  };
+
+  let activeTheme = 'light';
+
+  const setTheme = (mode, { persist = true } = {}) => {
+    const theme = mode === 'dark' ? 'dark' : 'light';
+
+    if (docEl) {
+      docEl.classList.remove(...themeClassNames);
+      docEl.classList.add(`theme-${theme}`);
+      docEl.setAttribute('data-theme', theme);
+    }
+
+    if (bodyEl) {
+      bodyEl.classList.remove(...themeClassNames);
+      bodyEl.classList.add(`theme-${theme}`);
+    }
+
+    if (persist) {
+      try {
+        window.localStorage.setItem(themeStorageKey, theme);
+      } catch (error) {
+        // Ignore storage errors (e.g., private mode).
+      }
+    }
+
+    activeTheme = theme;
+    updateToggle(theme);
+  };
 
   const query = (selector, scope = document) => scope.querySelector(selector);
   const queryAll = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -36,6 +87,66 @@
   const nav = query('[data-bg-nav]');
   const toggle = query('[data-bg-nav-toggle]');
   const overlay = query('[data-bg-nav-overlay]');
+  const themeToggle = query('[data-bg-theme-toggle]');
+  const themeToggleLabel = themeToggle ? themeToggle.querySelector('[data-theme-toggle-label]') : null;
+
+  const updateToggle = (theme) => {
+    if (!themeToggle) {
+      return;
+    }
+
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    const nextLabelAttr = nextTheme === 'dark' ? 'data-dark-label' : 'data-light-label';
+    const baseLabel = themeToggle.getAttribute('data-toggle-label') || '';
+    const nextLabelRaw = themeToggle.getAttribute(nextLabelAttr) || '';
+    const fallbackLabel = nextTheme === 'dark' ? 'Dark' : 'Light';
+    const labelText = nextLabelRaw || fallbackLabel;
+
+    if (themeToggleLabel) {
+      themeToggleLabel.textContent = labelText;
+    }
+
+    const ariaLabel = baseLabel ? `${baseLabel} – ${labelText}`.trim() : labelText;
+    if (ariaLabel) {
+      themeToggle.setAttribute('aria-label', ariaLabel);
+    }
+
+    themeToggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+  };
+
+  const initTheme = () => {
+    const stored = getStoredTheme();
+    const initialTheme = stored || getSystemTheme();
+    setTheme(initialTheme, { persist: Boolean(stored) });
+
+    if (!stored && window.matchMedia) {
+      try {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const listener = (event) => {
+          if (!getStoredTheme()) {
+            setTheme(event.matches ? 'dark' : 'light', { persist: false });
+          }
+        };
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+          mediaQuery.addEventListener('change', listener);
+        } else if (typeof mediaQuery.addListener === 'function') {
+          mediaQuery.addListener(listener);
+        }
+      } catch (error) {
+        // Ignore matchMedia errors.
+      }
+    }
+
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
+        setTheme(nextTheme, { persist: true });
+      });
+    }
+  };
+
+  initTheme();
 
   const trapFocus = (event) => {
     if (!nav || event.key !== 'Tab') {

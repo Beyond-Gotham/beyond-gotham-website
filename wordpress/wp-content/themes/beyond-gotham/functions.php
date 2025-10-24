@@ -121,6 +121,7 @@ add_action( 'after_setup_theme', 'beyond_gotham_theme_setup' );
 function beyond_gotham_body_classes( $classes ) {
     $classes[] = 'bg-site';
     $classes[] = 'bg-ui-loading';
+    $classes[] = 'theme-light';
 
     if ( function_exists( 'beyond_gotham_get_nav_layout_settings' ) ) {
         $nav_layout = beyond_gotham_get_nav_layout_settings();
@@ -152,6 +153,48 @@ function beyond_gotham_body_classes( $classes ) {
     return array_unique( $classes );
 }
 add_filter( 'body_class', 'beyond_gotham_body_classes' );
+
+/**
+ * Output an inline script that resolves the preferred color scheme early in the render path.
+ */
+function beyond_gotham_output_theme_pref_script() {
+    ?>
+    <script>
+      (function () {
+        var doc = document.documentElement;
+        if (!doc) {
+          return;
+        }
+
+        var storedTheme = null;
+        try {
+          storedTheme = window.localStorage.getItem('themeMode');
+        } catch (error) {
+          storedTheme = null;
+        }
+
+        var theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : null;
+
+        if (!theme && window.matchMedia) {
+          try {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          } catch (error) {
+            theme = null;
+          }
+        }
+
+        if (!theme) {
+          theme = 'light';
+        }
+
+        doc.classList.remove('theme-light', 'theme-dark');
+        doc.classList.add('theme-' + theme);
+        doc.setAttribute('data-theme', theme);
+      }());
+    </script>
+    <?php
+}
+add_action( 'wp_head', 'beyond_gotham_output_theme_pref_script', 0 );
 
 /**
  * Detect social network slug from URL.

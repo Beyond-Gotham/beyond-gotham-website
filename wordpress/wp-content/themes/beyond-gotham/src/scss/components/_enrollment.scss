@@ -51,7 +51,7 @@
 .bg-enrollment__fieldset input[type="file"] {
   width: 100%;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.15);
   background: var(--bg);
   color: var(--fg);
   padding: 0.75rem 0.85rem;
@@ -76,10 +76,10 @@
 }
 
 .bg-enrollment__voucher {
-  background: rgba(51, 209, 255, 0.05);
+  background: rgba(var(--accent-rgb), 0.05);
   border-radius: 14px;
   padding: 1.25rem;
-  border: 1px solid rgba(51, 209, 255, 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.1);
   display: grid;
   gap: 1rem;
 }
@@ -92,7 +92,7 @@
 .bg-enrollment__submit {
   justify-self: start;
   background: var(--accent);
-  color: #001018;
+  color: var(--fg-on-accent);
   border: none;
   border-radius: 999px;
   font-weight: 600;
@@ -104,22 +104,22 @@
 .bg-enrollment__submit:hover,
 .bg-enrollment__submit:focus-visible {
   transform: translateY(-2px);
-  box-shadow: 0 16px 36px rgba(51, 209, 255, 0.22);
+  box-shadow: 0 16px 36px rgba(var(--accent-rgb), 0.22);
 }
 
 .bg-enrollment-notice {
   padding: 0.85rem 1rem;
   border-radius: 12px;
-  background: rgba(51, 209, 255, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
   color: var(--accent);
 }
 
 .bg-enrollment-notice--error {
-  background: rgba(255, 92, 92, 0.15);
+  background: rgba(var(--danger-rgb), 0.15);
   color: var(--danger);
 }
 
 .bg-enrollment-notice--success {
-  background: rgba(49, 196, 141, 0.15);
+  background: rgba(var(--success-rgb), 0.15);
   color: var(--success);
 }

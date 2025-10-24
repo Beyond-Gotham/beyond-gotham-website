@@ -1,11 +1,11 @@
 .bg-button--primary {
   background: var(--accent);
-  color: #001018;
+  color: var(--fg-on-accent);
 }
 
 .bg-button--primary:hover,
 .bg-button--primary:focus-visible {
-  box-shadow: 0 16px 40px rgba(51, 209, 255, 0.25);
+  box-shadow: 0 16px 40px rgba(var(--accent-rgb), 0.25);
   transform: translateY(-2px);
 }
 
@@ -17,13 +17,13 @@
 
 .bg-button--secondary:hover,
 .bg-button--secondary:focus-visible {
-  background: rgba(51, 209, 255, 0.1);
+  background: rgba(var(--accent-rgb), 0.1);
 }
 
 .bg-button--ghost {
   background: transparent;
   color: var(--fg);
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(var(--surface-tint-rgb), 0.25);
 }
 
 .bg-button--ghost:hover,
@@ -46,8 +46,8 @@
 .landing-hero {
   position: relative;
   padding: 6rem 1.5rem 2rem;
-  background: radial-gradient(circle at top left, rgba(51, 209, 255, 0.15), transparent 55%),
-    radial-gradient(circle at bottom right, rgba(26, 165, 209, 0.2), transparent 60%),
+  background: radial-gradient(circle at top left, rgba(var(--accent-rgb), 0.15), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(var(--accent-alt-rgb), 0.2), transparent 60%),
     var(--bg-muted);
 }
 
@@ -127,17 +127,17 @@
 .landing-hero__media-frame {
   position: relative;
   background: var(--bg-panel);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.06);
   border-radius: 18px;
   padding: 2rem;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 24px 60px rgba(var(--surface-shadow-rgb), 0.45);
 }
 
 .landing-hero__media-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(51, 209, 255, 0.15), transparent 45%);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.15), transparent 45%);
   opacity: 0.6;
   pointer-events: none;
 }
@@ -191,10 +191,10 @@
   margin: -3rem auto 0;
   padding: 2.75rem;
   background: var(--bg-panel);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.06);
   border-radius: 20px;
   text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 50px rgba(var(--surface-shadow-rgb), 0.35);
 }
 
 .landing-social__header {
@@ -291,8 +291,8 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(var(--surface-tint-rgb), 0.08);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.12);
   color: var(--fg);
   display: inline-flex;
   align-items: center;
@@ -302,7 +302,7 @@
 .bg-carousel__button:hover,
 .bg-carousel__button:focus-visible {
   background: var(--accent);
-  color: #001018;
+  color: var(--fg-on-accent);
 }
 
 @media (max-width: 720px) {
@@ -330,7 +330,7 @@
 
 .landing-news__column {
   background: var(--bg-panel);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.05);
   border-radius: 18px;
   padding: 2rem;
   display: grid;
@@ -408,7 +408,7 @@
 
 .feature-card {
   background: var(--bg-panel);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.06);
   border-radius: 16px;
   padding: 2rem;
   min-height: 220px;
@@ -448,7 +448,7 @@
 .testimonial {
   background: var(--bg-panel);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.05);
   padding: 1.75rem;
   display: grid;
   gap: 1rem;
