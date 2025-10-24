@@ -35,8 +35,10 @@ jobs:
       - name: Prepare upload tree
         run: |
           mkdir -p upload/wp-content/themes/beyondgotham-dark-child
+          mkdir -p upload/wp-content/themes/beyond-gotham
           mkdir -p upload/infoterminal/demo
           rsync -a wordpress/wp-content/themes/beyondgotham-dark-child/ upload/wp-content/themes/beyondgotham-dark-child/
+          rsync -a wordpress/wp-content/themes/beyond-gotham/ upload/wp-content/themes/beyond-gotham/
           rsync -a app-demo-infoterminal/dist/ upload/infoterminal/demo/
 
       # Pure SFTP (password), no SSH agent, no extra flags
