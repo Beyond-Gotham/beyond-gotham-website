@@ -328,10 +328,10 @@ function beyond_gotham_sanitize_aspect_ratio_choice( $value ) {
  */
 function beyond_gotham_get_ui_layout_defaults() {
     return array(
-        'header_height'             => 96,
+        'header_height'             => 100,
         'header_padding_top'        => 24,
         'header_padding_bottom'     => 24,
-        'footer_min_height'         => 240,
+        'footer_min_height'         => 250,
         'footer_margin_top'         => 64,
         'button_padding_vertical'   => 14,
         'button_padding_horizontal' => 28,
@@ -356,7 +356,7 @@ function beyond_gotham_get_ui_layout_settings() {
     $header_padding_top    = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_header_padding_top', $defaults['header_padding_top'] ) );
     $header_padding_bottom = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_header_padding_bottom', $defaults['header_padding_bottom'] ) );
 
-    $footer_min_height = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_footer_min_height', $defaults['footer_min_height'] ) );
+    $footer_height   = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_footer_min_height', $defaults['footer_min_height'] ) );
     $footer_margin_top = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_footer_margin_top', $defaults['footer_margin_top'] ) );
 
     $button_padding_vertical   = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_button_padding_vertical', $defaults['button_padding_vertical'] ) );
@@ -387,9 +387,12 @@ function beyond_gotham_get_ui_layout_settings() {
             'padding_bottom_css' => beyond_gotham_format_px_value( $header_padding_bottom, true ),
         ),
         'footer'    => array(
-            'min_height'    => $footer_min_height,
-            'min_height_css' => beyond_gotham_format_px_value( $footer_min_height ),
-            'margin_top'    => $footer_margin_top,
+            'height'         => $footer_height,
+            'height_css'     => beyond_gotham_format_px_value( $footer_height ),
+            'min_height'     => $footer_height,
+            'min_height_css' => beyond_gotham_format_px_value( $footer_height ),
+            'max_height_css' => beyond_gotham_format_px_value( $footer_height ),
+            'margin_top'     => $footer_margin_top,
             'margin_top_css' => beyond_gotham_format_px_value( $footer_margin_top, true ),
         ),
         'buttons'   => array(
@@ -1704,14 +1707,14 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     $wp_customize->add_control(
         'beyond_gotham_header_height_control',
         array(
-            'label'       => __( 'Höhe (px)', 'beyond_gotham' ),
+            'label'       => __( 'Header-Höhe (px)', 'beyond_gotham' ),
             'section'     => 'beyond_gotham_ui_layout',
             'settings'    => 'beyond_gotham_header_height',
-            'type'        => 'number',
+            'type'        => 'range',
             'priority'    => $layout_priority,
             'input_attrs' => array(
-                'min'  => 48,
-                'max'  => 320,
+                'min'  => 50,
+                'max'  => 300,
                 'step' => 1,
             ),
         )
@@ -1805,13 +1808,13 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     $wp_customize->add_control(
         'beyond_gotham_footer_min_height_control',
         array(
-            'label'       => __( 'Mindesthöhe (px)', 'beyond_gotham' ),
+            'label'       => __( 'Footer-Höhe (px)', 'beyond_gotham' ),
             'section'     => 'beyond_gotham_ui_layout',
             'settings'    => 'beyond_gotham_footer_min_height',
-            'type'        => 'number',
+            'type'        => 'range',
             'priority'    => $layout_priority,
             'input_attrs' => array(
-                'min'  => 80,
+                'min'  => 100,
                 'max'  => 600,
                 'step' => 1,
             ),
@@ -3103,6 +3106,14 @@ function beyond_gotham_get_customizer_css() {
         $layout_root_vars['--site-header-padding-bottom'] = $header_layout['padding_bottom_css'];
     }
 
+    if ( ! empty( $footer_layout['height_css'] ) ) {
+        $layout_root_vars['--site-footer-height'] = $footer_layout['height_css'];
+    }
+
+    if ( ! empty( $footer_layout['max_height_css'] ) ) {
+        $layout_root_vars['--site-footer-max-height'] = $footer_layout['max_height_css'];
+    }
+
     if ( ! empty( $footer_layout['min_height_css'] ) ) {
         $layout_root_vars['--site-footer-min-height'] = $footer_layout['min_height_css'];
     }
@@ -3337,6 +3348,7 @@ function beyond_gotham_get_customizer_css() {
     $header_rules = array();
 
     if ( ! empty( $header_layout['height_css'] ) ) {
+        $header_rules[] = 'height: var(--site-header-height, ' . $header_layout['height_css'] . ');';
         $header_rules[] = 'min-height: var(--site-header-height, ' . $header_layout['height_css'] . ');';
     }
 
@@ -3354,8 +3366,16 @@ function beyond_gotham_get_customizer_css() {
 
     $footer_rules = array();
 
+    if ( ! empty( $footer_layout['height_css'] ) ) {
+        $footer_rules[] = 'height: var(--site-footer-height, ' . $footer_layout['height_css'] . ');';
+    }
+
     if ( ! empty( $footer_layout['min_height_css'] ) ) {
         $footer_rules[] = 'min-height: var(--site-footer-min-height, ' . $footer_layout['min_height_css'] . ');';
+    }
+
+    if ( ! empty( $footer_layout['max_height_css'] ) ) {
+        $footer_rules[] = 'max-height: var(--site-footer-max-height, ' . $footer_layout['max_height_css'] . ');';
     }
 
     if ( isset( $footer_layout['margin_top_css'] ) && '' !== $footer_layout['margin_top_css'] ) {

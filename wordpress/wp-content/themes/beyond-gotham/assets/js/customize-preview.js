@@ -458,8 +458,14 @@
         paddingBottom: toPositiveFloat(typeof headerData.padding_bottom !== 'undefined' ? headerData.padding_bottom : headerData.paddingBottom)
     };
 
+    var footerHeightValue = footerData.height;
+
+    if (typeof footerHeightValue === 'undefined') {
+        footerHeightValue = typeof footerData.min_height !== 'undefined' ? footerData.min_height : footerData.minHeight;
+    }
+
     var footerLayoutState = {
-        minHeight: toPositiveFloat(typeof footerData.min_height !== 'undefined' ? footerData.min_height : footerData.minHeight),
+        height: toPositiveFloat(footerHeightValue),
         marginTop: toPositiveFloat(typeof footerData.margin_top !== 'undefined' ? footerData.margin_top : footerData.marginTop)
     };
 
@@ -487,7 +493,11 @@
     }
 
     function applyFooterLayout() {
-        setCSSVariable('--site-footer-min-height', formatPxValue(footerLayoutState.minHeight, false));
+        var heightValue = formatPxValue(footerLayoutState.height, false);
+
+        setCSSVariable('--site-footer-height', heightValue);
+        setCSSVariable('--site-footer-min-height', heightValue);
+        setCSSVariable('--site-footer-max-height', heightValue);
         setCSSVariable('--site-footer-margin-top', formatPxValue(footerLayoutState.marginTop, true));
     }
 
@@ -1448,11 +1458,11 @@ function updateCTALayout() {
     });
 
     api('beyond_gotham_footer_min_height', function (value) {
-        footerLayoutState.minHeight = toPositiveFloat(value.get());
+        footerLayoutState.height = toPositiveFloat(value.get());
         applyFooterLayout();
 
         value.bind(function (newValue) {
-            footerLayoutState.minHeight = toPositiveFloat(newValue);
+            footerLayoutState.height = toPositiveFloat(newValue);
             applyFooterLayout();
         });
     });
