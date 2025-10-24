@@ -2826,9 +2826,26 @@ function beyond_gotham_get_social_links() {
 /**
  * Output social navigation markup based on the theme options.
  *
- * @param array|null $links Optional link data to render.
+ * Retrieve the inline SVG markup for supported social networks.
+ *
+ * @return array<string, string>
  */
-function beyond_gotham_render_social_links( $links = null ) {
+function beyond_gotham_get_social_icon_svgs() {
+    return array(
+        'github'   => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.011-1.04-.017-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.089-.744.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.776.418-1.304.762-1.604-2.665-.303-5.466-1.332-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.51 11.51 0 0 1 3-.404c1.02.005 2.047.138 3 .404 2.29-1.552 3.297-1.23 3.297-1.23.655 1.653.243 2.873.12 3.176.77.84 1.235 1.911 1.235 3.221 0 4.61-2.804 5.624-5.476 5.921.43.371.823 1.102.823 2.222 0 1.604-.015 2.896-.015 3.286 0 .321.216.694.825.576C20.565 22.092 24 17.592 24 12.297 24 5.373 18.627.297 12 .297z"/></svg>',
+        'twitter'  => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.954 2.573c-.885.389-1.83.654-2.825.775 1.014-.608 1.794-1.571 2.163-2.724-.949.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-2.723 0-4.932 2.206-4.932 4.927 0 .39.045.765.127 1.124-4.094-.205-7.725-2.165-10.161-5.144-.424.722-.666 1.561-.666 2.475 0 1.709.87 3.215 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.6 3.419-1.68 1.319-3.809 2.107-6.102 2.107-.395 0-.779-.023-1.17-.067 2.179 1.394 4.768 2.209 7.557 2.209 9.054 0 14.001-7.496 14.001-13.986 0-.21 0-.423-.016-.637.961-.695 1.8-1.562 2.46-2.549z"/></svg>',
+        'mastodon' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.147 7.144c0-5.213-3.43-6.756-3.43-6.756-1.73-.793-4.707-1.123-7.804-1.153h-.073c-3.098.03-6.073.36-7.804 1.153 0 0-3.43 1.543-3.43 6.756-.045.985-.086 2.16.014 3.411.321 3.663 2.426 7.079 4.854 8.425 1.875 1.041 3.497.999 3.497.999l.079-.094v-1.86s-1.6.511-3.333-.706c-.819-.567-1.341-1.377-1.684-2.188.411.316.959.594 1.645.743 2.851.61 5.363.267 7.996-.175 2.525-.426 4.924-1.46 4.924-1.46s-1.395 2.024-5.076 3.039l.111 2.137s1.624.043 3.5-1c2.428-1.347 4.533-4.763 4.854-8.425.1-1.251.059-2.426.014-3.411zm-4.165 5.163h-2.054V8.29c0-1.053-.446-1.59-1.337-1.59-.987 0-1.48.639-1.48 1.907v2.773h-2.043V8.607c0-1.268-.494-1.907-1.48-1.907-.891 0-1.337.538-1.337 1.59v4.017H7.197V8.211c0-1.053.267-1.907.801-2.462.552-.555 1.276-.835 2.173-.835 1.038 0 1.823.399 2.333 1.197l.5.843.5-.843c.51-.798 1.295-1.197 2.333-1.197.897 0 1.621.28 2.173.835.535.555.801 1.409.801 2.462v4.096z"/></svg>',
+        'linkedin' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.451 20.451h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.354V9h3.414v1.561h.047c.476-.9 1.637-1.852 3.37-1.852 3.602 0 4.266 2.37 4.266 5.455v6.287zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM7.119 20.451H3.554V9h3.565v11.451zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0z"/></svg>',
+    );
+}
+
+/**
+ * Output social navigation markup based on the theme options.
+ *
+ * @param array|null $links Optional link data to render.
+ * @param array      $args  Optional rendering arguments.
+ */
+function beyond_gotham_render_social_links( $links = null, $args = array() ) {
     if ( null === $links ) {
         $links = beyond_gotham_get_social_links();
     }
@@ -2837,8 +2854,6 @@ function beyond_gotham_render_social_links( $links = null ) {
         return;
     }
 
-    echo '<ul class="site-nav__social site-nav__social--theme">';
-
     $labels = array(
         'twitter'  => __( 'Twitter', 'beyond_gotham' ),
         'mastodon' => __( 'Mastodon', 'beyond_gotham' ),
@@ -2846,6 +2861,78 @@ function beyond_gotham_render_social_links( $links = null ) {
         'linkedin' => __( 'LinkedIn', 'beyond_gotham' ),
         'email'    => __( 'E-Mail', 'beyond_gotham' ),
     );
+
+    $args = wp_parse_args(
+        $args,
+        array(
+            'context' => 'nav',
+        )
+    );
+
+    if ( 'footer-icons' === $args['context'] ) {
+        $icons = beyond_gotham_get_social_icon_svgs();
+        $items = array();
+
+        foreach ( $links as $network => $url ) {
+            if ( empty( $url ) || ! isset( $icons[ $network ] ) ) {
+                continue;
+            }
+
+            $items[] = array(
+                'network' => $network,
+                'url'     => $url,
+                'label'   => isset( $labels[ $network ] ) ? $labels[ $network ] : ucfirst( $network ),
+            );
+        }
+
+        if ( empty( $items ) ) {
+            return;
+        }
+
+        $wrapper_classes = array( 'footer-social-icons' );
+
+        if ( ! empty( $args['wrapper_classes'] ) ) {
+            $additional_classes = is_array( $args['wrapper_classes'] ) ? $args['wrapper_classes'] : array( $args['wrapper_classes'] );
+
+            foreach ( $additional_classes as $class_name ) {
+                if ( ! is_string( $class_name ) || '' === $class_name ) {
+                    continue;
+                }
+
+                $wrapper_classes[] = $class_name;
+            }
+        }
+
+        $wrapper_classes = array_unique(
+            array_map(
+                'sanitize_html_class',
+                array_filter( $wrapper_classes )
+            )
+        );
+
+        $wrapper_attributes = '';
+
+        if ( ! empty( $args['wrapper_attributes'] ) ) {
+            $wrapper_attributes = ' ' . trim( $args['wrapper_attributes'] );
+        }
+
+        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '"' . $wrapper_attributes . ' role="list">';
+
+        foreach ( $items as $item ) {
+            $is_mail = 0 === strpos( $item['url'], 'mailto:' );
+            $attrs   = $is_mail ? '' : ' target="_blank" rel="noopener"';
+
+            echo '<a class="footer-social-icons__link" href="' . esc_url( $item['url'] ) . '"' . $attrs . ' aria-label="' . esc_attr( $item['label'] ) . '" role="listitem">';
+            echo $icons[ $item['network'] ]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo '</a>';
+        }
+
+        echo '</div>';
+
+        return;
+    }
+
+    echo '<ul class="site-nav__social site-nav__social--theme">';
 
     foreach ( $links as $network => $url ) {
         $label        = isset( $labels[ $network ] ) ? $labels[ $network ] : ucfirst( $network );
