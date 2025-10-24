@@ -104,11 +104,8 @@
                 class="theme-toggle"
                 type="button"
                 data-bg-theme-toggle
-                data-light-label="<?php echo esc_attr__( 'Helles Design', 'beyond_gotham' ); ?>"
-                data-dark-label="<?php echo esc_attr__( 'Dunkles Design', 'beyond_gotham' ); ?>"
-                data-toggle-label="<?php echo esc_attr__( 'Darstellung umschalten', 'beyond_gotham' ); ?>"
                 aria-pressed="false"
-                aria-label="<?php echo esc_attr__( 'Darstellung umschalten', 'beyond_gotham' ); ?>"
+                aria-label="<?php echo esc_attr__( 'Designmodus wechseln', 'beyond_gotham' ); ?>"
             >
                 <span class="theme-toggle__icon" aria-hidden="true">
                     <svg class="theme-toggle__icon-sun" viewBox="0 0 24 24" role="presentation" focusable="false">
@@ -127,9 +124,6 @@
                     <svg class="theme-toggle__icon-moon" viewBox="0 0 24 24" role="presentation" focusable="false">
                         <path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 1 0 21 12.79z" />
                     </svg>
-                </span>
-                <span class="theme-toggle__label" data-theme-toggle-label>
-                    <?php esc_html_e( 'Dunkles Design', 'beyond_gotham' ); ?>
                 </span>
             </button>
         </nav>
