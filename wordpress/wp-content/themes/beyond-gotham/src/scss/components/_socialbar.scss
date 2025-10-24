@@ -70,6 +70,13 @@
   display: none;
 }
 
+.socialbar[data-location='footer'] {
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 @media (min-width: 769px) {
   .socialbar[data-location='header'] {
     display: flex;
@@ -79,6 +86,10 @@
 
   .socialbar[data-location='mobile'] {
     display: none;
+  }
+
+  .site-footer .socialbar[data-location='footer'] {
+    justify-content: flex-end;
   }
 }
 

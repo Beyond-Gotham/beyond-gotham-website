@@ -3278,6 +3278,26 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     );
 
     $wp_customize->add_setting(
+        'beyond_gotham_show_socialbar_footer',
+        array(
+            'default'           => false,
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_show_socialbar_footer_control',
+        array(
+            'label'       => __( 'Social-Bar im Footer anzeigen?', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_show_socialbar_footer',
+            'type'        => 'checkbox',
+        )
+    );
+
+    $wp_customize->add_setting(
         'beyond_gotham_socialbar_position',
         array(
             'default'           => 'bottom',
@@ -3784,6 +3804,7 @@ function beyond_gotham_get_socialbar_settings() {
     return array(
         'show_header'      => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_header', false ),
         'show_mobile'      => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_mobile', true ),
+        'show_footer'      => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_footer', false ),
         'position'         => beyond_gotham_sanitize_socialbar_position( get_theme_mod( 'beyond_gotham_socialbar_position', 'bottom' ) ),
         'icon_style'       => beyond_gotham_sanitize_socialbar_icon_style( get_theme_mod( 'beyond_gotham_socialbar_icon_style', 'monochrom' ) ),
         'surface_color'    => $surface_background ? $surface_background : '#111111',
@@ -3916,10 +3937,14 @@ function beyond_gotham_render_social_links( $links = null, $args = array() ) {
 /**
  * Render the social bar markup for the requested location.
  *
- * @param string $location Social bar location. Accepts 'header' or 'mobile'.
+ * @param string $location Social bar location. Accepts 'header', 'mobile', or 'footer'.
  */
 function beyond_gotham_render_socialbar( $location = 'header' ) {
-    $location = 'mobile' === $location ? 'mobile' : 'header';
+    $allowed_locations = array( 'header', 'mobile', 'footer' );
+
+    if ( ! in_array( $location, $allowed_locations, true ) ) {
+        $location = 'header';
+    }
 
     $links    = beyond_gotham_get_social_links();
     $settings = beyond_gotham_get_socialbar_settings();
@@ -3928,7 +3953,11 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
         return;
     }
 
-    if ( ( 'mobile' === $location && empty( $settings['show_mobile'] ) ) || ( 'header' === $location && empty( $settings['show_header'] ) ) ) {
+    if (
+        ( 'mobile' === $location && empty( $settings['show_mobile'] ) )
+        || ( 'header' === $location && empty( $settings['show_header'] ) )
+        || ( 'footer' === $location && empty( $settings['show_footer'] ) )
+    ) {
         return;
     }
 
@@ -3959,9 +3988,13 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
 
     $wrapper_classes = array_map( 'sanitize_html_class', array_filter( $wrapper_classes ) );
 
-    $wrapper_label = 'mobile' === $location
-        ? __( 'Social-Media-Leiste (mobil)', 'beyond_gotham' )
-        : __( 'Social-Media-Leiste im Header', 'beyond_gotham' );
+    if ( 'mobile' === $location ) {
+        $wrapper_label = __( 'Social-Media-Leiste (mobil)', 'beyond_gotham' );
+    } elseif ( 'footer' === $location ) {
+        $wrapper_label = __( 'Social-Media-Leiste im Footer', 'beyond_gotham' );
+    } else {
+        $wrapper_label = __( 'Social-Media-Leiste im Header', 'beyond_gotham' );
+    }
 
     $attributes = array(
         'class'         => implode( ' ', $wrapper_classes ),
