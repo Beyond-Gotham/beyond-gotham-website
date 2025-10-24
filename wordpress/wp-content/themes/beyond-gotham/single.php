@@ -20,6 +20,20 @@ get_header();
                 ?>
                 <article id="post-<?php the_ID(); ?>" <?php post_class( 'single-article single-article--generic' ); ?>>
                     <?php the_title( '<h1 class="article-title">', '</h1>' ); ?>
+                    <?php if ( function_exists( 'beyond_gotham_render_post_meta' ) ) : ?>
+                        <?php
+                        beyond_gotham_render_post_meta(
+                            get_the_ID(),
+                            array(
+                                'container_tag'         => 'div',
+                                'container_class'       => 'article-meta',
+                                'item_base_class'       => 'article-meta__item',
+                                'item_key_class_prefix' => 'article-meta__',
+                                'aria_label'            => __( 'Beitragsinformationen', 'beyond_gotham' ),
+                            )
+                        );
+                        ?>
+                    <?php endif; ?>
                     <div class="article-content typography-content">
                         <?php the_content(); ?>
                     </div>

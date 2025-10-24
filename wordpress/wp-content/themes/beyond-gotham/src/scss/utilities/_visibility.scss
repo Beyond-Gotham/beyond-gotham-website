@@ -1,0 +1,11 @@
+.bg-meta--hide-desktop {
+  @media (min-width: 768px) {
+    display: none !important;
+  }
+}
+
+.bg-meta--hide-mobile {
+  @media (max-width: 767.98px) {
+    display: none !important;
+  }
+}
