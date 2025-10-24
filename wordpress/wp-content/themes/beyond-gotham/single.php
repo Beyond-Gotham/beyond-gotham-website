@@ -35,7 +35,7 @@ get_header();
     <?php endif; ?>
 </main>
 
-<?php get_template_part( 'template-parts/cta-box' ); ?>
+<?php get_template_part( 'template-parts/cta' ); ?>
 
 <?php
 get_footer();

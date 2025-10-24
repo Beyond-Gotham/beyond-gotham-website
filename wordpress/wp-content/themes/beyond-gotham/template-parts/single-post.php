@@ -81,8 +81,8 @@ $author_avatar   = get_avatar( $author_id, 120, '', esc_attr( get_the_author() )
     </div>
 
     <footer class="article-footer">
-        <?php if ( function_exists( 'beyond_gotham_is_social_sharing_enabled_for' ) && beyond_gotham_is_social_sharing_enabled_for( 'post' ) ) : ?>
-            <?php get_template_part( 'template-parts/share-buttons' ); ?>
+        <?php if ( get_theme_mod( 'enable_social_share', true ) ) : ?>
+            <?php get_template_part( 'template-parts/social-share', null, array( 'context' => 'post' ) ); ?>
         <?php endif; ?>
 
         <?php if ( $author_bio || $author_avatar ) : ?>

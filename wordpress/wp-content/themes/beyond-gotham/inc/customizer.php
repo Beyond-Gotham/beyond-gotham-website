@@ -1326,6 +1326,38 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
     );
 
     $wp_customize->add_section(
+        'visibility_controls',
+        array(
+            'title'    => __( 'Sichtbarkeit', 'beyond_gotham' ),
+            'priority' => 160,
+        )
+    );
+
+    $wp_customize->add_setting(
+        'cta_visibility',
+        array(
+            'default'           => 'all',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_text_field',
+        )
+    );
+
+    $wp_customize->add_control(
+        'cta_visibility',
+        array(
+            'label'   => __( 'CTA-Box anzeigen auf:', 'beyond_gotham' ),
+            'section' => 'visibility_controls',
+            'type'    => 'select',
+            'choices' => array(
+                'all'   => __( 'Alle Seiten', 'beyond_gotham' ),
+                'home'  => __( 'Nur Startseite', 'beyond_gotham' ),
+                'posts' => __( 'Nur Beiträge', 'beyond_gotham' ),
+                'none'  => __( 'Nie', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $wp_customize->add_section(
         'beyond_gotham_footer',
         array(
             'title'       => __( 'Footer', 'beyond_gotham' ),
@@ -1351,6 +1383,26 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
             'title'       => __( 'Social Sharing', 'beyond_gotham' ),
             'priority'    => 92,
             'description' => __( 'Steuere, wo die Social-Share-Leiste angezeigt wird und welche Netzwerke aktiv sind.', 'beyond_gotham' ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'enable_social_share',
+        array(
+            'default'           => true,
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'wp_validate_boolean',
+        )
+    );
+
+    $wp_customize->add_control(
+        'enable_social_share',
+        array(
+            'type'        => 'checkbox',
+            'section'     => 'beyond_gotham_social_sharing',
+            'label'       => __( 'Social-Share-Buttons unter Beiträgen anzeigen', 'beyond_gotham' ),
+            'description' => __( 'Steuert die globale Sichtbarkeit der Social-Share-Leiste.', 'beyond_gotham' ),
+            'priority'    => 5,
         )
     );
 
@@ -4603,6 +4655,10 @@ function beyond_gotham_is_social_sharing_enabled_for( $context ) {
     $context = is_string( $context ) ? strtolower( trim( $context ) ) : '';
 
     if ( '' === $context ) {
+        return false;
+    }
+
+    if ( ! get_theme_mod( 'enable_social_share', true ) ) {
         return false;
     }
 
