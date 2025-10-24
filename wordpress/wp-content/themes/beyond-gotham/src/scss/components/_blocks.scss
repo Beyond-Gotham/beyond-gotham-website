@@ -141,6 +141,19 @@
   .footer-right {
     text-align: right;
   }
+
+  .footer-darkmode-toggle {
+    margin-top: 1.5rem;
+    text-align: center;
+
+    .theme-toggle {
+      font-size: 1.25rem;
+      padding: 0.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+  }
 }
 
 .footer-menu a {
