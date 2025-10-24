@@ -19,6 +19,12 @@
   pointer-events: auto;
 }
 
+.no-js [data-bg-sticky-cta][data-enabled='true'] {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .sticky-cta[hidden],
 .sticky-cta--device-hidden {
   display: none !important;
