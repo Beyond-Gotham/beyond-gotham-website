@@ -39,6 +39,10 @@
                     ?>
                 </nav>
             <?php endif; ?>
+
+            <div class="footer-darkmode-toggle">
+                <?php get_template_part( 'template-parts/darkmode-toggle' ); ?>
+            </div>
         </div>
         <div class="footer-right">
             <?php
