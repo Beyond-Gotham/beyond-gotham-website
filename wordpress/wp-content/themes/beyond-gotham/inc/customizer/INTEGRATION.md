@@ -119,6 +119,9 @@ inc/customizer/
 - `beyond_gotham_get_post_meta_settings()`
 - `beyond_gotham_register_post_meta_customizer()`
 
+> **Wichtig:** Die Felddefinitionen leben zentral in `inc/post-meta.php`. Erweiterungen erfolgen über den Filter
+> `beyond_gotham_post_meta_fields` – keine Helper-Funktionen im Customizer duplizieren.
+
 ---
 
 ### 6. **styles.php** (CSS-Generierung)
@@ -183,7 +186,9 @@ require get_template_directory() . '/inc/customizer/cta.php';
 require get_template_directory() . '/inc/customizer/footer.php';
 require get_template_directory() . '/inc/customizer/social.php';
 require get_template_directory() . '/inc/customizer/social-sharing.php';
-require get_template_directory() . '/inc/customizer/post-meta.php';
+if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
+    require get_template_directory() . '/inc/customizer/post-meta.php';
+}
 require get_template_directory() . '/inc/customizer/styles.php';
 ```
 

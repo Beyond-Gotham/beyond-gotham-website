@@ -127,6 +127,9 @@ graph TD
 | `beyond_gotham_get_post_meta_settings()` | Aktuelle Settings | - |
 | `beyond_gotham_register_post_meta_customizer()` | Customizer Registration | `customize_register` |
 
+> Die Funktionen oberhalb werden ausschließlich in `inc/post-meta.php` gepflegt. Weitere Felder fügst du per Filter
+> `beyond_gotham_post_meta_fields` hinzu – bitte keine Zweitdefinitionen innerhalb des Customizer-Moduls erzeugen.
+
 ### Styles Module (styles.php)
 
 | Funktion | Beschreibung | Hook |

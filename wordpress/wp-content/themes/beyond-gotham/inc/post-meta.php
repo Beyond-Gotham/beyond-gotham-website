@@ -7,6 +7,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
+if ( defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
+    return;
+}
+
+/**
+ * Guard to keep the helper set as a single source of truth when loaded from different entry points.
+ */
+define( 'BEYOND_GOTHAM_POST_META_LOADED', true );
+
 if ( ! function_exists( 'beyond_gotham_get_post_meta_fields' ) ) {
     /**
      * Retrieve the supported meta fields.

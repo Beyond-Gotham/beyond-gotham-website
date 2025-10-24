@@ -39,7 +39,9 @@ require_once $customizer_dir . 'cta.php';              // Call-to-Action & Stick
 require_once $customizer_dir . 'footer.php';           // Footer configuration
 require_once $customizer_dir . 'social.php';           // Social media links
 require_once $customizer_dir . 'social-sharing.php';   // Social sharing buttons
-require_once $customizer_dir . 'post-meta.php';        // Post metadata display
+if ( ! defined( 'BEYOND_GOTHAM_POST_META_LOADED' ) ) {
+    require_once $customizer_dir . 'post-meta.php';
+}                                                      // Post metadata display
 
 /**
  * Output modules - Generate CSS and inline styles
