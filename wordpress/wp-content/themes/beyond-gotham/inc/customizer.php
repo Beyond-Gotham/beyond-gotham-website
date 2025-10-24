@@ -137,6 +137,40 @@ function beyond_gotham_sanitize_checkbox( $value ) {
 }
 
 /**
+ * Sanitize the social bar mobile position option.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_socialbar_position( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( 'top', 'bottom' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return 'bottom';
+}
+
+/**
+ * Sanitize the social bar icon style option.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_socialbar_icon_style( $value ) {
+    $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+    $choices = array( 'monochrom', 'farbig', 'invertiert' );
+
+    if ( in_array( $value, $choices, true ) ) {
+        return $value;
+    }
+
+    return 'monochrom';
+}
+
+/**
  * Sanitize the sticky CTA trigger type.
  *
  * @param string $value Raw value.
@@ -2674,6 +2708,134 @@ function beyond_gotham_customize_register( WP_Customize_Manager $wp_customize ) 
 
     // Social links.
     $wp_customize->add_setting(
+        'beyond_gotham_show_socialbar_header',
+        array(
+            'default'           => false,
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+            'transport'         => 'postMessage',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_show_socialbar_header_control',
+        array(
+            'label'       => __( 'Social-Bar im Header anzeigen?', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_show_socialbar_header',
+            'type'        => 'checkbox',
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_show_socialbar_mobile',
+        array(
+            'default'           => true,
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_show_socialbar_mobile_control',
+        array(
+            'label'       => __( 'Sticky-Social-Bar auf Mobilgeräten anzeigen?', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_show_socialbar_mobile',
+            'type'        => 'checkbox',
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_socialbar_position',
+        array(
+            'default'           => 'bottom',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_socialbar_position',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_socialbar_position_control',
+        array(
+            'label'       => __( 'Position der Sticky-Leiste auf Mobilgeräten', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_socialbar_position',
+            'type'        => 'radio',
+            'choices'     => array(
+                'top'    => __( 'Oben', 'beyond_gotham' ),
+                'bottom' => __( 'Unten', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_socialbar_icon_style',
+        array(
+            'default'           => 'monochrom',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'beyond_gotham_sanitize_socialbar_icon_style',
+        )
+    );
+
+    $wp_customize->add_control(
+        'beyond_gotham_socialbar_icon_style_control',
+        array(
+            'label'       => __( 'Icon-Stil', 'beyond_gotham' ),
+            'section'     => 'beyond_gotham_social_media',
+            'settings'    => 'beyond_gotham_socialbar_icon_style',
+            'type'        => 'select',
+            'choices'     => array(
+                'monochrom'  => __( 'Monochrom', 'beyond_gotham' ),
+                'farbig'     => __( 'Farbig', 'beyond_gotham' ),
+                'invertiert' => __( 'Invertiert', 'beyond_gotham' ),
+            ),
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_socialbar_background_color',
+        array(
+            'default'           => '#111111',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_socialbar_background_color_control',
+            array(
+                'label'    => __( 'Hintergrundfarbe der Social-Bar', 'beyond_gotham' ),
+                'section'  => 'beyond_gotham_social_media',
+                'settings' => 'beyond_gotham_socialbar_background_color',
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
+        'beyond_gotham_socialbar_icon_color',
+        array(
+            'default'           => '#ffffff',
+            'type'              => 'theme_mod',
+            'sanitize_callback' => 'sanitize_hex_color',
+        )
+    );
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'beyond_gotham_socialbar_icon_color_control',
+            array(
+                'label'    => __( 'Icon-Farbe der Social-Bar', 'beyond_gotham' ),
+                'section'  => 'beyond_gotham_social_media',
+                'settings' => 'beyond_gotham_socialbar_icon_color',
+            )
+        )
+    );
+
+    $wp_customize->add_setting(
         'beyond_gotham_social_twitter',
         array(
             'type'              => 'theme_mod',
@@ -2824,6 +2986,32 @@ function beyond_gotham_get_social_links() {
 }
 
 /**
+ * Retrieve configuration for the social bar module.
+ *
+ * @return array{
+ *     show_header: bool,
+ *     show_mobile: bool,
+ *     position: string,
+ *     icon_style: string,
+ *     background_color: string,
+ *     icon_color: string,
+ * }
+ */
+function beyond_gotham_get_socialbar_settings() {
+    $background = sanitize_hex_color( get_theme_mod( 'beyond_gotham_socialbar_background_color', '#111111' ) );
+    $icon_color = sanitize_hex_color( get_theme_mod( 'beyond_gotham_socialbar_icon_color', '#ffffff' ) );
+
+    return array(
+        'show_header'      => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_header', false ),
+        'show_mobile'      => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_mobile', true ),
+        'position'         => beyond_gotham_sanitize_socialbar_position( get_theme_mod( 'beyond_gotham_socialbar_position', 'bottom' ) ),
+        'icon_style'       => beyond_gotham_sanitize_socialbar_icon_style( get_theme_mod( 'beyond_gotham_socialbar_icon_style', 'monochrom' ) ),
+        'background_color' => $background ? $background : '#111111',
+        'icon_color'       => $icon_color ? $icon_color : '#ffffff',
+    );
+}
+
+/**
  * Output social navigation markup based on the theme options.
  *
  * Retrieve the inline SVG markup for supported social networks.
@@ -2836,6 +3024,7 @@ function beyond_gotham_get_social_icon_svgs() {
         'twitter'  => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.954 2.573c-.885.389-1.83.654-2.825.775 1.014-.608 1.794-1.571 2.163-2.724-.949.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-2.723 0-4.932 2.206-4.932 4.927 0 .39.045.765.127 1.124-4.094-.205-7.725-2.165-10.161-5.144-.424.722-.666 1.561-.666 2.475 0 1.709.87 3.215 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.6 3.419-1.68 1.319-3.809 2.107-6.102 2.107-.395 0-.779-.023-1.17-.067 2.179 1.394 4.768 2.209 7.557 2.209 9.054 0 14.001-7.496 14.001-13.986 0-.21 0-.423-.016-.637.961-.695 1.8-1.562 2.46-2.549z"/></svg>',
         'mastodon' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M23.147 7.144c0-5.213-3.43-6.756-3.43-6.756-1.73-.793-4.707-1.123-7.804-1.153h-.073c-3.098.03-6.073.36-7.804 1.153 0 0-3.43 1.543-3.43 6.756-.045.985-.086 2.16.014 3.411.321 3.663 2.426 7.079 4.854 8.425 1.875 1.041 3.497.999 3.497.999l.079-.094v-1.86s-1.6.511-3.333-.706c-.819-.567-1.341-1.377-1.684-2.188.411.316.959.594 1.645.743 2.851.61 5.363.267 7.996-.175 2.525-.426 4.924-1.46 4.924-1.46s-1.395 2.024-5.076 3.039l.111 2.137s1.624.043 3.5-1c2.428-1.347 4.533-4.763 4.854-8.425.1-1.251.059-2.426.014-3.411zm-4.165 5.163h-2.054V8.29c0-1.053-.446-1.59-1.337-1.59-.987 0-1.48.639-1.48 1.907v2.773h-2.043V8.607c0-1.268-.494-1.907-1.48-1.907-.891 0-1.337.538-1.337 1.59v4.017H7.197V8.211c0-1.053.267-1.907.801-2.462.552-.555 1.276-.835 2.173-.835 1.038 0 1.823.399 2.333 1.197l.5.843.5-.843c.51-.798 1.295-1.197 2.333-1.197.897 0 1.621.28 2.173.835.535.555.801 1.409.801 2.462v4.096z"/></svg>',
         'linkedin' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.451 20.451h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.354V9h3.414v1.561h.047c.476-.9 1.637-1.852 3.37-1.852 3.602 0 4.266 2.37 4.266 5.455v6.287zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM7.119 20.451H3.554V9h3.565v11.451zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0z"/></svg>',
+        'email'    => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20 4H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V6c0-1.1-.9-2-2-2Zm0 2v.01L12 13 4 6.01V6Zm-16 12V8l8 6 8-6v10Z"/></svg>',
     );
 }
 
@@ -2958,6 +3147,146 @@ function beyond_gotham_render_social_links( $links = null, $args = array() ) {
 
     echo '</ul>';
 }
+
+/**
+ * Render the social bar markup for the requested location.
+ *
+ * @param string $location Social bar location. Accepts 'header' or 'mobile'.
+ */
+function beyond_gotham_render_socialbar( $location = 'header' ) {
+    $location = 'mobile' === $location ? 'mobile' : 'header';
+
+    $links    = beyond_gotham_get_social_links();
+    $settings = beyond_gotham_get_socialbar_settings();
+
+    if ( empty( $links ) ) {
+        return;
+    }
+
+    if ( ( 'mobile' === $location && empty( $settings['show_mobile'] ) ) || ( 'header' === $location && empty( $settings['show_header'] ) ) ) {
+        return;
+    }
+
+    $labels = array(
+        'twitter'  => __( 'Twitter', 'beyond_gotham' ),
+        'mastodon' => __( 'Mastodon', 'beyond_gotham' ),
+        'github'   => __( 'GitHub', 'beyond_gotham' ),
+        'linkedin' => __( 'LinkedIn', 'beyond_gotham' ),
+        'email'    => __( 'E-Mail', 'beyond_gotham' ),
+    );
+
+    $icons = beyond_gotham_get_social_icon_svgs();
+
+    $wrapper_classes = array( 'socialbar', 'socialbar--' . $location );
+
+    if ( ! empty( $settings['icon_style'] ) ) {
+        $wrapper_classes[] = 'socialbar--icon-' . $settings['icon_style'];
+    }
+
+    $wrapper_classes = array_map( 'sanitize_html_class', array_filter( $wrapper_classes ) );
+
+    $wrapper_label = 'mobile' === $location
+        ? __( 'Social-Media-Leiste (mobil)', 'beyond_gotham' )
+        : __( 'Social-Media-Leiste im Header', 'beyond_gotham' );
+
+    $attributes = array(
+        'class'         => implode( ' ', $wrapper_classes ),
+        'data-location' => $location,
+        'role'          => 'navigation',
+        'aria-label'    => $wrapper_label,
+    );
+
+    if ( 'mobile' === $location && ! empty( $settings['position'] ) ) {
+        $attributes['data-position'] = $settings['position'];
+    }
+
+    $items = array();
+
+    foreach ( $links as $network => $url ) {
+        if ( empty( $url ) ) {
+            continue;
+        }
+
+        $slug = $network;
+
+        if ( function_exists( 'beyond_gotham_detect_social_network' ) ) {
+            $detected = beyond_gotham_detect_social_network( $url );
+            if ( $detected ) {
+                $slug = $detected;
+            }
+        }
+
+        $label_key = isset( $labels[ $slug ] ) ? $slug : $network;
+        $label     = isset( $labels[ $label_key ] ) ? $labels[ $label_key ] : ucfirst( $label_key );
+
+        if ( ! isset( $icons[ $slug ] ) ) {
+            continue;
+        }
+
+        $items[] = array(
+            'url'   => $url,
+            'slug'  => $slug,
+            'label' => $label,
+        );
+    }
+
+    if ( empty( $items ) ) {
+        return;
+    }
+
+    $attribute_string = '';
+
+    foreach ( $attributes as $attr => $value ) {
+        if ( '' === $value ) {
+            continue;
+        }
+
+        $attribute_string .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( $value ) );
+    }
+
+    echo '<div' . $attribute_string . '>';
+
+    foreach ( $items as $item ) {
+        $is_mail = 0 === strpos( $item['url'], 'mailto:' );
+
+        $link_attrs = array(
+            'href'         => $item['url'],
+            'aria-label'   => $item['label'],
+            'data-network' => $item['slug'],
+        );
+
+        if ( ! $is_mail ) {
+            $link_attrs['target'] = '_blank';
+            $link_attrs['rel']    = 'noopener';
+        }
+
+        $link_attribute_string = '';
+
+        foreach ( $link_attrs as $attr => $value ) {
+            if ( '' === $value ) {
+                continue;
+            }
+
+            $sanitized_attr = esc_attr( $attr );
+            $escaped_value  = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+            $link_attribute_string .= sprintf( ' %s="%s"', $sanitized_attr, $escaped_value );
+        }
+
+        echo '<a' . $link_attribute_string . '>';
+        echo $icons[ $item['slug'] ]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '</a>';
+    }
+
+    echo '</div>';
+}
+
+/**
+ * Output the mobile social bar in the footer when enabled.
+ */
+function beyond_gotham_output_mobile_socialbar() {
+    beyond_gotham_render_socialbar( 'mobile' );
+}
+add_action( 'wp_footer', 'beyond_gotham_output_mobile_socialbar', 15 );
 
 /**
  * Build CSS variables and typography from Customizer values.
@@ -3180,6 +3509,16 @@ function beyond_gotham_get_customizer_css() {
     $line_height_value = rtrim( rtrim( sprintf( '%.2f', $line_height ), '0' ), '.' );
 
     $layout_root_vars = array();
+
+    $socialbar_settings = beyond_gotham_get_socialbar_settings();
+
+    if ( ! empty( $socialbar_settings['background_color'] ) ) {
+        $layout_root_vars['--socialbar-bg'] = $socialbar_settings['background_color'];
+    }
+
+    if ( ! empty( $socialbar_settings['icon_color'] ) ) {
+        $layout_root_vars['--socialbar-icon'] = $socialbar_settings['icon_color'];
+    }
 
     if ( ! empty( $header_layout['height_css'] ) ) {
         $layout_root_vars['--site-header-height'] = $header_layout['height_css'];
