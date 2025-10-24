@@ -88,27 +88,10 @@
   const toggle = query('[data-bg-nav-toggle]');
   const overlay = query('[data-bg-nav-overlay]');
   const themeToggle = query('[data-bg-theme-toggle]');
-  const themeToggleLabel = themeToggle ? themeToggle.querySelector('[data-theme-toggle-label]') : null;
 
   const updateToggle = (theme) => {
     if (!themeToggle) {
       return;
-    }
-
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    const nextLabelAttr = nextTheme === 'dark' ? 'data-dark-label' : 'data-light-label';
-    const baseLabel = themeToggle.getAttribute('data-toggle-label') || '';
-    const nextLabelRaw = themeToggle.getAttribute(nextLabelAttr) || '';
-    const fallbackLabel = nextTheme === 'dark' ? 'Dark' : 'Light';
-    const labelText = nextLabelRaw || fallbackLabel;
-
-    if (themeToggleLabel) {
-      themeToggleLabel.textContent = labelText;
-    }
-
-    const ariaLabel = baseLabel ? `${baseLabel} – ${labelText}`.trim() : labelText;
-    if (ariaLabel) {
-      themeToggle.setAttribute('aria-label', ariaLabel);
     }
 
     themeToggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
