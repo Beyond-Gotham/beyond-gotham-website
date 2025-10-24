@@ -3,11 +3,11 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-panel);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.06);
   border-radius: 18px;
   overflow: hidden;
   min-height: 100%;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 24px 60px rgba(var(--surface-shadow-rgb), 0.35);
 }
 
 .bg-card__media {
@@ -28,7 +28,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(51, 209, 255, 0.2), rgba(51, 209, 255, 0.05));
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.2), rgba(var(--accent-rgb), 0.05));
 }
 
 .bg-card__body {
@@ -42,7 +42,7 @@
   display: inline-flex;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
-  background: rgba(51, 209, 255, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
   color: var(--accent);
   font-size: 0.75rem;
   letter-spacing: 0.04em;
@@ -91,7 +91,7 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--surface-tint-rgb), 0.08);
   color: var(--fg);
   font-size: 0.75rem;
   text-transform: uppercase;
