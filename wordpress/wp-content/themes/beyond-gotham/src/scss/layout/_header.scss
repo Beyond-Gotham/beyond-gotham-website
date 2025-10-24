@@ -18,7 +18,8 @@ body.bg-has-sticky-header .site-header {
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
-  padding: 0.75rem 1.5rem;
+  padding-block: var(--header-padding-block, 0.75rem);
+  padding-inline: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
   transition: padding 0.2s ease;
@@ -496,7 +497,7 @@ html[data-theme="dark"] .theme-toggle__icon-moon {
 
 @media (max-width: 960px) {
   .site-header__inner {
-    padding: 0.65rem 1.25rem;
+    padding-inline: 1.25rem;
   }
 
   .site-header__toggle {
