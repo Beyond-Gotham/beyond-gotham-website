@@ -234,15 +234,28 @@ function beyond_gotham_detect_social_network( $url ) {
         return '';
     }
 
+    $url       = trim( $url );
+    $lower_url = strtolower( $url );
+
+    if ( 0 === strpos( $lower_url, 'mailto:' ) ) {
+        return 'email';
+    }
+
+    if ( false !== strpos( $lower_url, '@' ) && false === strpos( $lower_url, '://' ) && false === strpos( $lower_url, '/' ) ) {
+        return 'mastodon';
+    }
+
     $host = wp_parse_url( $url, PHP_URL_HOST );
     if ( ! $host ) {
         return '';
     }
 
+    $host = strtolower( $host );
+
     $networks = array(
         'twitter'   => array( 'twitter.com', 'x.com' ),
         'instagram' => array( 'instagram.com' ),
-        'facebook'  => array( 'facebook.com' ),
+        'facebook'  => array( 'facebook.com', 'fb.com' ),
         'linkedin'  => array( 'linkedin.com' ),
         'youtube'   => array( 'youtube.com', 'youtu.be' ),
         'mastodon'  => array( 'mastodon.social' ),
@@ -253,7 +266,7 @@ function beyond_gotham_detect_social_network( $url ) {
 
     foreach ( $networks as $slug => $candidates ) {
         foreach ( $candidates as $candidate ) {
-            if ( false !== stripos( $host, $candidate ) ) {
+            if ( false !== strpos( $host, $candidate ) ) {
                 return $slug;
             }
         }

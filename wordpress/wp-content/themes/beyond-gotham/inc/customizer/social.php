@@ -93,44 +93,6 @@ function beyond_gotham_get_social_icon_svgs() {
 	);
 }
 
-/**
- * Detect social network from URL.
- *
- * @param string $url Social URL.
- * @return string|null
- */
-function beyond_gotham_detect_social_network( $url ) {
-	$url = strtolower( $url );
-
-	$patterns = array(
-		'github.com'      => 'github',
-		'linkedin.com'    => 'linkedin',
-		'twitter.com'     => 'twitter',
-		'x.com'           => 'twitter',
-		'facebook.com'    => 'facebook',
-		'fb.com'          => 'facebook',
-		'instagram.com'   => 'instagram',
-		'tiktok.com'      => 'tiktok',
-		'youtube.com'     => 'youtube',
-		'youtu.be'        => 'youtube',
-		't.me'            => 'telegram',
-		'telegram.me'     => 'telegram',
-		'mailto:'         => 'email',
-	);
-
-	foreach ( $patterns as $pattern => $network ) {
-		if ( false !== strpos( $url, $pattern ) ) {
-			return $network;
-		}
-	}
-
-	if ( false !== strpos( $url, '@' ) && false === strpos( $url, '/' ) ) {
-		return 'mastodon';
-	}
-
-	return null;
-}
-
 // =============================================================================
 // Rendering Functions
 // =============================================================================
