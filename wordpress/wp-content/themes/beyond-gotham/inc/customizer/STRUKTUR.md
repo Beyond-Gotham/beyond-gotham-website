@@ -279,13 +279,24 @@ wp_add_inline_style()
 
 ### Footer Template
 ```php
-// Verwendet: footer.php + social.php
+// Verwendet: footer.php
 <footer class="site-footer">
     <div class="footer-left">
         <small><?php echo beyond_gotham_get_footer_text(); ?></small>
     </div>
-    <div class="footer-right">
-        <?php beyond_gotham_render_socialbar( 'footer' ); ?>
+    <div class="footer-center">
+        <?php if ( has_nav_menu( 'footer' ) ) : ?>
+            <?php
+            wp_nav_menu(
+                array(
+                    'theme_location' => 'footer',
+                    'menu_id'        => 'footer-menu',
+                    'menu_class'     => 'footer-menu',
+                    'container'      => false,
+                )
+            );
+            ?>
+        <?php endif; ?>
     </div>
 </footer>
 ```

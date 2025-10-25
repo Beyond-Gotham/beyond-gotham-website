@@ -2,7 +2,7 @@
 /**
  * Footer Customizer Settings
  *
- * Handles footer text, footer menu, and footer social icon display.
+ * Handles footer text and footer menu configuration.
  *
  * @package beyond_gotham
  */
@@ -22,15 +22,6 @@ function beyond_gotham_get_footer_text() {
 	$text = get_theme_mod( 'beyond_gotham_footer_text', sprintf( '© Beyond Gotham %s', esc_html( date_i18n( 'Y' ) ) ) );
 
 	return wp_kses_post( $text );
-}
-
-/**
- * Get footer social icon visibility setting.
- *
- * @return bool
- */
-function beyond_gotham_get_footer_social_visibility() {
-	return (bool) get_theme_mod( 'beyond_gotham_footer_show_social', true );
 }
 
 // =============================================================================
@@ -75,28 +66,7 @@ function beyond_gotham_register_footer_customizer( WP_Customize_Manager $wp_cust
 		)
 	);
 
-	// Footer Social Icons Visibility
-	$wp_customize->add_setting(
-		'beyond_gotham_footer_show_social',
-		array(
-			'default'           => true,
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
-			'transport'         => 'postMessage',
-		)
-	);
-
-	$wp_customize->add_control(
-		'beyond_gotham_footer_show_social_control',
-		array(
-			'label'    => __( 'Social Icons im Footer anzeigen', 'beyond_gotham' ),
-			'section'  => 'beyond_gotham_footer',
-			'settings' => 'beyond_gotham_footer_show_social',
-			'type'     => 'checkbox',
-		)
-	);
-
-	// Footer Menu Location Control
+        // Footer Menu Location Control
 	if ( isset( $wp_customize->nav_menus ) && class_exists( 'WP_Customize_Nav_Menu_Location_Control' ) ) {
 		$wp_customize->add_control(
 			new WP_Customize_Nav_Menu_Location_Control(

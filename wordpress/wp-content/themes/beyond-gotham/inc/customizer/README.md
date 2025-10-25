@@ -288,7 +288,6 @@ beyond_gotham_{component}_{setting}
 
 Beispiele:
 - beyond_gotham_cta_text
-- beyond_gotham_footer_show_social
 - beyond_gotham_social_github
 ```
 

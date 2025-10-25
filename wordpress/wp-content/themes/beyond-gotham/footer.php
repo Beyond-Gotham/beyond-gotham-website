@@ -44,37 +44,6 @@
                 <?php get_template_part( 'template-parts/darkmode-toggle' ); ?>
             </div>
         </div>
-        <div class="footer-right">
-            <?php
-            if ( function_exists( 'beyond_gotham_render_socialbar' ) ) {
-                beyond_gotham_render_socialbar( 'footer' );
-            }
-
-            $footer_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
-            $show_footer_social  = get_theme_mod( 'beyond_gotham_footer_show_social', true );
-
-            if ( ! empty( $footer_social_links ) ) :
-                $wrapper_classes = array();
-
-                if ( ! $show_footer_social ) {
-                    $wrapper_classes[] = 'is-hidden';
-                }
-
-                get_template_part(
-                    'template-parts/social-icons',
-                    null,
-                    array(
-                        'context'            => 'footer',
-                        'links'              => $footer_social_links,
-                        'wrapper_classes'    => $wrapper_classes,
-                        'wrapper_attributes' => array( 'data-bg-footer-social' => true ),
-                        'hidden'             => ! $show_footer_social,
-                        'aria_label'         => __( 'Footer Social Media', 'beyond_gotham' ),
-                    )
-                );
-            endif;
-            ?>
-        </div>
     </div>
 </footer><!-- #colophon -->
 
