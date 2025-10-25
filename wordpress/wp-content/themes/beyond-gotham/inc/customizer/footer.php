@@ -34,6 +34,15 @@ function beyond_gotham_get_footer_menu_alignment_choices() {
 }
 
 /**
+ * Provide the allowed mobile layout choices for the footer columns.
+ *
+ * @return string[]
+ */
+function beyond_gotham_get_footer_mobile_layout_choices() {
+        return array( 'stack', 'inline' );
+}
+
+/**
  * Sanitize the footer menu alignment option.
  *
  * @param string $value Raw alignment value.
@@ -52,6 +61,24 @@ function beyond_gotham_sanitize_footer_menu_alignment( $value ) {
 }
 
 /**
+ * Sanitize the footer mobile layout option.
+ *
+ * @param string $value Layout key.
+ * @return string
+ */
+function beyond_gotham_sanitize_footer_mobile_layout( $value ) {
+        $value    = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+        $allowed  = beyond_gotham_get_footer_mobile_layout_choices();
+        $fallback = 'stack';
+
+        if ( in_array( $value, $allowed, true ) ) {
+                return $value;
+        }
+
+        return $fallback;
+}
+
+/**
  * Retrieve the current footer menu alignment.
  *
  * @return string
@@ -60,6 +87,17 @@ function beyond_gotham_get_footer_menu_alignment() {
         $value = get_theme_mod( 'beyond_gotham_footer_menu_alignment', 'center' );
 
         return beyond_gotham_sanitize_footer_menu_alignment( $value );
+}
+
+/**
+ * Retrieve the preferred mobile layout for the footer columns.
+ *
+ * @return string
+ */
+function beyond_gotham_get_footer_mobile_layout() {
+        $value = get_theme_mod( 'beyond_gotham_footer_mobile_layout', 'stack' );
+
+        return beyond_gotham_sanitize_footer_mobile_layout( $value );
 }
 
 // =============================================================================
@@ -145,6 +183,31 @@ function beyond_gotham_register_footer_customizer( WP_Customize_Manager $wp_cust
                                 'justify' => __( 'Verteilt', 'beyond_gotham' ),
                         ),
                         'description' => __( 'Steuert die horizontale Ausrichtung des Footer-Menüs.', 'beyond_gotham' ),
+                )
+        );
+
+        $wp_customize->add_setting(
+                'beyond_gotham_footer_mobile_layout',
+                array(
+                        'default'           => 'stack',
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_footer_mobile_layout',
+                        'transport'         => 'postMessage',
+                )
+        );
+
+        $wp_customize->add_control(
+                'beyond_gotham_footer_mobile_layout_control',
+                array(
+                        'label'       => __( 'Footer-Layout mobil', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_footer',
+                        'settings'    => 'beyond_gotham_footer_mobile_layout',
+                        'type'        => 'radio',
+                        'choices'     => array(
+                                'stack'  => __( 'Untereinander (Stack)', 'beyond_gotham' ),
+                                'inline' => __( 'Nebeneinander (Inline)', 'beyond_gotham' ),
+                        ),
+                        'description' => __( 'Bestimmt das Layout der Footer-Bereiche für Viewports unter 768 px.', 'beyond_gotham' ),
                 )
         );
 }
