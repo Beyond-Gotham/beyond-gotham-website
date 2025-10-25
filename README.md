@@ -7,6 +7,7 @@ Kurzübersicht:
 - Child Theme: `wordpress/wp-content/themes/beyondgotham-dark-child`
 - Dokumentation: `README-WEBSITE.md`
 - Setup/Deploy: `IMPLEMENTATION.md`
+- Customizer: Footer-Menü-Ausrichtung (Links/Mitte/Rechts/Verteilt) mit Live-Preview
 
 Bitte dort nachlesen, bevor Änderungen eingespielt werden.
 

@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Footer-Menü: neue Customizer-Option zur Ausrichtung (Links/Mitte/Rechts/Verteilt) inkl. Live-Preview.
 ### Removed
 - Removed legacy social-icon block from footer (black field with GitHub icon). Cleaned up related CSS and Customizer references.
 

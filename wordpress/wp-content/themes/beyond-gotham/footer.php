@@ -25,8 +25,13 @@
             ?>
         </div>
         <div class="footer-center">
-            <?php if ( has_nav_menu( 'footer' ) ) : ?>
-                <nav class="footer-navigation" aria-label="<?php esc_attr_e( 'Footer Navigation', 'beyond_gotham' ); ?>">
+            <?php if ( has_nav_menu( 'footer' ) ) :
+                $footer_menu_alignment = function_exists( 'beyond_gotham_get_footer_menu_alignment' ) ? beyond_gotham_get_footer_menu_alignment() : 'center';
+                $footer_nav_classes    = array( 'footer-navigation', 'is-' . $footer_menu_alignment );
+                $footer_nav_classes    = array_map( 'sanitize_html_class', array_unique( $footer_nav_classes ) );
+                $footer_nav_class      = implode( ' ', $footer_nav_classes );
+            ?>
+                <nav class="<?php echo esc_attr( $footer_nav_class ); ?>" data-footer-alignment="<?php echo esc_attr( $footer_menu_alignment ); ?>" aria-label="<?php esc_attr_e( 'Footer Navigation', 'beyond_gotham' ); ?>">
                     <?php
                     wp_nav_menu(
                         array(
