@@ -7,7 +7,7 @@
     var docEl = document.documentElement;
     var bodyEl = document.body;
     var fontStacks = (data && data.fontStacks) ? data.fontStacks : {};
-    var footerSelector = data && data.footerTarget ? data.footerTarget : '.site-info';
+    var footerSelector = data && data.footerTarget ? data.footerTarget : '.footer-right .site-info';
     var headingSelector = data && data.headingSelector ? data.headingSelector : 'h1, h2, h3, h4, h5, h6';
     var ctaSelectors = (data && data.ctaSelectors) ? data.ctaSelectors : {};
     var ctaWrapperSelector = ctaSelectors.wrapper || '[data-bg-cta]';
@@ -637,14 +637,47 @@
         var alignment = sanitizeFooterMenuAlignment(value);
         var className = 'is-' + alignment;
         var nodes = getNodes('.footer-navigation');
+        var containers = getNodes('.footer-inner');
 
         if (!nodes.length) {
+            containers.forEach(function (container) {
+                container.setAttribute('data-footer-alignment', alignment);
+            });
             return;
         }
 
         nodes.forEach(function (node) {
             applyChoiceClass(node, FOOTER_NAV_ALIGNMENT_CLASSES, className);
             node.setAttribute('data-footer-alignment', alignment);
+        });
+
+        containers.forEach(function (container) {
+            container.setAttribute('data-footer-alignment', alignment);
+        });
+    }
+
+    var FOOTER_MOBILE_LAYOUTS = ['stack', 'inline'];
+
+    function sanitizeFooterMobileLayout(value) {
+        if (typeof value !== 'string') {
+            return 'stack';
+        }
+
+        var normalized = value.trim().toLowerCase();
+
+        if (FOOTER_MOBILE_LAYOUTS.indexOf(normalized) !== -1) {
+            return normalized;
+        }
+
+        return 'stack';
+    }
+
+    function applyFooterMobileLayout(value) {
+        var layout = sanitizeFooterMobileLayout(value);
+        var containers = getNodes('.footer-inner');
+
+        containers.forEach(function (container) {
+            container.setAttribute('data-footer-mobile-layout', layout);
         });
     }
 
@@ -1825,6 +1858,14 @@ function updateCTALayout() {
 
         value.bind(function (newValue) {
             applyFooterMenuAlignment(newValue);
+        });
+    });
+
+    api('beyond_gotham_footer_mobile_layout', function (value) {
+        applyFooterMobileLayout(value.get());
+
+        value.bind(function (newValue) {
+            applyFooterMobileLayout(newValue);
         });
     });
 

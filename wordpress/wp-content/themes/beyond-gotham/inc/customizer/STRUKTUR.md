@@ -281,22 +281,27 @@ wp_add_inline_style()
 ```php
 // Verwendet: footer.php
 <footer class="site-footer">
-    <div class="footer-left">
-        <small><?php echo beyond_gotham_get_footer_text(); ?></small>
-    </div>
-    <div class="footer-center">
-        <?php if ( has_nav_menu( 'footer' ) ) : ?>
-            <?php
-            wp_nav_menu(
-                array(
-                    'theme_location' => 'footer',
-                    'menu_id'        => 'footer-menu',
-                    'menu_class'     => 'footer-menu',
-                    'container'      => false,
-                )
-            );
-            ?>
-        <?php endif; ?>
+    <div class="footer-inner" data-footer-alignment="<?php echo esc_attr( beyond_gotham_get_footer_menu_alignment() ); ?>" data-footer-mobile-layout="<?php echo esc_attr( beyond_gotham_get_footer_mobile_layout() ); ?>">
+        <div class="footer-left">
+            <?php do_action( 'beyond_gotham/footer/left' ); ?>
+        </div>
+        <div class="footer-center">
+            <?php if ( has_nav_menu( 'footer' ) ) : ?>
+                <?php
+                wp_nav_menu(
+                    array(
+                        'theme_location' => 'footer',
+                        'menu_id'        => 'footer-menu',
+                        'menu_class'     => 'footer-menu',
+                        'container'      => false,
+                    )
+                );
+                ?>
+            <?php endif; ?>
+        </div>
+        <div class="footer-right">
+            <small class="site-info"><?php echo beyond_gotham_get_footer_text(); ?></small>
+        </div>
     </div>
 </footer>
 ```

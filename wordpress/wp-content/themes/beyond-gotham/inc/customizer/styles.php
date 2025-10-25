@@ -340,7 +340,7 @@ function beyond_gotham_customize_preview_js() {
 		'BGCustomizerPreview',
 		array(
 			'fontStacks'           => $stacks,
-                        'footerTarget'         => '.site-info',
+                        'footerTarget'         => '.footer-right .site-info',
                         'headingSelector'      => 'h1, h2, h3, h4, h5, h6',
 			'ctaSelectors'         => array(
 				'wrapper' => '[data-bg-cta]',

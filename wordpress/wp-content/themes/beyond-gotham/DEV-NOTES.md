@@ -15,3 +15,5 @@
 
 ## Footer Layout
 - The footer now only renders the configured copyright text and navigation links. Legacy social icon output has been removed entirely.
+- `.footer-inner` exposes `data-footer-alignment` so the center menu can switch between flex and grid layouts. When set to `center`, the grid ensures `.footer-left` and `.footer-right` share the same width, keeping the navigation geometrically centered.
+- Mobile behaviour is controlled through `data-footer-mobile-layout` (`stack` or `inline`). The Customizer updates this attribute live so designers can choose between a stacked column layout or an inline row on narrow viewports.
