@@ -182,10 +182,14 @@ final class Beyond_Gotham_Customizer_Loader {
         }
 
         $priority_map = array(
-            'class-customizer-module-colors.php' => 10,
-            'class-customizer-module-typography.php' => 20,
-            'class-customizer-module-layout.php' => 30,
-            'class-customizer-module-styles.php' => 90,
+            'class-customizer-module-colors.php'      => 10,
+            'class-customizer-module-branding.php'    => 15,
+            'class-customizer-module-typography.php'  => 20,
+            'class-customizer-module-layout.php'      => 30,
+            'class-customizer-module-navigation.php'  => 40,
+            'class-customizer-module-performance.php' => 70,
+            'class-customizer-module-seo.php'         => 80,
+            'class-customizer-module-styles.php'      => 90,
         );
 
         usort(

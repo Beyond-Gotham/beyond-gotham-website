@@ -1,6 +1,6 @@
 <?php
 /**
- * Customizer module binding for logo settings.
+ * Customizer module binding for branding settings.
  *
  * @package beyond_gotham
  */
@@ -9,17 +9,17 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-require_once dirname( __DIR__ ) . '/logo.php';
+require_once dirname( __DIR__ ) . '/branding.php';
 
 /**
  * Registers logo settings within the customizer.
  */
-class Beyond_Gotham_Customizer_Module_Logo extends Beyond_Gotham_Abstract_Customizer_Module {
+class Beyond_Gotham_Customizer_Module_Branding extends Beyond_Gotham_Abstract_Customizer_Module {
     /**
      * {@inheritdoc}
      */
     public function get_id() {
-        return 'logo';
+        return 'branding';
     }
 
     /**
@@ -33,7 +33,7 @@ class Beyond_Gotham_Customizer_Module_Logo extends Beyond_Gotham_Abstract_Custom
      * {@inheritdoc}
      */
     public function register( WP_Customize_Manager $wp_customize ) {
-        beyond_gotham_register_logo_customizer( $wp_customize );
+        beyond_gotham_register_branding_customizer( $wp_customize );
     }
 
     /**

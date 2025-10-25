@@ -672,6 +672,9 @@
     var buttonData = rawUiLayout.buttons || {};
     var thumbnailData = rawUiLayout.thumbnails || {};
     var contentData = rawUiLayout.content || {};
+    var containerData = rawUiLayout.containers || {};
+    var spacingData = rawUiLayout.spacing_scale || rawUiLayout.spacing || {};
+    var gridGapData = typeof rawUiLayout.grid_gap !== 'undefined' ? rawUiLayout.grid_gap : null;
 
     var headerLayoutState = {
         height: toPositiveFloat(typeof headerData.height !== 'undefined' ? headerData.height : headerData.height_value || headerData.heightValue),
@@ -703,9 +706,51 @@
     };
 
     var contentLayoutState = {
-        maxWidth: toPositiveFloat(typeof contentData.max_width !== 'undefined' ? contentData.max_width : contentData.maxWidth),
-        sectionSpacing: toPositiveFloat(typeof contentData.section_spacing !== 'undefined' ? contentData.section_spacing : contentData.sectionSpacing)
+        maxWidth: toPositiveFloat(typeof containerData.xl !== 'undefined' ? containerData.xl : contentData.maxWidth),
+        sectionSpacing: toPositiveFloat(typeof spacingData.lg !== 'undefined' ? spacingData.lg : contentData.sectionSpacing)
     };
+
+    ['xs', 'sm', 'md', 'lg', 'xl'].forEach(function (size) {
+        if (typeof containerData[size] !== 'undefined') {
+            setContainerWidthValue(size, containerData[size]);
+        }
+
+        if (typeof spacingData[size] !== 'undefined') {
+            setSpacingScaleValue(size, spacingData[size]);
+        }
+    });
+
+    if (gridGapData !== null) {
+        setGridGapValue(gridGapData);
+    }
+
+    var navPreview = (data && data.navLayout) ? data.navLayout : {};
+    if (typeof navPreview.alignment !== 'undefined') {
+        setNavAlignment(navPreview.alignment);
+    }
+    if (typeof navPreview.itemSpacing !== 'undefined') {
+        setNavItemGap(navPreview.itemSpacing);
+    }
+    if (typeof navPreview.paddingY !== 'undefined') {
+        setNavPadding(navPreview.paddingY);
+    }
+    if (typeof navPreview.sticky !== 'undefined') {
+        setStickyEnabled(navPreview.sticky);
+    }
+
+    var brandingPreview = (data && data.branding) ? data.branding : {};
+    if (typeof brandingPreview.maxWidth !== 'undefined') {
+        setBrandLogoWidth(brandingPreview.maxWidth);
+    }
+    if (typeof brandingPreview.maxHeight !== 'undefined') {
+        setBrandLogoHeight(brandingPreview.maxHeight);
+    }
+    if (typeof brandingPreview.maxWidthMobile !== 'undefined') {
+        setBrandLogoMobileWidth(brandingPreview.maxWidthMobile);
+    }
+    if (typeof brandingPreview.textOnly !== 'undefined') {
+        setBrandTextOnly(brandingPreview.textOnly);
+    }
 
     function applyHeaderLayout() {
         setCSSVariable('--site-header-height', formatPxValue(headerLayoutState.height, false));
@@ -1329,11 +1374,8 @@ Object.keys(COLOR_SETTING_IDS).forEach(function (key) {
     }
 });
 
-var orientationClasses = ['nav-horizontal', 'nav-vertical'];
-var positionClasses = ['nav-position-left', 'nav-position-center', 'nav-position-right', 'nav-position-below'];
-var dropdownClasses = ['nav-dropdown-down', 'nav-dropdown-right'];
+var navAlignmentClasses = ['nav-align-left', 'nav-align-center', 'nav-align-right', 'nav-align-space-between'];
 var stickyEnabledState = bodyEl ? bodyEl.classList.contains('bg-has-sticky-header') : true;
-var stickyOffsetValue = 0;
 
 function replaceBodyClass(classNames, activeClass) {
     if (!bodyEl || !Array.isArray(classNames)) {
@@ -1376,35 +1418,127 @@ function refreshStickyOffset() {
     }
 
     if (stickyEnabledState) {
-        setCSSVariable('--bg-sticky-offset', stickyOffsetValue + 'px');
+        setCSSVariable('--bg-sticky-offset', '0px');
     } else {
         setCSSVariable('--bg-sticky-offset', '0px');
     }
 }
 
-function setOrientation(value) {
+function setNavAlignment(value) {
     var normalized = (value || '').toString().toLowerCase();
-    var active = normalized === 'vertical' ? 'nav-vertical' : 'nav-horizontal';
-    replaceBodyClass(orientationClasses, active);
+    var allowed = ['left', 'center', 'right', 'space-between'];
+    if (allowed.indexOf(normalized) === -1) {
+        normalized = 'space-between';
+    }
+
+    replaceBodyClass(navAlignmentClasses, 'nav-align-' + normalized);
 }
 
-function setPosition(value) {
-    var normalized = (value || '').toString().toLowerCase();
-    var map = {
-        left: 'nav-position-left',
-        center: 'nav-position-center',
-        right: 'nav-position-right',
-        below: 'nav-position-below'
-    };
+function setNavItemGap(value) {
+    var parsed = parseInt(value, 10);
 
-    var active = map[normalized] || map.right;
-    replaceBodyClass(positionClasses, active);
+    if (isNaN(parsed) || parsed < 0) {
+        parsed = 0;
+    }
+
+    setCSSVariable('--nav-item-gap', parsed + 'px');
 }
 
-function setDropdown(value) {
-    var normalized = (value || '').toString().toLowerCase();
-    var active = normalized === 'right' ? 'nav-dropdown-right' : 'nav-dropdown-down';
-    replaceBodyClass(dropdownClasses, active);
+function setNavPadding(value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || parsed < 0) {
+        parsed = 0;
+    }
+
+    setCSSVariable('--nav-padding-y', parsed + 'px');
+}
+
+function setContainerWidthValue(size, value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || parsed < 0) {
+        parsed = 0;
+    }
+
+    var key = '--container-' + size;
+    setCSSVariable(key, parsed > 0 ? parsed + 'px' : '');
+
+    if (size === 'xl') {
+        setCSSVariable('--content-max-width', parsed > 0 ? parsed + 'px' : '');
+    }
+}
+
+function setSpacingScaleValue(size, value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || parsed < 0) {
+        parsed = 0;
+    }
+
+    var key = '--spacing-' + size;
+    setCSSVariable(key, parsed + 'px');
+
+    if (size === 'lg') {
+        setCSSVariable('--content-section-gap', parsed + 'px');
+    }
+}
+
+function setGridGapValue(value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || parsed < 0) {
+        parsed = 0;
+    }
+
+    setCSSVariable('--grid-gap', parsed + 'px');
+}
+
+function setBrandLogoWidth(value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || parsed <= 0) {
+        setCSSVariable('--brand-logo-max-width', '');
+        return;
+    }
+
+    setCSSVariable('--brand-logo-max-width', parsed + 'px');
+}
+
+function setBrandLogoHeight(value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || parsed <= 0) {
+        setCSSVariable('--brand-logo-max-height', '');
+        return;
+    }
+
+    setCSSVariable('--brand-logo-max-height', parsed + 'px');
+}
+
+function setBrandLogoMobileWidth(value) {
+    var parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || parsed <= 0) {
+        setCSSVariable('--brand-logo-max-width-mobile', '');
+        return;
+    }
+
+    setCSSVariable('--brand-logo-max-width-mobile', parsed + 'px');
+}
+
+function setBrandTextOnly(value) {
+    var enabled = normalizeBoolean(value);
+
+    if (!bodyEl) {
+        return;
+    }
+
+    if (enabled) {
+        bodyEl.classList.add('brand-text-only');
+    } else {
+        bodyEl.classList.remove('brand-text-only');
+    }
 }
 
 function setStickyEnabled(value) {
@@ -1420,21 +1554,6 @@ function setStickyEnabled(value) {
 
     refreshStickyOffset();
     dispatchStickyEvent();
-}
-
-function updateStickyOffset(newValue, shouldNotify) {
-    var parsed = parseInt(newValue, 10);
-
-    if (isNaN(parsed) || parsed < 0) {
-        parsed = 0;
-    }
-
-    stickyOffsetValue = parsed;
-    refreshStickyOffset();
-
-    if (shouldNotify) {
-        dispatchStickyEvent();
-    }
 }
 
 function updateFooter(newValue) {
@@ -1629,27 +1748,27 @@ function updateCTALayout() {
         });
     });
 
-    api('beyond_gotham_nav_orientation', function (value) {
-        setOrientation(value.get());
+    api('beyond_gotham_nav_alignment', function (value) {
+        setNavAlignment(value.get());
 
         value.bind(function (newValue) {
-            setOrientation(newValue);
+            setNavAlignment(newValue);
         });
     });
 
-    api('beyond_gotham_nav_position', function (value) {
-        setPosition(value.get());
+    api('beyond_gotham_nav_item_spacing', function (value) {
+        setNavItemGap(value.get());
 
         value.bind(function (newValue) {
-            setPosition(newValue);
+            setNavItemGap(newValue);
         });
     });
 
-    api('beyond_gotham_nav_dropdown_direction', function (value) {
-        setDropdown(value.get());
+    api('beyond_gotham_nav_padding_y', function (value) {
+        setNavPadding(value.get());
 
         value.bind(function (newValue) {
-            setDropdown(newValue);
+            setNavPadding(newValue);
         });
     });
 
@@ -1658,14 +1777,6 @@ function updateCTALayout() {
 
         value.bind(function (newValue) {
             setStickyEnabled(newValue);
-        });
-    });
-
-    api('beyond_gotham_nav_sticky_offset', function (value) {
-        updateStickyOffset(value.get(), false);
-
-        value.bind(function (newValue) {
-            updateStickyOffset(newValue, true);
         });
     });
 
@@ -1787,23 +1898,89 @@ function updateCTALayout() {
         });
     });
 
-    api('beyond_gotham_content_max_width', function (value) {
-        contentLayoutState.maxWidth = toPositiveFloat(value.get());
-        applyContentLayout();
+    ['xs', 'sm', 'md', 'lg', 'xl'].forEach(function (size) {
+        var settingId = 'beyond_gotham_container_width_' + size;
 
-        value.bind(function (newValue) {
-            contentLayoutState.maxWidth = toPositiveFloat(newValue);
-            applyContentLayout();
+        api(settingId, function (value) {
+            var initial = value.get();
+            setContainerWidthValue(size, initial);
+
+            if (size === 'xl') {
+                contentLayoutState.maxWidth = toPositiveFloat(initial);
+                applyContentLayout();
+            }
+
+            value.bind(function (newValue) {
+                setContainerWidthValue(size, newValue);
+
+                if (size === 'xl') {
+                    contentLayoutState.maxWidth = toPositiveFloat(newValue);
+                    applyContentLayout();
+                }
+            });
         });
     });
 
-    api('beyond_gotham_content_section_spacing', function (value) {
-        contentLayoutState.sectionSpacing = toPositiveFloat(value.get());
-        applyContentLayout();
+    ['xs', 'sm', 'md', 'lg', 'xl'].forEach(function (size) {
+        var settingId = 'beyond_gotham_spacing_' + size;
+
+        api(settingId, function (value) {
+            var initial = value.get();
+            setSpacingScaleValue(size, initial);
+
+            if (size === 'lg') {
+                contentLayoutState.sectionSpacing = toPositiveFloat(initial);
+                applyContentLayout();
+            }
+
+            value.bind(function (newValue) {
+                setSpacingScaleValue(size, newValue);
+
+                if (size === 'lg') {
+                    contentLayoutState.sectionSpacing = toPositiveFloat(newValue);
+                    applyContentLayout();
+                }
+            });
+        });
+    });
+
+    api('beyond_gotham_grid_gap', function (value) {
+        setGridGapValue(value.get());
 
         value.bind(function (newValue) {
-            contentLayoutState.sectionSpacing = toPositiveFloat(newValue);
-            applyContentLayout();
+            setGridGapValue(newValue);
+        });
+    });
+
+    api('beyond_gotham_brand_logo_max_width', function (value) {
+        setBrandLogoWidth(value.get());
+
+        value.bind(function (newValue) {
+            setBrandLogoWidth(newValue);
+        });
+    });
+
+    api('beyond_gotham_brand_logo_max_height', function (value) {
+        setBrandLogoHeight(value.get());
+
+        value.bind(function (newValue) {
+            setBrandLogoHeight(newValue);
+        });
+    });
+
+    api('beyond_gotham_brand_logo_max_width_mobile', function (value) {
+        setBrandLogoMobileWidth(value.get());
+
+        value.bind(function (newValue) {
+            setBrandLogoMobileWidth(newValue);
+        });
+    });
+
+    api('beyond_gotham_brand_text_only', function (value) {
+        setBrandTextOnly(value.get());
+
+        value.bind(function (newValue) {
+            setBrandTextOnly(newValue);
         });
     });
 

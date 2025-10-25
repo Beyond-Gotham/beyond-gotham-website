@@ -2,7 +2,7 @@
 /**
  * Navigation Customizer Settings
  *
- * Menu positioning, sticky header, and navigation behavior.
+ * Provides menu position toggles, alignment and spacing controls.
  *
  * @package beyond_gotham
  */
@@ -10,7 +10,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // =============================================================================
-// Navigation Defaults
+// Defaults
 // =============================================================================
 
 /**
@@ -19,15 +19,15 @@ defined( 'ABSPATH' ) || exit;
  * @return array
  */
 function beyond_gotham_get_navigation_defaults() {
-	return array(
-		'sticky_header'      => true,
-		'sticky_offset'      => 0,
-		'mobile_breakpoint'  => 960,
-		'show_search'        => true,
-		'show_social_icons'  => false,
-		'menu_style'         => 'horizontal', // horizontal, centered, split
-		'submenu_indicator'  => true,
-	);
+        return array(
+                'primary_enabled'   => true,
+                'secondary_enabled' => false,
+                'footer_enabled'    => true,
+                'alignment'         => 'space-between',
+                'sticky'            => true,
+                'item_spacing'      => 24,
+                'padding_y'         => 16,
+        );
 }
 
 // =============================================================================
@@ -35,286 +35,330 @@ function beyond_gotham_get_navigation_defaults() {
 // =============================================================================
 
 /**
- * Register navigation settings in the customizer.
+ * Register navigation controls with the customizer.
  *
  * @param WP_Customize_Manager $wp_customize Customizer instance.
+ * @return void
  */
-function beyond_gotham_register_navigation_customizer( $wp_customize ) {
-	$defaults = beyond_gotham_get_navigation_defaults();
+function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_customize ) {
+        $defaults = beyond_gotham_get_navigation_defaults();
 
-	// Section: Navigation
-	$wp_customize->add_section(
-		'beyond_gotham_navigation',
-		array(
-			'title'       => __( 'Navigation & Menü', 'beyond_gotham' ),
-			'priority'    => 35,
-			'description' => __( 'Konfiguriere das Hauptmenü und die Navigation.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_section(
+                'beyond_gotham_navigation',
+                array(
+                        'title'       => __( 'Navigation & Menüs', 'beyond_gotham' ),
+                        'priority'    => 30,
+                        'description' => __( 'Steuere welche Menüs sichtbar sind und wie sie ausgerichtet werden.', 'beyond_gotham' ),
+                )
+        );
 
-	// Heading: Header Behavior
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Heading_Control(
-			$wp_customize,
-			'beyond_gotham_nav_header_heading',
-			array(
-				'label'       => __( 'Header-Verhalten', 'beyond_gotham' ),
-				'description' => __( 'Steuere wie sich der Header beim Scrollen verhält.', 'beyond_gotham' ),
-				'section'     => 'beyond_gotham_navigation',
-			)
-		)
-	);
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Heading_Control(
+                        $wp_customize,
+                        'beyond_gotham_navigation_locations_heading',
+                        array(
+                                'label'       => __( 'Menü-Positionen', 'beyond_gotham' ),
+                                'description' => __( 'Aktiviere oder deaktiviere registrierte Menüpositionen.', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_navigation',
+                        )
+                )
+        );
 
-	// Setting: Sticky Header
-	$wp_customize->add_setting(
-		'beyond_gotham_sticky_header',
-		array(
-			'default'           => $defaults['sticky_header'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_nav_show_primary',
+                array(
+                        'default'           => $defaults['primary_enabled'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_sticky_header_control',
-		array(
-			'label'       => __( 'Sticky Header aktivieren', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_navigation',
-			'settings'    => 'beyond_gotham_sticky_header',
-			'type'        => 'checkbox',
-			'description' => __( 'Header bleibt beim Scrollen oben fixiert.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_nav_show_primary_control',
+                array(
+                        'label'    => __( 'Hauptnavigation (Header)', 'beyond_gotham' ),
+                        'section'  => 'beyond_gotham_navigation',
+                        'settings' => 'beyond_gotham_nav_show_primary',
+                        'type'     => 'checkbox',
+                )
+        );
 
-	// Setting: Sticky Offset
-	$wp_customize->add_setting(
-		'beyond_gotham_sticky_offset',
-		array(
-			'default'           => $defaults['sticky_offset'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'absint',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_nav_show_secondary',
+                array(
+                        'default'           => $defaults['secondary_enabled'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_sticky_offset_control',
-		array(
-			'label'       => __( 'Sticky Header Offset (px)', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_navigation',
-			'settings'    => 'beyond_gotham_sticky_offset',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 0,
-				'max'  => 200,
-				'step' => 10,
-			),
-			'description' => __( 'Abstand von oben, bevor der Header sticky wird.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_nav_show_secondary_control',
+                array(
+                        'label'       => __( 'Sekundäres Menü (Header-Sidebar/Social)', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
+                        'settings'    => 'beyond_gotham_nav_show_secondary',
+                        'type'        => 'checkbox',
+                        'description' => __( 'Nutze Menüposition „Secondary“, um ergänzende Links einzublenden.', 'beyond_gotham' ),
+                )
+        );
 
-	// Heading: Menu Style
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Heading_Control(
-			$wp_customize,
-			'beyond_gotham_nav_menu_heading',
-			array(
-				'label'   => __( 'Menü-Layout', 'beyond_gotham' ),
-				'section' => 'beyond_gotham_navigation',
-			)
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_nav_show_footer',
+                array(
+                        'default'           => $defaults['footer_enabled'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                )
+        );
 
-	// Setting: Menu Style
-	$wp_customize->add_setting(
-		'beyond_gotham_menu_style',
-		array(
-			'default'           => $defaults['menu_style'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'sanitize_text_field',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_nav_show_footer_control',
+                array(
+                        'label'       => __( 'Footer-Navigation anzeigen', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
+                        'settings'    => 'beyond_gotham_nav_show_footer',
+                        'type'        => 'checkbox',
+                        'description' => __( 'Blendet das Footer-Menü komplett ein oder aus.', 'beyond_gotham' ),
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_menu_style_control',
-		array(
-			'label'    => __( 'Menü-Stil', 'beyond_gotham' ),
-			'section'  => 'beyond_gotham_navigation',
-			'settings' => 'beyond_gotham_menu_style',
-			'type'     => 'select',
-			'choices'  => array(
-				'horizontal' => __( 'Horizontal (Standard)', 'beyond_gotham' ),
-				'centered'   => __( 'Zentriert', 'beyond_gotham' ),
-				'split'      => __( 'Split (Logo mittig)', 'beyond_gotham' ),
-			),
-		)
-	);
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Heading_Control(
+                        $wp_customize,
+                        'beyond_gotham_navigation_alignment_heading',
+                        array(
+                                'label'       => __( 'Ausrichtung & Layout', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_navigation',
+                                'description' => __( 'Passe die horizontale Ausrichtung und Abstände der Navigation an. Änderungen werden live angezeigt.', 'beyond_gotham' ),
+                        )
+                )
+        );
 
-	// Setting: Mobile Breakpoint
-	$wp_customize->add_setting(
-		'beyond_gotham_mobile_breakpoint',
-		array(
-			'default'           => $defaults['mobile_breakpoint'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'absint',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_nav_alignment',
+                array(
+                        'default'           => $defaults['alignment'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_choice',
+                        'transport'         => 'postMessage',
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_mobile_breakpoint_control',
-		array(
-			'label'       => __( 'Mobile Breakpoint (px)', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_navigation',
-			'settings'    => 'beyond_gotham_mobile_breakpoint',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 600,
-				'max'  => 1200,
-				'step' => 10,
-			),
-			'description' => __( 'Bildschirmbreite, ab der das mobile Menü angezeigt wird.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_nav_alignment_control',
+                array(
+                        'label'    => __( 'Ausrichtung der Navigation', 'beyond_gotham' ),
+                        'section'  => 'beyond_gotham_navigation',
+                        'settings' => 'beyond_gotham_nav_alignment',
+                        'type'     => 'radio',
+                        'choices'  => array(
+                                'left'           => __( 'Links', 'beyond_gotham' ),
+                                'center'         => __( 'Zentriert', 'beyond_gotham' ),
+                                'right'          => __( 'Rechts', 'beyond_gotham' ),
+                                'space-between'  => __( 'Verteilt', 'beyond_gotham' ),
+                        ),
+                )
+        );
 
-	// Heading: Menu Features
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Heading_Control(
-			$wp_customize,
-			'beyond_gotham_nav_features_heading',
-			array(
-				'label'   => __( 'Menü-Funktionen', 'beyond_gotham' ),
-				'section' => 'beyond_gotham_navigation',
-			)
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_nav_item_spacing',
+                array(
+                        'default'           => $defaults['item_spacing'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'absint',
+                        'transport'         => 'postMessage',
+                )
+        );
 
-	// Setting: Show Search
-	$wp_customize->add_setting(
-		'beyond_gotham_nav_show_search',
-		array(
-			'default'           => $defaults['show_search'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_nav_item_spacing_control',
+                array(
+                        'label'       => __( 'Abstand zwischen Menüpunkten (px)', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
+                        'settings'    => 'beyond_gotham_nav_item_spacing',
+                        'type'        => 'number',
+                        'input_attrs' => array(
+                                'min'  => 8,
+                                'max'  => 64,
+                                'step' => 2,
+                        ),
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_nav_show_search_control',
-		array(
-			'label'       => __( 'Suchfeld im Header anzeigen', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_navigation',
-			'settings'    => 'beyond_gotham_nav_show_search',
-			'type'        => 'checkbox',
-			'description' => __( 'Zeigt ein Suchfeld in der Hauptnavigation.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_nav_padding_y',
+                array(
+                        'default'           => $defaults['padding_y'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'absint',
+                        'transport'         => 'postMessage',
+                )
+        );
 
-	// Setting: Show Social Icons
-	$wp_customize->add_setting(
-		'beyond_gotham_nav_show_social_icons',
-		array(
-			'default'           => $defaults['show_social_icons'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_nav_padding_y_control',
+                array(
+                        'label'       => __( 'Vertikale Innenabstände (px)', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
+                        'settings'    => 'beyond_gotham_nav_padding_y',
+                        'type'        => 'number',
+                        'input_attrs' => array(
+                                'min'  => 0,
+                                'max'  => 48,
+                                'step' => 1,
+                        ),
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_nav_show_social_icons_control',
-		array(
-			'label'       => __( 'Social Icons im Header anzeigen', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_navigation',
-			'settings'    => 'beyond_gotham_nav_show_social_icons',
-			'type'        => 'checkbox',
-			'description' => __( 'Zeigt Social Media Icons in der Hauptnavigation.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Heading_Control(
+                        $wp_customize,
+                        'beyond_gotham_navigation_behavior_heading',
+                        array(
+                                'label'   => __( 'Verhalten', 'beyond_gotham' ),
+                                'section' => 'beyond_gotham_navigation',
+                        )
+                )
+        );
 
-	// Setting: Submenu Indicator
-	$wp_customize->add_setting(
-		'beyond_gotham_submenu_indicator',
-		array(
-			'default'           => $defaults['submenu_indicator'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_nav_sticky',
+                array(
+                        'default'           => $defaults['sticky'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                        'transport'         => 'postMessage',
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_submenu_indicator_control',
-		array(
-			'label'       => __( 'Submenü-Indikator anzeigen', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_navigation',
-			'settings'    => 'beyond_gotham_submenu_indicator',
-			'type'        => 'checkbox',
-			'description' => __( 'Zeigt ein Pfeil-Icon bei Menüpunkten mit Untermenüs.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_nav_sticky_control',
+                array(
+                        'label'       => __( 'Sticky Header aktivieren', 'beyond_gotham' ),
+                        'description' => __( 'Der Header bleibt beim Scrollen sichtbar.', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
+                        'settings'    => 'beyond_gotham_nav_sticky',
+                        'type'        => 'checkbox',
+                )
+        );
 
-	// Info: Menu Location
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Info_Control(
-			$wp_customize,
-			'beyond_gotham_nav_menu_location_info',
-			array(
-				'label'       => __( 'Menü verwalten', 'beyond_gotham' ),
-				'description' => sprintf(
-					/* translators: %s: Link to Menus section */
-					__( 'Um Menüeinträge zu verwalten, besuche die %s Sektion.', 'beyond_gotham' ),
-					'<a href="javascript:wp.customize.panel(\'nav_menus\').focus();">' . __( 'Menüs', 'beyond_gotham' ) . '</a>'
-				),
-				'section'     => 'beyond_gotham_navigation',
-				'notice_type' => 'info',
-			)
-		)
-	);
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Info_Control(
+                        $wp_customize,
+                        'beyond_gotham_navigation_manage_info',
+                        array(
+                                'label'       => __( 'Menüs verwalten', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_navigation',
+                                'notice_type' => 'info',
+                                'description' => sprintf(
+                                        /* translators: %s: Link to nav menus panel */
+                                        __( 'Du kannst Inhalte der Menüs direkt im Bereich %s anpassen.', 'beyond_gotham' ),
+                                        '<a href="javascript:wp.customize.panel(\'nav_menus\').focus();">' . __( 'Menüs', 'beyond_gotham' ) . '</a>'
+                                ),
+                        )
+                )
+        );
 }
 
 // =============================================================================
-// Helper Functions
+// Helper functions
 // =============================================================================
 
 /**
- * Get navigation layout settings.
+ * Retrieve navigation settings merged with defaults.
  *
  * @return array
  */
-function beyond_gotham_get_nav_layout_settings() {
-	$defaults = beyond_gotham_get_navigation_defaults();
+function beyond_gotham_get_navigation_settings() {
+        $defaults = beyond_gotham_get_navigation_defaults();
 
-	return array(
-		'sticky'            => (bool) get_theme_mod( 'beyond_gotham_sticky_header', $defaults['sticky_header'] ),
-		'sticky_offset'     => absint( get_theme_mod( 'beyond_gotham_sticky_offset', $defaults['sticky_offset'] ) ),
-		'mobile_breakpoint' => absint( get_theme_mod( 'beyond_gotham_mobile_breakpoint', $defaults['mobile_breakpoint'] ) ),
-		'show_search'       => (bool) get_theme_mod( 'beyond_gotham_nav_show_search', $defaults['show_search'] ),
-		'show_social_icons' => (bool) get_theme_mod( 'beyond_gotham_nav_show_social_icons', $defaults['show_social_icons'] ),
-		'menu_style'        => get_theme_mod( 'beyond_gotham_menu_style', $defaults['menu_style'] ),
-		'submenu_indicator' => (bool) get_theme_mod( 'beyond_gotham_submenu_indicator', $defaults['submenu_indicator'] ),
-	);
+        $settings = array(
+                'primary_enabled'   => (bool) get_theme_mod( 'beyond_gotham_nav_show_primary', $defaults['primary_enabled'] ),
+                'secondary_enabled' => (bool) get_theme_mod( 'beyond_gotham_nav_show_secondary', $defaults['secondary_enabled'] ),
+                'footer_enabled'    => (bool) get_theme_mod( 'beyond_gotham_nav_show_footer', $defaults['footer_enabled'] ),
+                'alignment'         => get_theme_mod( 'beyond_gotham_nav_alignment', $defaults['alignment'] ),
+                'sticky'            => (bool) get_theme_mod( 'beyond_gotham_nav_sticky', $defaults['sticky'] ),
+                'item_spacing'      => absint( get_theme_mod( 'beyond_gotham_nav_item_spacing', $defaults['item_spacing'] ) ),
+                'padding_y'         => absint( get_theme_mod( 'beyond_gotham_nav_padding_y', $defaults['padding_y'] ) ),
+        );
+
+        $alignments = array( 'left', 'center', 'right', 'space-between' );
+        if ( ! in_array( $settings['alignment'], $alignments, true ) ) {
+                $settings['alignment'] = $defaults['alignment'];
+        }
+
+        return $settings;
 }
 
 /**
- * Check if sticky header is enabled.
+ * Check if a specific navigation location is enabled.
+ *
+ * @param string $location Location slug (primary|secondary|footer).
+ * @return bool
+ */
+function beyond_gotham_nav_location_enabled( $location ) {
+        $settings = beyond_gotham_get_navigation_settings();
+
+        switch ( $location ) {
+                case 'primary':
+                        return ! empty( $settings['primary_enabled'] );
+                case 'secondary':
+                        return ! empty( $settings['secondary_enabled'] );
+                case 'footer':
+                        return ! empty( $settings['footer_enabled'] );
+        }
+
+        return true;
+}
+
+/**
+ * Get the alignment class for body or wrapper elements.
+ *
+ * @return string
+ */
+function beyond_gotham_get_nav_alignment_class() {
+        $settings = beyond_gotham_get_navigation_settings();
+        return 'nav-align-' . sanitize_html_class( $settings['alignment'] );
+}
+
+/**
+ * Retrieve navigation spacing values for CSS.
+ *
+ * @return array
+ */
+function beyond_gotham_get_nav_spacing_css_values() {
+        $settings = beyond_gotham_get_navigation_settings();
+
+        return array(
+                'item_gap'  => max( 0, (int) $settings['item_spacing'] ),
+                'padding_y' => max( 0, (int) $settings['padding_y'] ),
+        );
+}
+
+/**
+ * Helper for preview script localization.
+ *
+ * @return array
+ */
+function beyond_gotham_get_nav_preview_data() {
+        $settings = beyond_gotham_get_navigation_settings();
+        $spacing  = beyond_gotham_get_nav_spacing_css_values();
+
+        return array(
+                'alignment'   => $settings['alignment'],
+                'sticky'      => ! empty( $settings['sticky'] ),
+                'itemSpacing' => $spacing['item_gap'],
+                'paddingY'    => $spacing['padding_y'],
+        );
+}
+
+/**
+ * Determine whether the sticky header is enabled.
  *
  * @return bool
  */
 function beyond_gotham_is_sticky_header_enabled() {
-	$settings = beyond_gotham_get_nav_layout_settings();
-	return $settings['sticky'];
-}
-
-/**
- * Get menu style class.
- *
- * @return string
- */
-function beyond_gotham_get_menu_style_class() {
-	$settings = beyond_gotham_get_nav_layout_settings();
-	return 'menu-style-' . sanitize_html_class( $settings['menu_style'] );
+        $settings = beyond_gotham_get_navigation_settings();
+        return ! empty( $settings['sticky'] );
 }

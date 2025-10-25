@@ -3,6 +3,9 @@
 ## [Unreleased]
 ### Added
 - Footer-Menü: neue Customizer-Option zur Ausrichtung (Links/Mitte/Rechts/Verteilt) inkl. Live-Preview.
+- Erweiterte Customizer-Module für Navigation, Branding und Layout (Menü-Toggles, Logo-Varianten, Container-/Spacing-Skala).
+- Neues Performance-Modul mit Lazy Loading (Bilder/iFrames), LQIP-Blur, Script-Strategien und Heartbeat-Tuning.
+- Neues SEO-Modul mit Titel-Formaten, Meta-Description-Fallbacks, Open-Graph-Basis und Schema.org JSON-LD inkl. Breadcrumbs.
 ### Removed
 - Removed legacy social-icon block from footer (black field with GitHub icon). Cleaned up related CSS and Customizer references.
 

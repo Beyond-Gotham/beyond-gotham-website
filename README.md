@@ -20,3 +20,4 @@ Der WordPress-Customizer des Beyond-Gotham-Themes ist vollständig modularisiert
 - Jedes Modul implementiert `Beyond_Gotham_Customizer_Module_Interface` und kann eigene Hooks (z. B. `customize_register`, `customize_preview_init`) binden.
 - Gemeinsame Sanitizer- und Helper-Funktionen befinden sich in `inc/customizer/helpers.php`.
 - Neue Module werden einfach als Datei im Modul-Ordner abgelegt; der Loader lädt Klassen automatisch anhand der Implementierung.
+- Erweiterung 2025: Navigation-, Branding-, Layout-, Performance- und SEO-Module bringen neue Einstellungen inkl. Live-Preview, sanitisierten Eingaben und Plugin-Erkennung.
