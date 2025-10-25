@@ -12,3 +12,6 @@
 ## Admin-AJAX Stability
 - Generic calls to `admin-ajax.php` (with or without an `action`) run without loading heavy Customizer code, preventing accidental redeclarations and ensuring a clean `0` response for empty requests.
 - When invoking theme-provided AJAX actions, confirm the required nonces and parameters are passed; logs should stay free of redeclaration notices under PHP 8.4.
+
+## Footer Layout
+- The footer now only renders the configured copyright text and navigation links. Legacy social icon output has been removed entirely.

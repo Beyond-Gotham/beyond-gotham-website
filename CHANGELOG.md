@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+### Removed
+- Removed legacy social-icon block from footer (black field with GitHub icon). Cleaned up related CSS and Customizer references.
+
 ## [0.2.0] - 2025-10-24
 ### Added
 - Modular Customizer loader (`inc/customizer/loader.php`) mit automatischer Registrierung aller Modulklassen.

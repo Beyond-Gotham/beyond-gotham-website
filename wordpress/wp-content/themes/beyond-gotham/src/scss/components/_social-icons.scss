@@ -59,23 +59,6 @@
     }
   }
 
-  &--footer {
-    margin-top: 1.5rem;
-
-    .social-icons__link {
-      color: inherit;
-    }
-
-    .social-icons__link:hover,
-    .social-icons__link:focus-visible {
-      color: var(--accent);
-    }
-
-    @media (min-width: 768px) {
-      justify-content: flex-end;
-      margin-top: 0;
-    }
-  }
 }
 
 .cta__social-icons {

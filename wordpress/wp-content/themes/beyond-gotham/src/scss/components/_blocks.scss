@@ -104,8 +104,7 @@
   }
 
   .footer-left,
-  .footer-center,
-  .footer-right {
+  .footer-center {
     flex: 1 1 200px;
   }
 
@@ -138,10 +137,6 @@
         margin: 0;
       }
     }
-  }
-
-  .footer-right {
-    text-align: right;
   }
 
   .footer-darkmode-toggle {
@@ -189,17 +184,10 @@
     }
 
     .footer-left,
-    .footer-center,
-    .footer-right {
+    .footer-center {
       flex: unset;
       width: 100%;
       text-align: center;
-    }
-
-    .footer-right {
-      .social-icons {
-        justify-content: center;
-      }
     }
   }
 }

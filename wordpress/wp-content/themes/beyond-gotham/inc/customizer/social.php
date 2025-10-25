@@ -67,7 +67,6 @@ function beyond_gotham_get_socialbar_settings() {
 	return array(
 		'show_header'    => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_header', false ),
 		'show_mobile'    => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_mobile', true ),
-		'show_footer'    => (bool) get_theme_mod( 'beyond_gotham_footer_show_social', true ),
 		'icon_style'     => sanitize_text_field( get_theme_mod( 'beyond_gotham_socialbar_icon_style', 'default' ) ),
 		'style_variant'  => sanitize_text_field( get_theme_mod( 'beyond_gotham_socialbar_style', 'default' ) ),
 	);
@@ -100,12 +99,12 @@ function beyond_gotham_get_social_icon_svgs() {
 /**
  * Render the social bar markup for the requested location.
  *
- * @param string $location Social bar location. Accepts 'header', 'mobile', or 'footer'.
+ * @param string $location Social bar location. Accepts 'header' or 'mobile'.
  */
 function beyond_gotham_render_socialbar( $location = 'header' ) {
 	static $rendered_locations = array();
 
-	$allowed_locations = array( 'header', 'mobile', 'footer' );
+	$allowed_locations = array( 'header', 'mobile' );
 
 	if ( ! in_array( $location, $allowed_locations, true ) ) {
 		$location = 'header';
@@ -125,7 +124,6 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
 	if (
 		( 'mobile' === $location && empty( $settings['show_mobile'] ) )
 		|| ( 'header' === $location && empty( $settings['show_header'] ) )
-		|| ( 'footer' === $location && empty( $settings['show_footer'] ) )
 	) {
 		return;
 	}

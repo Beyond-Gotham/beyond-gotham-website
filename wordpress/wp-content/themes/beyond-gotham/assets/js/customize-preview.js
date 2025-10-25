@@ -9,7 +9,6 @@
     var fontStacks = (data && data.fontStacks) ? data.fontStacks : {};
     var footerSelector = data && data.footerTarget ? data.footerTarget : '.site-info';
     var headingSelector = data && data.headingSelector ? data.headingSelector : 'h1, h2, h3, h4, h5, h6';
-    var footerSocialSelector = data && data.footerSocialSelector ? data.footerSocialSelector : '[data-bg-footer-social]';
     var ctaSelectors = (data && data.ctaSelectors) ? data.ctaSelectors : {};
     var ctaWrapperSelector = ctaSelectors.wrapper || '[data-bg-cta]';
     var ctaTextSelector = ctaSelectors.text || '[data-bg-cta-text]';
@@ -1505,23 +1504,6 @@ function toggleCTAWrapperVisibility() {
     });
 }
 
-function toggleFooterSocial(show) {
-    var container = document.querySelector(footerSocialSelector);
-    if (!container) {
-        return;
-    }
-
-    if (show) {
-        container.classList.remove('is-hidden');
-        container.removeAttribute('hidden');
-        container.removeAttribute('aria-hidden');
-    } else {
-        container.classList.add('is-hidden');
-        container.setAttribute('hidden', 'hidden');
-        container.setAttribute('aria-hidden', 'true');
-    }
-}
-
 function updateCTALayout() {
     var wrappers = getNodes(ctaWrapperSelector);
 
@@ -1829,12 +1811,6 @@ function updateCTALayout() {
     api('beyond_gotham_footer_text', function (value) {
         value.bind(function (newValue) {
             updateFooter(newValue);
-        });
-    });
-
-    api('beyond_gotham_footer_show_social', function (value) {
-        value.bind(function (newValue) {
-            toggleFooterSocial(!!newValue);
         });
     });
 
