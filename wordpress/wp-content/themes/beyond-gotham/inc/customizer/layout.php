@@ -2,7 +2,7 @@
 /**
  * Layout Customizer Settings
  *
- * General layout options, container widths, spacing, and structural settings.
+ * Configures container widths, spacing scale and responsive breakpoints.
  *
  * @package beyond_gotham
  */
@@ -10,26 +10,42 @@
 defined( 'ABSPATH' ) || exit;
 
 // =============================================================================
-// Layout Defaults
+// Defaults
 // =============================================================================
 
 /**
- * Get default layout settings.
+ * Get default layout configuration.
  *
  * @return array
  */
 function beyond_gotham_get_layout_defaults() {
-	return array(
-		'container_width'    => 1280,
-		'content_width'      => 720,
-		'sidebar_width'      => 300,
-		'grid_gap'           => 24,
-		'section_spacing'    => 60,
-		'enable_sidebar'     => true,
-		'sidebar_position'   => 'right', // right, left
-		'thumbnail_aspect'   => '16-9', // 16-9, 4-3, 1-1, original
-		'card_style'         => 'elevated', // flat, bordered, elevated
-	);
+        return array(
+                'containers'        => array(
+                        'xs' => 520,
+                        'sm' => 640,
+                        'md' => 840,
+                        'lg' => 1080,
+                        'xl' => 1280,
+                ),
+                'spacing_scale'     => array(
+                        'xs' => 8,
+                        'sm' => 12,
+                        'md' => 20,
+                        'lg' => 32,
+                        'xl' => 48,
+                ),
+                'grid_gap'          => 24,
+                'active_breakpoints'=> array( 'sm', 'md', 'lg', 'xl' ),
+        );
+}
+
+/**
+ * Helper returning ordered breakpoint keys.
+ *
+ * @return array
+ */
+function beyond_gotham_get_layout_breakpoints() {
+        return array( 'xs', 'sm', 'md', 'lg', 'xl' );
 }
 
 // =============================================================================
@@ -37,389 +53,243 @@ function beyond_gotham_get_layout_defaults() {
 // =============================================================================
 
 /**
- * Register layout settings in the customizer.
+ * Register layout settings with the customizer.
  *
  * @param WP_Customize_Manager $wp_customize Customizer instance.
+ * @return void
  */
-function beyond_gotham_register_layout_customizer( $wp_customize ) {
-	$defaults = beyond_gotham_get_layout_defaults();
+function beyond_gotham_register_layout_customizer( WP_Customize_Manager $wp_customize ) {
+        $defaults    = beyond_gotham_get_layout_defaults();
+        $breakpoints = beyond_gotham_get_layout_breakpoints();
 
-	// Section: Layout
-	$wp_customize->add_section(
-		'beyond_gotham_layout',
-		array(
-			'title'       => __( 'Layout & Struktur', 'beyond_gotham' ),
-			'priority'    => 40,
-			'description' => __( 'Konfiguriere Breiten, Abstände und Layout-Optionen.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_section(
+                'beyond_gotham_layout',
+                array(
+                        'title'       => __( 'Layout & Grid', 'beyond_gotham' ),
+                        'priority'    => 40,
+                        'description' => __( 'Passe Containerbreiten, Abstände und Breakpoints an. Änderungen wirken sich unmittelbar auf das Frontend aus.', 'beyond_gotham' ),
+                )
+        );
 
-	// Heading: Container Widths
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Heading_Control(
-			$wp_customize,
-			'beyond_gotham_layout_widths_heading',
-			array(
-				'label'       => __( 'Container-Breiten', 'beyond_gotham' ),
-				'description' => __( 'Definiere die maximalen Breiten für verschiedene Container.', 'beyond_gotham' ),
-				'section'     => 'beyond_gotham_layout',
-			)
-		)
-	);
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Heading_Control(
+                        $wp_customize,
+                        'beyond_gotham_layout_container_heading',
+                        array(
+                                'label'       => __( 'Container-Breiten', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_layout',
+                                'description' => __( 'Definiere maximale Breiten für unterschiedliche Viewports. Diese Werte steuern `max-width` und CSS-Variablen.', 'beyond_gotham' ),
+                        )
+                )
+        );
 
-	// Setting: Container Width
-	$wp_customize->add_setting(
-		'beyond_gotham_container_width',
-		array(
-			'default'           => $defaults['container_width'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'absint',
-			'transport'         => 'postMessage',
-		)
-	);
+        foreach ( $breakpoints as $key ) {
+                $setting_id = "beyond_gotham_container_width_{$key}";
+                $label      = sprintf( __( 'Maximale Breite %s (px)', 'beyond_gotham' ), strtoupper( $key ) );
+                $default    = isset( $defaults['containers'][ $key ] ) ? $defaults['containers'][ $key ] : 0;
 
-	$wp_customize->add_control(
-		'beyond_gotham_container_width_control',
-		array(
-			'label'       => __( 'Hauptcontainer-Breite (px)', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_layout',
-			'settings'    => 'beyond_gotham_container_width',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 960,
-				'max'  => 1920,
-				'step' => 20,
-			),
-			'description' => __( 'Maximale Breite des Hauptcontainers.', 'beyond_gotham' ),
-		)
-	);
+                $wp_customize->add_setting(
+                        $setting_id,
+                        array(
+                                'default'           => $default,
+                                'type'              => 'theme_mod',
+                                'sanitize_callback' => 'absint',
+                                'transport'         => 'postMessage',
+                        )
+                );
 
-	// Setting: Content Width
-	$wp_customize->add_setting(
-		'beyond_gotham_content_width',
-		array(
-			'default'           => $defaults['content_width'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'absint',
-			'transport'         => 'postMessage',
-		)
-	);
+                $wp_customize->add_control(
+                        $setting_id . '_control',
+                        array(
+                                'label'       => $label,
+                                'section'     => 'beyond_gotham_layout',
+                                'settings'    => $setting_id,
+                                'type'        => 'number',
+                                'input_attrs' => array(
+                                        'min'  => 360,
+                                        'max'  => 1920,
+                                        'step' => 10,
+                                ),
+                        )
+                );
+        }
 
-	$wp_customize->add_control(
-		'beyond_gotham_content_width_control',
-		array(
-			'label'       => __( 'Content-Breite (px)', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_layout',
-			'settings'    => 'beyond_gotham_content_width',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 600,
-				'max'  => 1000,
-				'step' => 10,
-			),
-			'description' => __( 'Maximale Breite für Artikel-Content (optimal für Lesbarkeit).', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Heading_Control(
+                        $wp_customize,
+                        'beyond_gotham_layout_spacing_heading',
+                        array(
+                                'label'       => __( 'Spacing & Grid', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_layout',
+                                'description' => __( 'Definiere eine globale Abstands-Skala und den Grid-Gap. Werte werden als CSS-Variablen ausgegeben.', 'beyond_gotham' ),
+                        )
+                )
+        );
 
-	// Heading: Spacing
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Heading_Control(
-			$wp_customize,
-			'beyond_gotham_layout_spacing_heading',
-			array(
-				'label'       => __( 'Abstände', 'beyond_gotham' ),
-				'description' => __( 'Passe Abstände zwischen Elementen an.', 'beyond_gotham' ),
-				'section'     => 'beyond_gotham_layout',
-			)
-		)
-	);
+        foreach ( $breakpoints as $key ) {
+                $setting_id = "beyond_gotham_spacing_{$key}";
+                $label      = sprintf( __( 'Spacing %s (px)', 'beyond_gotham' ), strtoupper( $key ) );
+                $default    = isset( $defaults['spacing_scale'][ $key ] ) ? $defaults['spacing_scale'][ $key ] : 0;
 
-	// Setting: Grid Gap
-	$wp_customize->add_setting(
-		'beyond_gotham_grid_gap',
-		array(
-			'default'           => $defaults['grid_gap'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'absint',
-			'transport'         => 'postMessage',
-		)
-	);
+                $wp_customize->add_setting(
+                        $setting_id,
+                        array(
+                                'default'           => $default,
+                                'type'              => 'theme_mod',
+                                'sanitize_callback' => 'absint',
+                                'transport'         => 'postMessage',
+                        )
+                );
 
-	$wp_customize->add_control(
-		'beyond_gotham_grid_gap_control',
-		array(
-			'label'       => __( 'Grid-Abstand (px)', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_layout',
-			'settings'    => 'beyond_gotham_grid_gap',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 10,
-				'max'  => 60,
-				'step' => 2,
-			),
-			'description' => __( 'Abstand zwischen Grid-Elementen (z.B. Karten).', 'beyond_gotham' ),
-		)
-	);
+                $wp_customize->add_control(
+                        $setting_id . '_control',
+                        array(
+                                'label'       => $label,
+                                'section'     => 'beyond_gotham_layout',
+                                'settings'    => $setting_id,
+                                'type'        => 'number',
+                                'input_attrs' => array(
+                                        'min'  => 0,
+                                        'max'  => 120,
+                                        'step' => 2,
+                                ),
+                        )
+                );
+        }
 
-	// Setting: Section Spacing
-	$wp_customize->add_setting(
-		'beyond_gotham_section_spacing',
-		array(
-			'default'           => $defaults['section_spacing'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'absint',
-			'transport'         => 'postMessage',
-		)
-	);
+        $wp_customize->add_setting(
+                'beyond_gotham_grid_gap',
+                array(
+                        'default'           => $defaults['grid_gap'],
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'absint',
+                        'transport'         => 'postMessage',
+                )
+        );
 
-	$wp_customize->add_control(
-		'beyond_gotham_section_spacing_control',
-		array(
-			'label'       => __( 'Abschnitts-Abstand (px)', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_layout',
-			'settings'    => 'beyond_gotham_section_spacing',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 30,
-				'max'  => 120,
-				'step' => 10,
-			),
-			'description' => __( 'Vertikaler Abstand zwischen Sektionen.', 'beyond_gotham' ),
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_grid_gap_control',
+                array(
+                        'label'       => __( 'Grid Gap (px)', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_layout',
+                        'settings'    => 'beyond_gotham_grid_gap',
+                        'type'        => 'number',
+                        'input_attrs' => array(
+                                'min'  => 0,
+                                'max'  => 96,
+                                'step' => 2,
+                        ),
+                )
+        );
 
-	// Heading: Sidebar
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Heading_Control(
-			$wp_customize,
-			'beyond_gotham_layout_sidebar_heading',
-			array(
-				'label'       => __( 'Sidebar-Einstellungen', 'beyond_gotham' ),
-				'description' => __( 'Konfiguriere die Sidebar-Darstellung.', 'beyond_gotham' ),
-				'section'     => 'beyond_gotham_layout',
-			)
-		)
-	);
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Heading_Control(
+                        $wp_customize,
+                        'beyond_gotham_layout_breakpoints_heading',
+                        array(
+                                'label'       => __( 'Aktive Breakpoints', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_layout',
+                                'description' => __( 'Deaktiviere Breakpoints, wenn z. B. ein mobiles Einspaltenlayout gewünscht ist.', 'beyond_gotham' ),
+                        )
+                )
+        );
 
-	// Setting: Enable Sidebar
-	$wp_customize->add_setting(
-		'beyond_gotham_enable_sidebar',
-		array(
-			'default'           => $defaults['enable_sidebar'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
-			'transport'         => 'postMessage',
-		)
-	);
+        foreach ( array_diff( $breakpoints, array( 'xs' ) ) as $key ) {
+                $setting_id = "beyond_gotham_breakpoint_{$key}";
+                $default    = in_array( $key, $defaults['active_breakpoints'], true );
 
-	$wp_customize->add_control(
-		'beyond_gotham_enable_sidebar_control',
-		array(
-			'label'       => __( 'Sidebar aktivieren', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_layout',
-			'settings'    => 'beyond_gotham_enable_sidebar',
-			'type'        => 'checkbox',
-			'description' => __( 'Zeigt eine Sidebar auf Beitrags- und Archivseiten.', 'beyond_gotham' ),
-		)
-	);
+                $wp_customize->add_setting(
+                        $setting_id,
+                        array(
+                                'default'           => $default,
+                                'type'              => 'theme_mod',
+                                'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                                'transport'         => 'postMessage',
+                        )
+                );
 
-	// Setting: Sidebar Position
-	$wp_customize->add_setting(
-		'beyond_gotham_sidebar_position',
-		array(
-			'default'           => $defaults['sidebar_position'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'sanitize_text_field',
-			'transport'         => 'postMessage',
-		)
-	);
-
-	$wp_customize->add_control(
-		'beyond_gotham_sidebar_position_control',
-		array(
-			'label'    => __( 'Sidebar-Position', 'beyond_gotham' ),
-			'section'  => 'beyond_gotham_layout',
-			'settings' => 'beyond_gotham_sidebar_position',
-			'type'     => 'select',
-			'choices'  => array(
-				'right' => __( 'Rechts', 'beyond_gotham' ),
-				'left'  => __( 'Links', 'beyond_gotham' ),
-			),
-		)
-	);
-
-	// Setting: Sidebar Width
-	$wp_customize->add_setting(
-		'beyond_gotham_sidebar_width',
-		array(
-			'default'           => $defaults['sidebar_width'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'absint',
-			'transport'         => 'postMessage',
-		)
-	);
-
-	$wp_customize->add_control(
-		'beyond_gotham_sidebar_width_control',
-		array(
-			'label'       => __( 'Sidebar-Breite (px)', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_layout',
-			'settings'    => 'beyond_gotham_sidebar_width',
-			'type'        => 'number',
-			'input_attrs' => array(
-				'min'  => 200,
-				'max'  => 400,
-				'step' => 10,
-			),
-			'description' => __( 'Breite der Sidebar.', 'beyond_gotham' ),
-		)
-	);
-
-	// Heading: Visual Style
-	$wp_customize->add_control(
-		new Beyond_Gotham_Customize_Heading_Control(
-			$wp_customize,
-			'beyond_gotham_layout_visual_heading',
-			array(
-				'label'       => __( 'Visuelle Optionen', 'beyond_gotham' ),
-				'description' => __( 'Steuere das Erscheinungsbild von Karten und Thumbnails.', 'beyond_gotham' ),
-				'section'     => 'beyond_gotham_layout',
-			)
-		)
-	);
-
-	// Setting: Thumbnail Aspect Ratio
-	$wp_customize->add_setting(
-		'beyond_gotham_thumbnail_aspect',
-		array(
-			'default'           => $defaults['thumbnail_aspect'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'sanitize_text_field',
-			'transport'         => 'postMessage',
-		)
-	);
-
-	$wp_customize->add_control(
-		'beyond_gotham_thumbnail_aspect_control',
-		array(
-			'label'    => __( 'Thumbnail-Seitenverhältnis', 'beyond_gotham' ),
-			'section'  => 'beyond_gotham_layout',
-			'settings' => 'beyond_gotham_thumbnail_aspect',
-			'type'     => 'select',
-			'choices'  => array(
-				'16-9'     => __( '16:9 (Widescreen)', 'beyond_gotham' ),
-				'4-3'      => __( '4:3 (Standard)', 'beyond_gotham' ),
-				'1-1'      => __( '1:1 (Quadrat)', 'beyond_gotham' ),
-				'original' => __( 'Original (keine Beschneidung)', 'beyond_gotham' ),
-			),
-		)
-	);
-
-	// Setting: Card Style
-	$wp_customize->add_setting(
-		'beyond_gotham_card_style',
-		array(
-			'default'           => $defaults['card_style'],
-			'type'              => 'theme_mod',
-			'sanitize_callback' => 'sanitize_text_field',
-			'transport'         => 'postMessage',
-		)
-	);
-
-	$wp_customize->add_control(
-		'beyond_gotham_card_style_control',
-		array(
-			'label'       => __( 'Karten-Stil', 'beyond_gotham' ),
-			'section'     => 'beyond_gotham_layout',
-			'settings'    => 'beyond_gotham_card_style',
-			'type'        => 'select',
-			'choices'     => array(
-				'flat'     => __( 'Flach (kein Schatten)', 'beyond_gotham' ),
-				'bordered' => __( 'Mit Rahmen', 'beyond_gotham' ),
-				'elevated' => __( 'Erhöht (mit Schatten)', 'beyond_gotham' ),
-			),
-			'description' => __( 'Visueller Stil für Artikel-Karten.', 'beyond_gotham' ),
-		)
-	);
+                $wp_customize->add_control(
+                        $setting_id . '_control',
+                        array(
+                                'label'    => sprintf( __( 'Breakpoint %s aktivieren', 'beyond_gotham' ), strtoupper( $key ) ),
+                                'section'  => 'beyond_gotham_layout',
+                                'settings' => $setting_id,
+                                'type'     => 'checkbox',
+                        )
+                );
+        }
 }
 
 // =============================================================================
-// Helper Functions
+// Helper functions
 // =============================================================================
 
 /**
- * Get all layout settings.
+ * Gather layout settings and normalize values.
+ *
+ * @return array
+ */
+function beyond_gotham_get_layout_settings() {
+        $defaults    = beyond_gotham_get_layout_defaults();
+        $breakpoints = beyond_gotham_get_layout_breakpoints();
+
+        $containers = array();
+        foreach ( $breakpoints as $key ) {
+                $default            = isset( $defaults['containers'][ $key ] ) ? $defaults['containers'][ $key ] : 0;
+                $containers[ $key ] = absint( get_theme_mod( "beyond_gotham_container_width_{$key}", $default ) );
+        }
+
+        $spacings = array();
+        foreach ( $breakpoints as $key ) {
+                $default          = isset( $defaults['spacing_scale'][ $key ] ) ? $defaults['spacing_scale'][ $key ] : 0;
+                $spacings[ $key ] = absint( get_theme_mod( "beyond_gotham_spacing_{$key}", $default ) );
+        }
+
+        $active = array( 'xs' );
+        foreach ( array_diff( $breakpoints, array( 'xs' ) ) as $key ) {
+                $enabled = (bool) get_theme_mod( "beyond_gotham_breakpoint_{$key}", in_array( $key, $defaults['active_breakpoints'], true ) );
+
+                if ( $enabled ) {
+                        $active[] = $key;
+                }
+        }
+
+        return array(
+                'containers'         => $containers,
+                'spacing_scale'      => $spacings,
+                'grid_gap'           => absint( get_theme_mod( 'beyond_gotham_grid_gap', $defaults['grid_gap'] ) ),
+                'active_breakpoints' => $active,
+        );
+}
+
+/**
+ * Legacy compatibility wrapper.
  *
  * @return array
  */
 function beyond_gotham_get_ui_layout_settings() {
-	$defaults = beyond_gotham_get_layout_defaults();
+        $settings = beyond_gotham_get_layout_settings();
 
-	$settings = array(
-		'container_width'  => absint( get_theme_mod( 'beyond_gotham_container_width', $defaults['container_width'] ) ),
-		'content_width'    => absint( get_theme_mod( 'beyond_gotham_content_width', $defaults['content_width'] ) ),
-		'sidebar_width'    => absint( get_theme_mod( 'beyond_gotham_sidebar_width', $defaults['sidebar_width'] ) ),
-		'grid_gap'         => absint( get_theme_mod( 'beyond_gotham_grid_gap', $defaults['grid_gap'] ) ),
-		'section_spacing'  => absint( get_theme_mod( 'beyond_gotham_section_spacing', $defaults['section_spacing'] ) ),
-		'enable_sidebar'   => (bool) get_theme_mod( 'beyond_gotham_enable_sidebar', $defaults['enable_sidebar'] ),
-		'sidebar_position' => get_theme_mod( 'beyond_gotham_sidebar_position', $defaults['sidebar_position'] ),
-		'thumbnail_aspect' => get_theme_mod( 'beyond_gotham_thumbnail_aspect', $defaults['thumbnail_aspect'] ),
-		'card_style'       => get_theme_mod( 'beyond_gotham_card_style', $defaults['card_style'] ),
-	);
-
-	// Organize into groups
-	return array(
-		'header'     => array(),
-		'footer'     => array(),
-		'buttons'    => array(),
-		'thumbnails' => array(
-			'aspect_ratio' => $settings['thumbnail_aspect'],
-		),
-		'content'    => array(
-			'container_width' => $settings['container_width'],
-			'content_width'   => $settings['content_width'],
-			'grid_gap'        => $settings['grid_gap'],
-			'section_spacing' => $settings['section_spacing'],
-		),
-		'sidebar'    => array(
-			'enabled'  => $settings['enable_sidebar'],
-			'position' => $settings['sidebar_position'],
-			'width'    => $settings['sidebar_width'],
-		),
-		'cards'      => array(
-			'style' => $settings['card_style'],
-		),
-	);
+        return array(
+                'containers'         => $settings['containers'],
+                'spacing_scale'      => $settings['spacing_scale'],
+                'grid_gap'           => $settings['grid_gap'],
+                'active_breakpoints' => $settings['active_breakpoints'],
+        );
 }
 
 /**
- * Check if sidebar is enabled.
+ * Provide layout data for preview scripts.
  *
- * @return bool
+ * @return array
  */
-function beyond_gotham_is_sidebar_enabled() {
-	$settings = beyond_gotham_get_ui_layout_settings();
-	return isset( $settings['sidebar']['enabled'] ) && $settings['sidebar']['enabled'];
-}
+function beyond_gotham_get_layout_preview_data() {
+        $settings = beyond_gotham_get_layout_settings();
 
-/**
- * Get card style class.
- *
- * @return string
- */
-function beyond_gotham_get_card_style_class() {
-	$settings = beyond_gotham_get_ui_layout_settings();
-	$style    = isset( $settings['cards']['style'] ) ? $settings['cards']['style'] : 'elevated';
-	return 'card-style-' . sanitize_html_class( $style );
-}
-
-/**
- * Get thumbnail aspect ratio class.
- *
- * @return string
- */
-function beyond_gotham_get_thumbnail_aspect_class() {
-	$settings = beyond_gotham_get_ui_layout_settings();
-	$aspect   = isset( $settings['thumbnails']['aspect_ratio'] ) ? $settings['thumbnails']['aspect_ratio'] : '16-9';
-	return 'thumbnail-' . sanitize_html_class( $aspect );
+        return array(
+                'containers'         => $settings['containers'],
+                'spacing'            => $settings['spacing_scale'],
+                'gridGap'            => $settings['grid_gap'],
+                'activeBreakpoints'  => $settings['active_breakpoints'],
+        );
 }

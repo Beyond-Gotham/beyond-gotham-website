@@ -18,9 +18,10 @@
     <div class="site-header__inner">
         <div class="site-branding">
             <?php
-            $brand_logo_id = function_exists( 'beyond_gotham_get_brand_logo_id' ) ? beyond_gotham_get_brand_logo_id() : 0;
+            $text_only_branding = function_exists( 'beyond_gotham_is_branding_text_only' ) ? beyond_gotham_is_branding_text_only() : false;
+            $brand_logo_id     = ( ! $text_only_branding && function_exists( 'beyond_gotham_get_brand_logo_id' ) ) ? beyond_gotham_get_brand_logo_id() : 0;
 
-            if ( $brand_logo_id ) {
+            if ( ! $text_only_branding && $brand_logo_id ) {
                 $logo_markup = wp_get_attachment_image( $brand_logo_id, 'full', false, array( 'class' => 'custom-logo' ) );
 
                 if ( $logo_markup ) {
@@ -28,11 +29,13 @@
                     echo '<a href="' . esc_url( home_url( '/' ) ) . '" class="custom-logo-link" rel="home">' . $logo_markup . '</a>';
                     echo '</div>';
                 }
-            } elseif ( has_custom_logo() ) {
+            } elseif ( ! $text_only_branding && has_custom_logo() ) {
                 echo '<div class="site-logo">';
                 the_custom_logo();
                 echo '</div>';
-            } else {
+            }
+
+            if ( $text_only_branding || ( ! $brand_logo_id && ! has_custom_logo() ) ) {
                 ?>
                 <a class="site-title" href="<?php echo esc_url( home_url( '/' ) ); ?>">
                     <?php bloginfo( 'name' ); ?>
@@ -43,6 +46,15 @@
             ?>
         </div>
 
+        <?php
+        $nav_enabled_primary   = function_exists( 'beyond_gotham_nav_location_enabled' ) ? beyond_gotham_nav_location_enabled( 'primary' ) : true;
+        $nav_enabled_secondary = function_exists( 'beyond_gotham_nav_location_enabled' ) ? beyond_gotham_nav_location_enabled( 'secondary' ) : true;
+
+        $has_primary_menu   = $nav_enabled_primary && has_nav_menu( 'primary' );
+        $has_secondary_menu = $nav_enabled_secondary && has_nav_menu( 'menu-2' );
+
+        if ( $nav_enabled_primary || $nav_enabled_secondary ) :
+            ?>
         <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" data-bg-nav-toggle>
             <span class="site-header__toggle-label"><?php esc_html_e( 'Menü', 'beyond_gotham' ); ?></span>
             <span class="site-header__toggle-icon" aria-hidden="true">
@@ -51,32 +63,36 @@
                 <span></span>
             </span>
         </button>
+        <?php endif; ?>
 
         <?php
         $custom_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
         $socialbar_settings = function_exists( 'beyond_gotham_get_socialbar_settings' ) ? beyond_gotham_get_socialbar_settings() : array();
         $header_socialbar_active = ! empty( $socialbar_settings['show_header'] );
         ?>
+        <?php if ( $nav_enabled_primary || $nav_enabled_secondary ) : ?>
         <nav class="site-nav" id="primary-navigation" aria-label="<?php esc_attr_e( 'Hauptnavigation', 'beyond_gotham' ); ?>" data-bg-nav>
             <?php
-            if ( has_nav_menu( 'primary' ) ) {
-                wp_nav_menu(
-                    array(
-                        'theme_location' => 'primary',
-                        'menu_class'     => 'site-nav__list',
-                        'container'      => false,
-                        'depth'          => 2,
-                        'fallback_cb'    => false,
-                        'link_before'    => '<span class="site-nav__link-text">',
-                        'link_after'     => '</span>',
-                    )
-                );
-            } else {
-                echo '<ul class="site-nav__list"><li class="site-nav__item">' . esc_html__( 'Bitte ein Hauptmenü zuweisen.', 'beyond_gotham' ) . '</li></ul>';
+            if ( $nav_enabled_primary ) {
+                if ( $has_primary_menu ) {
+                    wp_nav_menu(
+                        array(
+                            'theme_location' => 'primary',
+                            'menu_class'     => 'site-nav__list',
+                            'container'      => false,
+                            'depth'          => 2,
+                            'fallback_cb'    => false,
+                            'link_before'    => '<span class="site-nav__link-text">',
+                            'link_after'     => '</span>',
+                        )
+                    );
+                } else {
+                    echo '<ul class="site-nav__list"><li class="site-nav__item">' . esc_html__( 'Bitte ein Hauptmenü zuweisen.', 'beyond_gotham' ) . '</li></ul>';
+                }
             }
 
-            if ( ! $header_socialbar_active ) {
-                if ( has_nav_menu( 'menu-2' ) ) {
+            if ( $nav_enabled_secondary && ! $header_socialbar_active ) {
+                if ( $has_secondary_menu ) {
                     wp_nav_menu(
                         array(
                             'theme_location' => 'menu-2',
@@ -101,6 +117,7 @@
             }
             ?>
         </nav>
+        <?php endif; ?>
         <?php
         if ( $header_socialbar_active && function_exists( 'beyond_gotham_render_socialbar' ) ) {
             beyond_gotham_render_socialbar( 'header' );
@@ -108,4 +125,6 @@
         ?>
     </div>
 </header>
+<?php if ( $nav_enabled_primary || $nav_enabled_secondary ) : ?>
 <div class="site-nav__overlay" data-bg-nav-overlay aria-hidden="true"></div>
+<?php endif; ?>

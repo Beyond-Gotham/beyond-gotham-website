@@ -25,7 +25,9 @@
             ?>
         </div>
         <div class="footer-center">
-            <?php if ( has_nav_menu( 'footer' ) ) :
+            <?php
+            $footer_nav_enabled = function_exists( 'beyond_gotham_nav_location_enabled' ) ? beyond_gotham_nav_location_enabled( 'footer' ) : true;
+            if ( $footer_nav_enabled && has_nav_menu( 'footer' ) ) :
                 $footer_menu_alignment = function_exists( 'beyond_gotham_get_footer_menu_alignment' ) ? beyond_gotham_get_footer_menu_alignment() : 'center';
                 $footer_nav_classes    = array( 'footer-navigation', 'is-' . $footer_menu_alignment );
                 $footer_nav_classes    = array_map( 'sanitize_html_class', array_unique( $footer_nav_classes ) );

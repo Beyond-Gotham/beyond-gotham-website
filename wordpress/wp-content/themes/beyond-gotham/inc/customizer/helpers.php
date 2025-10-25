@@ -62,7 +62,69 @@ function beyond_gotham_sanitize_allow_html( $value ) {
  * @return bool
  */
 function beyond_gotham_sanitize_checkbox( $value ) {
-	return (bool) $value;
+        return (bool) $value;
+}
+
+/**
+ * Sanitize a select/radio choice based on the associated control choices.
+ *
+ * @param string                $value   Raw value.
+ * @param WP_Customize_Setting $setting Setting instance.
+ * @return string
+ */
+function beyond_gotham_sanitize_choice( $value, $setting ) {
+        $value = is_string( $value ) ? sanitize_key( $value ) : '';
+
+        if ( ! $setting instanceof WP_Customize_Setting ) {
+                return is_object( $setting ) && isset( $setting->default ) ? $setting->default : $value;
+        }
+
+        $control = $setting->manager->get_control( $setting->id );
+
+        if ( ! $control || empty( $control->choices ) || ! is_array( $control->choices ) ) {
+                return $setting->default;
+        }
+
+        return array_key_exists( $value, $control->choices ) ? $value : $setting->default;
+}
+
+/**
+ * Sanitize an array of choice keys from a multiple select/checkbox control.
+ *
+ * @param mixed                 $value   Raw value.
+ * @param WP_Customize_Setting $setting Setting instance.
+ * @return array
+ */
+function beyond_gotham_sanitize_multiple_choice( $value, $setting ) {
+        if ( ! $setting instanceof WP_Customize_Setting ) {
+                return array();
+        }
+
+        $control = $setting->manager->get_control( $setting->id );
+
+        if ( ! $control || empty( $control->choices ) || ! is_array( $control->choices ) ) {
+                return array();
+        }
+
+        if ( is_string( $value ) ) {
+                $value = explode( ',', $value );
+        }
+
+        if ( ! is_array( $value ) ) {
+                return array();
+        }
+
+        $sanitized = array();
+
+        foreach ( $value as $key ) {
+                $normalized = sanitize_key( $key );
+
+                if ( array_key_exists( $normalized, $control->choices ) ) {
+                        $sanitized[] = $normalized;
+                }
+        }
+
+        return array_values( array_unique( $sanitized ) );
 }
 
 /**

@@ -126,31 +126,25 @@ function beyond_gotham_body_classes( $classes ) {
     $classes[] = 'bg-ui-loading';
     $classes[] = 'theme-light';
 
-    if ( function_exists( 'beyond_gotham_get_nav_layout_settings' ) ) {
-        $nav_layout = beyond_gotham_get_nav_layout_settings();
+    if ( function_exists( 'beyond_gotham_get_navigation_settings' ) ) {
+        $nav_settings = beyond_gotham_get_navigation_settings();
 
-        $orientation = isset( $nav_layout['orientation'] ) ? $nav_layout['orientation'] : 'horizontal';
-        $position    = isset( $nav_layout['position'] ) ? $nav_layout['position'] : 'right';
-        $dropdown    = isset( $nav_layout['dropdown'] ) ? $nav_layout['dropdown'] : 'down';
-
-        $classes[] = 'nav-' . ( 'vertical' === $orientation ? 'vertical' : 'horizontal' );
-
-        $allowed_positions = array( 'left', 'center', 'right', 'below' );
-        if ( ! in_array( $position, $allowed_positions, true ) ) {
-            $position = 'right';
+        if ( function_exists( 'beyond_gotham_get_nav_alignment_class' ) ) {
+            $classes[] = beyond_gotham_get_nav_alignment_class();
         }
-        $classes[] = 'nav-position-' . $position;
 
-        $classes[] = 'nav-dropdown-' . ( 'right' === $dropdown ? 'right' : 'down' );
-
-        if ( ! empty( $nav_layout['sticky'] ) ) {
+        if ( ! empty( $nav_settings['sticky'] ) ) {
             $classes[] = 'bg-has-sticky-header';
+        } else {
+            $classes[] = 'bg-no-sticky-header';
         }
     } else {
-        $classes[] = 'nav-horizontal';
-        $classes[] = 'nav-position-right';
-        $classes[] = 'nav-dropdown-down';
+        $classes[] = 'nav-align-space-between';
         $classes[] = 'bg-has-sticky-header';
+    }
+
+    if ( function_exists( 'beyond_gotham_is_branding_text_only' ) && beyond_gotham_is_branding_text_only() ) {
+        $classes[] = 'brand-text-only';
     }
 
     if ( function_exists( 'beyond_gotham_get_cta_layout_settings' ) ) {

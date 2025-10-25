@@ -133,34 +133,110 @@ function beyond_gotham_get_customizer_css() {
 	$font_unit        = get_theme_mod( 'beyond_gotham_body_font_unit', 'px' );
 	$line_height_value = (float) get_theme_mod( 'beyond_gotham_body_line_height', 1.6 );
 
-	// Content Layout
-	$content_layout = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
+        // Layout scale & spacing.
+        $layout_settings = function_exists( 'beyond_gotham_get_layout_settings' ) ? beyond_gotham_get_layout_settings() : array();
+        $layout_css      = '';
 
-	$layout_css = '';
+        if ( ! empty( $layout_settings ) ) {
+                $container_vars = '';
 
-	if ( ! empty( $content_layout['header_height_css'] ) ) {
-		$layout_css .= ':root{--header-height:' . $content_layout['header_height_css'] . ';}';
-	}
+                if ( isset( $layout_settings['containers'] ) && is_array( $layout_settings['containers'] ) ) {
+                        foreach ( $layout_settings['containers'] as $key => $value ) {
+                                if ( $value > 0 ) {
+                                        $container_vars .= '--container-' . sanitize_key( $key ) . ':' . absint( $value ) . 'px;';
+                                }
+                        }
 
-	$content_rules = array();
+                        if ( isset( $layout_settings['containers']['xl'] ) ) {
+                                $layout_css .= ':root{--content-max-width:' . absint( $layout_settings['containers']['xl'] ) . 'px;}';
+                        }
+                }
 
-	if ( ! empty( $content_layout['max_width_css'] ) ) {
-		$content_rules[] = 'max-width: var(--content-max-width, ' . $content_layout['max_width_css'] . ');';
-		$content_rules[] = 'margin-left: auto;';
-		$content_rules[] = 'margin-right: auto;';
-		$content_rules[] = 'width: min(100%, var(--content-max-width, ' . $content_layout['max_width_css'] . '));';
-	}
+                $spacing_vars = '';
+                $section_gap  = null;
 
-	if ( ! empty( $content_rules ) ) {
-		$layout_css .= '.site-container, .site-main, .site-content {' . implode( ' ', $content_rules ) . '}';
-	}
+                if ( isset( $layout_settings['spacing_scale'] ) && is_array( $layout_settings['spacing_scale'] ) ) {
+                        foreach ( $layout_settings['spacing_scale'] as $key => $value ) {
+                                if ( $value >= 0 ) {
+                                        $spacing_vars .= '--spacing-' . sanitize_key( $key ) . ':' . absint( $value ) . 'px;';
+                                }
+                        }
 
-	if ( isset( $content_layout['section_spacing_css'] ) && '' !== $content_layout['section_spacing_css'] ) {
-		$layout_css .= '.site-container > * + *, .site-main > * + *, .site-content > * + * {margin-top: var(--content-section-gap, ' . $content_layout['section_spacing_css'] . ');}';
-	}
+                        if ( isset( $layout_settings['spacing_scale']['lg'] ) ) {
+                                $section_gap = absint( $layout_settings['spacing_scale']['lg'] );
+                        }
+                }
 
-	// Body Typography
-	$body_rules = array();
+                $grid_gap = isset( $layout_settings['grid_gap'] ) ? absint( $layout_settings['grid_gap'] ) : 0;
+
+                $root_vars = trim( $container_vars . $spacing_vars );
+                if ( '' !== $root_vars || $grid_gap ) {
+                        $layout_css .= ':root{' . $root_vars;
+
+                        if ( $grid_gap ) {
+                                $layout_css .= '--grid-gap:' . $grid_gap . 'px;';
+                        }
+
+                        if ( null !== $section_gap ) {
+                                $layout_css .= '--content-section-gap:' . $section_gap . 'px;';
+                        }
+
+                        $layout_css .= '}';
+                }
+
+                if ( null !== $section_gap ) {
+                        $layout_css .= '.site-container > * + *, .site-main > * + *, .site-content > * + * {margin-top: var(--content-section-gap, ' . $section_gap . 'px);}';
+                }
+
+                if ( ! empty( $layout_settings['containers']['xl'] ) ) {
+                        $max_width = absint( $layout_settings['containers']['xl'] );
+                        $layout_css .= '.site-container, .site-main, .site-content {max-width: var(--content-max-width, ' . $max_width . 'px);margin-left:auto;margin-right:auto;width:min(100%, var(--content-max-width, ' . $max_width . 'px));}';
+                }
+        }
+
+        // Navigation spacing.
+        $nav_spacing = function_exists( 'beyond_gotham_get_nav_spacing_css_values' ) ? beyond_gotham_get_nav_spacing_css_values() : array();
+
+        if ( ! empty( $nav_spacing ) ) {
+                $item_gap  = isset( $nav_spacing['item_gap'] ) ? absint( $nav_spacing['item_gap'] ) : 24;
+                $padding_y = isset( $nav_spacing['padding_y'] ) ? absint( $nav_spacing['padding_y'] ) : 16;
+
+                $layout_css .= ':root{--nav-item-gap:' . $item_gap . 'px;--nav-padding-y:' . $padding_y . 'px;}';
+                $layout_css .= '[data-bg-nav] .site-nav__list{gap:var(--nav-item-gap, ' . $item_gap . 'px);}';
+                $layout_css .= '.site-nav{padding-top:var(--nav-padding-y, ' . $padding_y . 'px);padding-bottom:var(--nav-padding-y, ' . $padding_y . 'px);}';
+        }
+
+        // Branding dimensions.
+        if ( function_exists( 'beyond_gotham_get_brand_logo_dimensions' ) ) {
+                $branding = beyond_gotham_get_brand_logo_dimensions();
+
+                if ( ! empty( $branding['max_width'] ) ) {
+                        $layout_css .= ':root{--brand-logo-max-width:' . absint( $branding['max_width'] ) . 'px;}';
+                        $layout_css .= '.site-logo img{max-width:var(--brand-logo-max-width);}';
+                }
+
+                if ( ! empty( $branding['max_height'] ) ) {
+                        $layout_css .= ':root{--brand-logo-max-height:' . absint( $branding['max_height'] ) . 'px;}';
+                        $layout_css .= '.site-logo img{max-height:var(--brand-logo-max-height);}';
+                }
+
+                if ( isset( $branding['max_width_mobile'] ) && $branding['max_width_mobile'] ) {
+                        $mobile_width = absint( $branding['max_width_mobile'] );
+                        $layout_css  .= ':root{--brand-logo-max-width-mobile:' . $mobile_width . 'px;}';
+                        $layout_css  .= '@media (max-width: 768px){.site-logo img{max-width:var(--brand-logo-max-width-mobile, ' . $mobile_width . 'px);}}';
+                }
+        }
+
+        // Alignment helper classes for navigation.
+        $layout_css .= 'body.nav-align-left [data-bg-nav] .site-nav__list{justify-content:flex-start;}';
+        $layout_css .= 'body.nav-align-center [data-bg-nav] .site-nav__list{justify-content:center;}';
+        $layout_css .= 'body.nav-align-right [data-bg-nav] .site-nav__list{justify-content:flex-end;}';
+        $layout_css .= 'body.nav-align-space-between [data-bg-nav] .site-nav__list{justify-content:space-between;}';
+        $layout_css .= 'body.brand-text-only .site-logo{display:none;}body.brand-text-only .site-title{display:inline-block;}';
+        $layout_css .= 'img.bg-has-lqip{filter:blur(12px);transition:filter .3s ease;}img.bg-has-lqip.bg-lqip-loaded{filter:none;}';
+
+        // Body Typography
+        $body_rules = array();
 
 	if ( isset( $presets[ $body_font_key ] ) ) {
 		$body_rules[] = 'font-family: ' . $presets[ $body_font_key ]['stack'] . ';';
@@ -251,9 +327,13 @@ function beyond_gotham_customize_preview_js() {
 		),
 	);
 
-	$cta_layout    = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
-	$ui_layout     = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
-	$sticky_layout = function_exists( 'beyond_gotham_get_sticky_cta_settings' ) ? beyond_gotham_get_sticky_cta_settings() : array();
+        $cta_layout    = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
+        $ui_layout     = function_exists( 'beyond_gotham_get_ui_layout_settings' ) ? beyond_gotham_get_ui_layout_settings() : array();
+        $sticky_layout = function_exists( 'beyond_gotham_get_sticky_cta_settings' ) ? beyond_gotham_get_sticky_cta_settings() : array();
+        $nav_preview   = function_exists( 'beyond_gotham_get_nav_preview_data' ) ? beyond_gotham_get_nav_preview_data() : array();
+        $branding_data = function_exists( 'beyond_gotham_get_branding_preview_data' ) ? beyond_gotham_get_branding_preview_data() : array();
+        $performance_data = function_exists( 'beyond_gotham_get_performance_preview_data' ) ? beyond_gotham_get_performance_preview_data() : array();
+        $seo_data      = function_exists( 'beyond_gotham_get_seo_preview_data' ) ? beyond_gotham_get_seo_preview_data() : array();
 
 	wp_localize_script(
 		$handle,
@@ -272,11 +352,15 @@ function beyond_gotham_customize_preview_js() {
 				'content' => '[data-bg-sticky-cta-content]',
 				'button'  => '[data-bg-sticky-cta-button]',
 			),
-			'ctaLayout'           => $cta_layout,
-			'stickyCta'           => $sticky_layout,
-			'uiLayout'            => $ui_layout,
-			'defaults'             => $color_defaults,
-			'colorDefaults'        => $color_defaults,
+                        'ctaLayout'           => $cta_layout,
+                        'stickyCta'           => $sticky_layout,
+                        'uiLayout'            => $ui_layout,
+                        'navLayout'           => $nav_preview,
+                        'branding'            => $branding_data,
+                        'performance'         => $performance_data,
+                        'seo'                 => $seo_data,
+                        'defaults'             => $color_defaults,
+                        'colorDefaults'        => $color_defaults,
 			'contrastThreshold'    => 4.5,
 		)
 	);
