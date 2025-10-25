@@ -407,11 +407,11 @@ function beyond_gotham_performance_filter_script_loader( $tag, $handle, $src ) {
 /**
  * Adjust heartbeat interval based on theme setting.
  *
- * @param array $settings Heartbeat settings.
- * @param array $screen   Screen data.
+ * @param array      $settings Heartbeat settings.
+ * @param array|null $screen   Screen data.
  * @return array
  */
-function beyond_gotham_performance_filter_heartbeat_settings( $settings, $screen ) {
+function beyond_gotham_performance_filter_heartbeat_settings( $settings, $screen = null ) {
         $choice = beyond_gotham_get_performance_settings()['heartbeat'];
 
         if ( 'reduce' === $choice ) {
