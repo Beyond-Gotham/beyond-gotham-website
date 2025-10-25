@@ -123,18 +123,34 @@
 
     .footer-navigation {
       width: 100%;
-    }
+      display: block;
 
-    .footer-menu {
-      list-style: none;
-      display: inline-flex;
-      flex-wrap: wrap;
-      gap: 1.25rem;
-      margin: 0;
-      padding: 0;
-
-      li {
+      .footer-menu {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 1.25rem;
         margin: 0;
+        padding: 0;
+        width: 100%;
+
+        li {
+          margin: 0;
+        }
+      }
+
+      &.is-left .footer-menu {
+        justify-content: flex-start;
+      }
+
+      &.is-right .footer-menu {
+        justify-content: flex-end;
+      }
+
+      &.is-justify .footer-menu {
+        justify-content: space-between;
       }
     }
   }

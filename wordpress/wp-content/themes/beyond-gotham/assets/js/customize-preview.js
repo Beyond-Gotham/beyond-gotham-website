@@ -614,6 +614,40 @@
         }
     }
 
+    var FOOTER_NAV_ALIGNMENTS = ['left', 'center', 'right', 'justify'];
+    var FOOTER_NAV_ALIGNMENT_CLASSES = FOOTER_NAV_ALIGNMENTS.map(function (alignment) {
+        return 'is-' + alignment;
+    });
+
+    function sanitizeFooterMenuAlignment(value) {
+        if (typeof value !== 'string') {
+            return 'center';
+        }
+
+        var normalized = value.trim().toLowerCase();
+
+        if (FOOTER_NAV_ALIGNMENTS.indexOf(normalized) !== -1) {
+            return normalized;
+        }
+
+        return 'center';
+    }
+
+    function applyFooterMenuAlignment(value) {
+        var alignment = sanitizeFooterMenuAlignment(value);
+        var className = 'is-' + alignment;
+        var nodes = getNodes('.footer-navigation');
+
+        if (!nodes.length) {
+            return;
+        }
+
+        nodes.forEach(function (node) {
+            applyChoiceClass(node, FOOTER_NAV_ALIGNMENT_CLASSES, className);
+            node.setAttribute('data-footer-alignment', alignment);
+        });
+    }
+
     var rawMobileWidth = typeof rawCtaLayout.mobile_width !== 'undefined' ? rawCtaLayout.mobile_width : rawCtaLayout.mobileWidth;
     var rawMobileHeight = typeof rawCtaLayout.mobile_height !== 'undefined' ? rawCtaLayout.mobile_height : rawCtaLayout.mobileHeight;
     var rawMobilePadding = typeof rawCtaLayout.mobile_padding !== 'undefined' ? rawCtaLayout.mobile_padding : rawCtaLayout.mobilePadding;
@@ -1672,6 +1706,14 @@ function updateCTALayout() {
         value.bind(function (newValue) {
             footerLayoutState.height = toPositiveFloat(newValue);
             applyFooterLayout();
+        });
+    });
+
+    api('beyond_gotham_footer_menu_alignment', function (value) {
+        applyFooterMenuAlignment(value.get());
+
+        value.bind(function (newValue) {
+            applyFooterMenuAlignment(newValue);
         });
     });
 
