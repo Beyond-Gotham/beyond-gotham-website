@@ -705,7 +705,8 @@ add_action( 'wp_enqueue_scripts', 'beyond_gotham_disable_wp_embed', 100 );
  * @return array
  */
 function beyond_gotham_enable_modern_image_mimes( $mimes ) {
-    $mimes['webp'] = 'image/webp';
+    $mimes['webp']  = 'image/webp';
+    $mimes['woff2'] = 'font/woff2';
 
     return $mimes;
 }
