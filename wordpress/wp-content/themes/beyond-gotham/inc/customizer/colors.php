@@ -257,50 +257,54 @@ function beyond_gotham_get_all_color_settings() {
 	);
 }
 
-/**
- * Get color mode selector prefixes.
- *
- * @param string $mode Color mode key.
- * @return array
- */
-function beyond_gotham_get_color_mode_prefixes( $mode ) {
-	$mode = 'dark' === $mode ? 'dark' : 'light';
+if ( ! function_exists( 'beyond_gotham_get_color_mode_prefixes' ) ) {
+	/**
+	 * Get color mode selector prefixes.
+	 *
+	 * @param string $mode Color mode key.
+	 * @return array
+	 */
+	function beyond_gotham_get_color_mode_prefixes( $mode ) {
+		$mode = 'dark' === $mode ? 'dark' : 'light';
 
-	return array(
-		'html.theme-' . $mode,
-		'html[data-theme="' . $mode . '"]',
-		'body.theme-' . $mode,
-	);
+		return array(
+			'html.theme-' . $mode,
+			'html[data-theme="' . $mode . '"]',
+			'body.theme-' . $mode,
+		);
+	}
 }
 
-/**
- * Build a comma-separated selector list scoped to the requested color mode.
- *
- * @param string $mode      Color mode key (light or dark).
- * @param array  $selectors Base selectors relative to the root.
- * @return string
- */
-function beyond_gotham_build_mode_selector_list( $mode, array $selectors ) {
-	$prefixes = beyond_gotham_get_color_mode_prefixes( $mode );
-	$scoped   = array();
+if ( ! function_exists( 'beyond_gotham_build_mode_selector_list' ) ) {
+	/**
+	 * Build a comma-separated selector list scoped to the requested color mode.
+	 *
+	 * @param string $mode      Color mode key (light or dark).
+	 * @param array  $selectors Base selectors relative to the root.
+	 * @return string
+	 */
+	function beyond_gotham_build_mode_selector_list( $mode, array $selectors ) {
+		$prefixes = beyond_gotham_get_color_mode_prefixes( $mode );
+		$scoped   = array();
 
-	foreach ( $prefixes as $prefix ) {
-		foreach ( $selectors as $selector ) {
-			$selector = trim( (string) $selector );
+		foreach ( $prefixes as $prefix ) {
+			foreach ( $selectors as $selector ) {
+				$selector = trim( (string) $selector );
 
-			if ( '' === $selector ) {
-				$scoped[] = $prefix;
-				continue;
+				if ( '' === $selector ) {
+					$scoped[] = $prefix;
+					continue;
+				}
+
+				if ( 0 === strpos( $selector, '&' ) ) {
+					$scoped[] = str_replace( '&', $prefix, $selector );
+					continue;
+				}
+
+				$scoped[] = trim( $prefix . ' ' . $selector );
 			}
-
-			if ( 0 === strpos( $selector, '&' ) ) {
-				$scoped[] = str_replace( '&', $prefix, $selector );
-				continue;
-			}
-
-			$scoped[] = trim( $prefix . ' ' . $selector );
 		}
-	}
 
-	return implode( ', ', array_unique( $scoped ) );
+		return implode( ', ', array_unique( $scoped ) );
+	}
 }

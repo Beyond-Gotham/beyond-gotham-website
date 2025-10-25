@@ -21,6 +21,14 @@
 
 ---
 
+## 🛠️ Dev Notes (Single Source of Truth)
+
+- `beyond_gotham_get_color_mode_prefixes()` und `beyond_gotham_build_mode_selector_list()` leben zentral in [`inc/customizer/colors.php`](colors.php). Das Styles-Modul lädt diese Datei (`require_once __DIR__ . '/colors.php';`) und konsumiert die Funktionen ausschließlich, statt eigene Helfer zu definieren.
+- Der Customizer-Loader sortiert Modul-Dateien so, dass Provider wie das Colors-Modul vor konsumierenden Modulen (z. B. Styles) geladen werden. Dadurch stehen Farb-Utilities für Hooks, AJAX und den Live-Preview immer bereit.
+- Erweiterungen sollen über Filter/Hooks (z. B. `beyond_gotham_customizer_css`) erfolgen. Zusätzliche globale Helper mit `beyond_gotham_…` Präfix dürfen nur in einem Modul existieren, um Funktionsdubletten zu vermeiden.
+
+---
+
 ## 🎯 Projektstatus
 
 | Aufgabe | Status | Fortschritt |
