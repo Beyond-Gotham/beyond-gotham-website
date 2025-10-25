@@ -163,9 +163,49 @@ final class Beyond_Gotham_Customizer_Loader {
             return;
         }
 
+        $module_files = $this->sort_module_files( $module_files );
+
         foreach ( $module_files as $file ) {
             $this->load_module_file( $file );
         }
+    }
+
+    /**
+     * Sort module file paths so provider modules are loaded before consumers.
+     *
+     * @param array $files List of module file paths.
+     * @return array
+     */
+    private function sort_module_files( array $files ) {
+        if ( empty( $files ) ) {
+            return $files;
+        }
+
+        $priority_map = array(
+            'class-customizer-module-colors.php' => 10,
+            'class-customizer-module-typography.php' => 20,
+            'class-customizer-module-layout.php' => 30,
+            'class-customizer-module-styles.php' => 90,
+        );
+
+        usort(
+            $files,
+            function ( $a, $b ) use ( $priority_map ) {
+                $a_basename = basename( (string) $a );
+                $b_basename = basename( (string) $b );
+
+                $a_priority = isset( $priority_map[ $a_basename ] ) ? $priority_map[ $a_basename ] : 50;
+                $b_priority = isset( $priority_map[ $b_basename ] ) ? $priority_map[ $b_basename ] : 50;
+
+                if ( $a_priority === $b_priority ) {
+                    return strcmp( $a_basename, $b_basename );
+                }
+
+                return $a_priority <=> $b_priority;
+            }
+        );
+
+        return $files;
     }
 
     /**
