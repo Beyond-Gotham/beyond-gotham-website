@@ -135,15 +135,47 @@ final class Beyond_Gotham_Customizer_Loader {
      * @return void
      */
     private function load_support_files() {
-        $helpers  = $this->base_dir . 'helpers.php';
-        $controls = $this->base_dir . 'controls.php';
+        $utils_dir = trailingslashit( $this->base_dir . 'utils' );
 
-        if ( file_exists( $helpers ) ) {
-            require_once $helpers;
+        if ( ! is_dir( $utils_dir ) ) {
+            return;
         }
 
-        if ( file_exists( $controls ) ) {
-            require_once $controls;
+        $priority = array(
+            'helpers.php',
+            'controls.php',
+            'colors.php',
+            'typography.php',
+        );
+
+        $files = glob( $utils_dir . '*.php' );
+
+        if ( empty( $files ) ) {
+            return;
+        }
+
+        $priority_files = array();
+        foreach ( $priority as $filename ) {
+            $path = $utils_dir . $filename;
+            if ( file_exists( $path ) ) {
+                $priority_files[] = $path;
+            }
+        }
+
+        $remaining = array_udiff(
+            $files,
+            $priority_files,
+            function ( $a, $b ) {
+                return strcmp( (string) $a, (string) $b );
+            }
+        );
+
+        sort( $remaining, SORT_STRING );
+
+        $ordered = array_merge( $priority_files, $remaining );
+
+        foreach ( $ordered as $file ) {
+            require_once $file;
         }
     }
 

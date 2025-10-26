@@ -314,7 +314,7 @@ function beyond_gotham_bootstrap_performance_features() {
         if ( 'disable' === $settings['heartbeat'] ) {
                 add_filter( 'heartbeat_enabled', '__return_false' );
         } else {
-                add_filter( 'heartbeat_settings', 'beyond_gotham_performance_filter_heartbeat_settings', 10, 2 );
+                add_filter( 'heartbeat_settings', 'beyond_gotham_performance_filter_heartbeat_settings', 10, 1 );
         }
 
         if ( ! empty( $settings['lqip'] ) ) {
@@ -407,11 +407,10 @@ function beyond_gotham_performance_filter_script_loader( $tag, $handle, $src ) {
 /**
  * Adjust heartbeat interval based on theme setting.
  *
- * @param array      $settings Heartbeat settings.
- * @param array|null $screen   Screen data.
+ * @param array $settings Heartbeat settings.
  * @return array
  */
-function beyond_gotham_performance_filter_heartbeat_settings( $settings, $screen = null ) {
+function beyond_gotham_performance_filter_heartbeat_settings( $settings ) {
         $choice = beyond_gotham_get_performance_settings()['heartbeat'];
 
         if ( 'reduce' === $choice ) {

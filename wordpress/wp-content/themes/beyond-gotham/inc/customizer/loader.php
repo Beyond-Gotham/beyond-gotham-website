@@ -9,4 +9,4 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-require_once __DIR__ . '/class-customizer-loader.php';
+require_once __DIR__ . '/loader/class-customizer-loader.php';

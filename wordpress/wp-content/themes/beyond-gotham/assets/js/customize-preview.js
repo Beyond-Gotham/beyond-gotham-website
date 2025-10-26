@@ -21,6 +21,19 @@
     var ctaLayoutState = {};
     var stickyState = Object.assign({}, (data && data.stickyCta) ? data.stickyCta : {});
     var stickyDefaults = Object.assign({}, stickyState);
+    var previewUtils = {
+        sanitizeHexColor: sanitizeHexColor,
+        sanitizeSocialbarVariant: sanitizeSocialbarVariant,
+        sanitizePosition: sanitizePosition,
+        sanitizeAlignment: sanitizeAlignment,
+        formatCtaDimension: formatCtaDimension,
+        formatPxValue: formatPxValue,
+        formatWidthValue: formatWidthValue,
+        sanitizeAspectChoice: sanitizeAspectChoice,
+        sanitizeThumbnailUnit: sanitizeThumbnailUnit,
+        sanitizeFooterMenuAlignment: sanitizeFooterMenuAlignment,
+        sanitizeFooterMobileLayout: sanitizeFooterMobileLayout
+    };
 
     function toArray(nodeList) {
         return Array.prototype.slice.call(nodeList || []);
@@ -679,7 +692,7 @@
     }
 
     function applyFooterMenuAlignment(value) {
-        var alignment = sanitizeFooterMenuAlignment(value);
+        var alignment = previewUtils.sanitizeFooterMenuAlignment(value);
         var className = 'is-' + alignment;
         var nodes = getNodes('.footer-navigation');
         var containers = getNodes('.footer-inner');
@@ -718,7 +731,7 @@
     }
 
     function applyFooterMobileLayout(value) {
-        var layout = sanitizeFooterMobileLayout(value);
+        var layout = previewUtils.sanitizeFooterMobileLayout(value);
         var containers = getNodes('.footer-inner');
 
         containers.forEach(function (container) {
@@ -778,9 +791,9 @@
     };
 
     var thumbnailLayoutState = {
-        aspectRatio: sanitizeAspectChoice(thumbnailData.aspect_ratio || thumbnailData.aspectRatio),
+        aspectRatio: previewUtils.sanitizeAspectChoice(thumbnailData.aspect_ratio || thumbnailData.aspectRatio),
         maxWidthValue: toPositiveFloat(typeof thumbnailData.max_width_value !== 'undefined' ? thumbnailData.max_width_value : thumbnailData.maxWidthValue),
-        maxWidthUnit: sanitizeThumbnailUnit(thumbnailData.max_width_unit || thumbnailData.maxWidthUnit)
+        maxWidthUnit: previewUtils.sanitizeThumbnailUnit(thumbnailData.max_width_unit || thumbnailData.maxWidthUnit)
     };
 
     var contentLayoutState = {
@@ -852,9 +865,9 @@
     }
 
     function applyThumbnailLayout() {
-        var ratioKey = sanitizeAspectChoice(thumbnailLayoutState.aspectRatio);
+        var ratioKey = previewUtils.sanitizeAspectChoice(thumbnailLayoutState.aspectRatio);
         var ratioValue = THUMBNAIL_ASPECT_MAP[ratioKey] || THUMBNAIL_ASPECT_MAP['16-9'];
-        var widthCss = formatWidthValue(thumbnailLayoutState.maxWidthValue, sanitizeThumbnailUnit(thumbnailLayoutState.maxWidthUnit));
+        var widthCss = previewUtils.formatWidthValue(thumbnailLayoutState.maxWidthValue, previewUtils.sanitizeThumbnailUnit(thumbnailLayoutState.maxWidthUnit));
 
         setCSSVariable('--post-thumbnail-aspect-ratio', ratioValue);
         setCSSVariable('--post-thumbnail-max-width', widthCss);
@@ -1956,11 +1969,11 @@
         });
 
         api('beyond_gotham_thumbnail_aspect_ratio', function (value) {
-            thumbnailLayoutState.aspectRatio = sanitizeAspectChoice(value.get());
+            thumbnailLayoutState.aspectRatio = previewUtils.sanitizeAspectChoice(value.get());
             applyThumbnailLayout();
 
             value.bind(function (newValue) {
-                thumbnailLayoutState.aspectRatio = sanitizeAspectChoice(newValue);
+                thumbnailLayoutState.aspectRatio = previewUtils.sanitizeAspectChoice(newValue);
                 applyThumbnailLayout();
             });
         });
@@ -1976,11 +1989,11 @@
         });
 
         api('beyond_gotham_thumbnail_max_width_unit', function (value) {
-            thumbnailLayoutState.maxWidthUnit = sanitizeThumbnailUnit(value.get());
+            thumbnailLayoutState.maxWidthUnit = previewUtils.sanitizeThumbnailUnit(value.get());
             applyThumbnailLayout();
 
             value.bind(function (newValue) {
-                thumbnailLayoutState.maxWidthUnit = sanitizeThumbnailUnit(newValue);
+                thumbnailLayoutState.maxWidthUnit = previewUtils.sanitizeThumbnailUnit(newValue);
                 applyThumbnailLayout();
             });
         });
@@ -2378,6 +2391,10 @@
 
     var domReady = false;
     var customizeReady = false;
+    if (typeof window !== 'undefined') {
+        window.BeyondGothamPreviewUtils = previewUtils;
+    }
+
     var initialized = false;
 
     function requestInitialization() {

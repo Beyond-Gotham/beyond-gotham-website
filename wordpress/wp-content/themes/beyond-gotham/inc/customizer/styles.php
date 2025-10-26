@@ -9,14 +9,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once __DIR__ . '/colors.php';
+require_once __DIR__ . '/utils/colors.php';
+require_once __DIR__ . '/utils/typography.php';
 
 // =============================================================================
 // CSS Generation Functions
 // =============================================================================
 
 // Note: beyond_gotham_get_color_mode_prefixes() and beyond_gotham_build_mode_selector_list()
-// are defined in colors.php which is loaded before this file.
+// are defined in utils/colors.php which is loaded before this file.
 
 /**
  * Build CSS variables and typography from Customizer values.
