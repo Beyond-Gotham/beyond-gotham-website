@@ -34,44 +34,6 @@ $defaults = array(
 
 $data = wp_parse_args( $args, $defaults );
 
-$format_attributes = static function ( $attributes ) {
-        if ( empty( $attributes ) || ! is_array( $attributes ) ) {
-                return '';
-        }
-
-        $parts = array();
-
-        foreach ( $attributes as $name => $value ) {
-                if ( is_int( $name ) ) {
-                        $name  = $value;
-                        $value = true;
-                }
-
-                if ( ! is_string( $name ) ) {
-                        continue;
-                }
-
-                $name = trim( $name );
-
-                if ( '' === $name || ! preg_match( '/^[a-zA-Z0-9_:-]+$/', $name ) ) {
-                        continue;
-                }
-
-                if ( true === $value ) {
-                        $parts[] = esc_attr( strtolower( $name ) );
-                        continue;
-                }
-
-                if ( false === $value || null === $value || '' === $value ) {
-                        continue;
-                }
-
-                $parts[] = sprintf( '%s="%s"', esc_attr( strtolower( $name ) ), esc_attr( $value ) );
-        }
-
-        return $parts ? ' ' . implode( ' ', $parts ) : '';
-};
-
 $variant = in_array( $data['variant'], array( 'cta', 'newsletter' ), true ) ? $data['variant'] : 'cta';
 $title   = is_string( $data['title'] ) ? trim( $data['title'] ) : '';
 $text    = is_string( $data['text'] ) ? $data['text'] : '';
@@ -143,18 +105,18 @@ if ( 'newsletter' === $variant ) {
         echo '<div class="newsletter__content">';
 
         if ( $render_title ) {
-                printf( '<%1$s%2$s>%3$s</%1$s>', esc_html( $title_tag ), $format_attributes( $title_attributes ), esc_html( $title ) );
+                printf( '<%1$s%2$s>%3$s</%1$s>', esc_html( $title_tag ), beyond_gotham_format_html_attributes( $title_attributes ), esc_html( $title ) );
         }
 
         if ( $render_text ) {
-                printf( '<p%1$s>%2$s</p>', $format_attributes( $text_attributes ), wp_kses_post( $text ) );
+                printf( '<p%1$s>%2$s</p>', beyond_gotham_format_html_attributes( $text_attributes ), wp_kses_post( $text ) );
         }
 
         echo '</div>';
         echo '<div class="newsletter__form newsletter__actions">';
 
         if ( $render_button ) {
-                printf( '<a%1$s>%2$s</a>', $format_attributes( $button_attributes ), esc_html( $button_label ) );
+                printf( '<a%1$s>%2$s</a>', beyond_gotham_format_html_attributes( $button_attributes ), esc_html( $button_label ) );
         }
 
         if ( ! empty( $data['after_content'] ) ) {
@@ -167,15 +129,15 @@ if ( 'newsletter' === $variant ) {
 }
 
 if ( $render_title ) {
-        printf( '<%1$s%2$s>%3$s</%1$s>', esc_html( $title_tag ), $format_attributes( $title_attributes ), esc_html( $title ) );
+        printf( '<%1$s%2$s>%3$s</%1$s>', esc_html( $title_tag ), beyond_gotham_format_html_attributes( $title_attributes ), esc_html( $title ) );
 }
 
 if ( $render_text ) {
-        printf( '<%1$s%2$s>%3$s</%1$s>', esc_html( $text_tag ), $format_attributes( $text_attributes ), wp_kses_post( $text ) );
+        printf( '<%1$s%2$s>%3$s</%1$s>', esc_html( $text_tag ), beyond_gotham_format_html_attributes( $text_attributes ), wp_kses_post( $text ) );
 }
 
 if ( $render_button ) {
-        printf( '<a%1$s>%2$s</a>', $format_attributes( $button_attributes ), esc_html( $button_label ) );
+        printf( '<a%1$s>%2$s</a>', beyond_gotham_format_html_attributes( $button_attributes ), esc_html( $button_label ) );
 }
 
 if ( $data['render_social'] ) {

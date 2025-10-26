@@ -70,6 +70,7 @@ function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_
                         'default'           => $defaults['primary_enabled'],
                         'type'              => 'theme_mod',
                         'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                        'transport'         => 'postMessage',
                 )
         );
 
@@ -89,6 +90,7 @@ function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_
                         'default'           => $defaults['secondary_enabled'],
                         'type'              => 'theme_mod',
                         'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                        'transport'         => 'postMessage',
                 )
         );
 
@@ -109,6 +111,7 @@ function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_
                         'default'           => $defaults['footer_enabled'],
                         'type'              => 'theme_mod',
                         'sanitize_callback' => 'beyond_gotham_sanitize_checkbox',
+                        'transport'         => 'postMessage',
                 )
         );
 
@@ -350,6 +353,9 @@ function beyond_gotham_get_nav_preview_data() {
                 'sticky'      => ! empty( $settings['sticky'] ),
                 'itemSpacing' => $spacing['item_gap'],
                 'paddingY'    => $spacing['padding_y'],
+                'primaryEnabled'   => ! empty( $settings['primary_enabled'] ),
+                'secondaryEnabled' => ! empty( $settings['secondary_enabled'] ),
+                'footerEnabled'    => ! empty( $settings['footer_enabled'] ),
         );
 }
 

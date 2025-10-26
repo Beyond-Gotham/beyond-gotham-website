@@ -1,3 +1,5 @@
+@use "../base/breakpoints" as bp;
+
 // Beyond Gotham - single post styles
 
 .single-post-main {
@@ -497,7 +499,7 @@ pre {
   color: var(--brand-beacon);
 }
 
-@media (min-width: 768px) {
+@include bp.up('tablet') {
   .single-post-main {
     padding-left: clamp(2rem, 6vw, 6rem);
     padding-right: clamp(2rem, 6vw, 6rem);
@@ -509,7 +511,7 @@ pre {
   }
 }
 
-@media (min-width: 1024px) {
+@include bp.up('desktop') {
   .single-article {
     max-width: min(82ch, 960px);
   }

@@ -1,3 +1,5 @@
+@use "../base/breakpoints" as bp;
+
 .wp-block-quote.is-style-bg-quote {
   position: relative;
   padding: 2rem 2rem 2rem 3rem;
@@ -175,7 +177,7 @@
     }
   }
 
-  @media (min-width: 48em) {
+  @include bp.up('tablet') {
     .footer-inner[data-footer-alignment='center'] {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
@@ -196,7 +198,7 @@
     }
   }
 
-  @media (max-width: 47.99em) {
+  @include bp.down('tablet') {
     .footer-inner[data-footer-mobile-layout='stack'] {
       flex-direction: column;
       align-items: center;
@@ -260,7 +262,7 @@
   justify-content: center;
 }
 
-@media (max-width: 47.99em) {
+@include bp.down('tablet') {
   .site-footer {
     .footer-inner[data-footer-mobile-layout='inline'] {
       gap: 1.25rem;

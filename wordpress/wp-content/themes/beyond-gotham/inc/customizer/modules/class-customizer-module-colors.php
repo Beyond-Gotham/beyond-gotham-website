@@ -38,7 +38,7 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
         $defaults = beyond_gotham_get_color_defaults();
 
         return array(
-            'background'        => array(
+            'background_color'        => array(
                 'label'       => __( 'Hintergrundfarbe', 'beyond_gotham' ),
                 'description' => __( 'Haupthintergrundfarbe der Seite.', 'beyond_gotham' ),
                 'defaults'    => array(
@@ -46,7 +46,7 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
                     'dark'  => $defaults['dark']['background'],
                 ),
             ),
-            'text_color'        => array(
+            'text_color'             => array(
                 'label'       => __( 'Textfarbe', 'beyond_gotham' ),
                 'description' => __( 'Standard-Textfarbe für Fließtext.', 'beyond_gotham' ),
                 'defaults'    => array(
@@ -54,15 +54,49 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
                     'dark'  => $defaults['dark']['text_color'],
                 ),
             ),
-            'accent'            => array(
-                'label'       => __( 'Akzentfarbe', 'beyond_gotham' ),
-                'description' => __( 'Primäre Akzentfarbe für CTAs und Highlights.', 'beyond_gotham' ),
+            'primary_color'          => array(
+                'label'       => __( 'Primäre Akzentfarbe', 'beyond_gotham' ),
+                'description' => __( 'Markenfarbe für Buttons, Links und Highlights.', 'beyond_gotham' ),
                 'defaults'    => array(
-                    'light' => $defaults['light']['accent'],
-                    'dark'  => $defaults['dark']['accent'],
+                    'light' => $defaults['light']['primary'],
+                    'dark'  => $defaults['dark']['primary'],
+                ),
+                'legacy'      => 'accent',
+            ),
+            'secondary_color'        => array(
+                'label'       => __( 'Sekundärfarbe', 'beyond_gotham' ),
+                'description' => __( 'Zweite Markenfarbe für Badges oder Hover-Zustände.', 'beyond_gotham' ),
+                'defaults'    => array(
+                    'light' => $defaults['light']['secondary'],
+                    'dark'  => $defaults['dark']['secondary'],
                 ),
             ),
-            'link'              => array(
+            'cta_accent_color'       => array(
+                'label'       => __( 'CTA-Akzentfarbe', 'beyond_gotham' ),
+                'description' => __( 'Farbe für Call-to-Action-Boxen und Sticky-CTA.', 'beyond_gotham' ),
+                'defaults'    => array(
+                    'light' => $defaults['light']['cta_accent'],
+                    'dark'  => $defaults['dark']['cta_accent'],
+                ),
+                'legacy'      => 'accent',
+            ),
+            'header_background_color'=> array(
+                'label'       => __( 'Header-Hintergrund', 'beyond_gotham' ),
+                'description' => __( 'Steuert den Hintergrund des Kopfbereichs.', 'beyond_gotham' ),
+                'defaults'    => array(
+                    'light' => $defaults['light']['header_background'],
+                    'dark'  => $defaults['dark']['header_background'],
+                ),
+            ),
+            'footer_background_color'=> array(
+                'label'       => __( 'Footer-Hintergrund', 'beyond_gotham' ),
+                'description' => __( 'Farbe der Footer-Fläche.', 'beyond_gotham' ),
+                'defaults'    => array(
+                    'light' => $defaults['light']['footer_background'],
+                    'dark'  => $defaults['dark']['footer_background'],
+                ),
+            ),
+            'link_color'             => array(
                 'label'       => __( 'Link-Farbe', 'beyond_gotham' ),
                 'description' => __( 'Farbe für Textlinks.', 'beyond_gotham' ),
                 'defaults'    => array(
@@ -70,7 +104,7 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
                     'dark'  => $defaults['dark']['link'],
                 ),
             ),
-            'link_hover'        => array(
+            'link_hover_color'       => array(
                 'label'       => __( 'Link-Hover-Farbe', 'beyond_gotham' ),
                 'description' => __( 'Link-Farbe beim Hover-Zustand.', 'beyond_gotham' ),
                 'defaults'    => array(
@@ -78,7 +112,7 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
                     'dark'  => $defaults['dark']['link_hover'],
                 ),
             ),
-            'button_background' => array(
+            'button_background_color' => array(
                 'label'       => __( 'Button-Hintergrund', 'beyond_gotham' ),
                 'description' => __( 'Hintergrundfarbe für primäre Buttons.', 'beyond_gotham' ),
                 'defaults'    => array(
@@ -86,7 +120,7 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
                     'dark'  => $defaults['dark']['button_background'],
                 ),
             ),
-            'button_text'       => array(
+            'button_text_color'     => array(
                 'label'       => __( 'Button-Textfarbe', 'beyond_gotham' ),
                 'description' => __( 'Textfarbe in Buttons.', 'beyond_gotham' ),
                 'defaults'    => array(
@@ -94,7 +128,7 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
                     'dark'  => $defaults['dark']['button_text'],
                 ),
             ),
-            'quote_background'  => array(
+            'quote_background_color' => array(
                 'label'       => __( 'Zitat-Hintergrund', 'beyond_gotham' ),
                 'description' => __( 'Hintergrundfarbe für Zitate und Highlight-Boxen.', 'beyond_gotham' ),
                 'defaults'    => array(
@@ -152,6 +186,15 @@ class Beyond_Gotham_Customizer_Module_Colors extends Beyond_Gotham_Abstract_Cust
                 $setting_id = sprintf( 'beyond_gotham_%s_%s', $setting_key, $mode_key );
                 $control_id = $setting_id . '_control';
                 $default    = isset( $control_args['defaults'][ $mode_key ] ) ? $control_args['defaults'][ $mode_key ] : '';
+
+                if ( ! empty( $control_args['legacy'] ) ) {
+                    $legacy_setting = sprintf( 'beyond_gotham_%s_%s', $control_args['legacy'], $mode_key );
+                    $legacy_value   = sanitize_hex_color( get_theme_mod( $legacy_setting ) );
+
+                    if ( $legacy_value ) {
+                        $default = $legacy_value;
+                    }
+                }
 
                 $wp_customize->add_setting(
                     $setting_id,

@@ -9,6 +9,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
+if ( ! function_exists( 'beyond_gotham_format_html_attributes' ) ) {
+        require_once get_template_directory() . '/inc/helpers-html.php';
+}
+
 // =============================================================================
 // Social Links & Settings
 // =============================================================================
@@ -209,33 +213,6 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
         $links    = beyond_gotham_get_social_links();
         $settings = beyond_gotham_get_socialbar_settings();
 
-        $format_attributes = static function( $attributes ) {
-                if ( empty( $attributes ) || ! is_array( $attributes ) ) {
-                        return array();
-                }
-
-                $chunks = array();
-
-                foreach ( $attributes as $attr => $value ) {
-                        if ( '' === $attr ) {
-                                continue;
-                        }
-
-                        if ( true === $value ) {
-                                $chunks[] = esc_attr( $attr );
-                                continue;
-                        }
-
-                        if ( null === $value || '' === $value ) {
-                                continue;
-                        }
-
-                        $chunks[] = sprintf( '%s="%s"', esc_attr( $attr ), esc_attr( $value ) );
-                }
-
-                return $chunks;
-        };
-
         $is_preview       = function_exists( 'is_customize_preview' ) && is_customize_preview();
         $location_enabled = array(
                 'header' => ! empty( $settings['show_header'] ),
@@ -343,15 +320,9 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
 
         $wrapper_attributes = apply_filters( 'beyond_gotham_socialbar_wrapper_attributes', $wrapper_attributes, $location, $settings, $items );
 
-        $attribute_chunks = $format_attributes( $wrapper_attributes );
+        $wrapper_attribute_string = beyond_gotham_format_html_attributes( $wrapper_attributes );
 
-        echo '<ul';
-
-        if ( ! empty( $attribute_chunks ) ) {
-                echo ' ' . implode( ' ', $attribute_chunks );
-        }
-
-        echo '>';
+        echo '<ul' . $wrapper_attribute_string . '>';
 
         foreach ( $items as $item ) {
                 if ( empty( $item['icon'] ) ) {
@@ -383,15 +354,9 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
                 $item_classes = array_map( 'sanitize_html_class', array_filter( $item_classes ) );
 
                 $item_attributes = apply_filters( 'beyond_gotham_socialbar_item_attributes', $item_attributes, $item, $location, $settings );
-                $item_attribute_chunks = $format_attributes( $item_attributes );
+                $item_attribute_string = beyond_gotham_format_html_attributes( $item_attributes );
 
-                echo '<li class="' . esc_attr( implode( ' ', $item_classes ) ) . '"';
-
-                if ( ! empty( $item_attribute_chunks ) ) {
-                        echo ' ' . implode( ' ', $item_attribute_chunks );
-                }
-
-                echo '>';
+                echo '<li class="' . esc_attr( implode( ' ', $item_classes ) ) . '"' . $item_attribute_string . '>';
 
                 $link_attributes = array(
                         'class'        => 'socialbar__link',
@@ -413,15 +378,9 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
                 }
 
                 $link_attributes = apply_filters( 'beyond_gotham_socialbar_link_attributes', $link_attributes, $item, $location, $settings );
-                $link_attribute_parts = $format_attributes( $link_attributes );
+                $link_attribute_string = beyond_gotham_format_html_attributes( $link_attributes );
 
-                echo '<a';
-
-                if ( ! empty( $link_attribute_parts ) ) {
-                        echo ' ' . implode( ' ', $link_attribute_parts );
-                }
-
-                echo '>';
+                echo '<a' . $link_attribute_string . '>';
                 echo '<span class="socialbar__icon" aria-hidden="true">' . $item['icon'] . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 echo '<span class="socialbar__label">' . esc_html( $item['label'] ) . '</span>';
                 echo '</a>';

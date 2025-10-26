@@ -17,24 +17,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 function beyond_gotham_get_color_defaults() {
     return array(
         'light' => array(
-            'background'          => '#ffffff',
-            'text_color'          => '#1a1a1a',
-            'accent'              => '#2563eb',
-            'link'                => '#2563eb',
-            'link_hover'          => '#1e40af',
-            'button_background'   => '#2563eb',
-            'button_text'         => '#ffffff',
+            'background'          => '#f4f6fb',
+            'text_color'          => '#0f172a',
+            'primary'             => '#33d1ff',
+            'secondary'           => '#1aa5d1',
+            'cta_accent'          => '#33d1ff',
+            'header_background'   => '#ffffff',
+            'footer_background'   => '#f4f6fb',
+            'link'                => '#0f172a',
+            'link_hover'          => '#1aa5d1',
+            'button_background'   => '#33d1ff',
+            'button_text'         => '#050608',
             'quote_background'    => '#e6edf7',
+            'accent'              => '#33d1ff',
         ),
         'dark'  => array(
-            'background'          => '#050608',
-            'text_color'          => '#e5e7eb',
-            'accent'              => '#3b82f6',
-            'link'                => '#60a5fa',
-            'link_hover'          => '#93c5fd',
-            'button_background'   => '#3b82f6',
-            'button_text'         => '#ffffff',
+            'background'          => '#0f1115',
+            'text_color'          => '#e7eaee',
+            'primary'             => '#33d1ff',
+            'secondary'           => '#1aa5d1',
+            'cta_accent'          => '#33d1ff',
+            'header_background'   => '#0b0d12',
+            'footer_background'   => '#050608',
+            'link'                => '#33d1ff',
+            'link_hover'          => '#1aa5d1',
+            'button_background'   => '#33d1ff',
+            'button_text'         => '#050608',
             'quote_background'    => '#161b2a',
+            'accent'              => '#33d1ff',
         ),
     );
 }
@@ -49,24 +59,48 @@ function beyond_gotham_get_color_palette( $mode = 'light' ) {
     $mode     = in_array( $mode, array( 'light', 'dark' ), true ) ? $mode : 'light';
     $defaults = beyond_gotham_get_color_defaults();
 
-    $palette = array(
-        'background'        => get_theme_mod( 'beyond_gotham_background_' . $mode, $defaults[ $mode ]['background'] ),
-        'text_color'        => get_theme_mod( 'beyond_gotham_text_color_' . $mode, $defaults[ $mode ]['text_color'] ),
-        'accent'            => get_theme_mod( 'beyond_gotham_accent_' . $mode, $defaults[ $mode ]['accent'] ),
-        'link'              => get_theme_mod( 'beyond_gotham_link_' . $mode, $defaults[ $mode ]['link'] ),
-        'link_hover'        => get_theme_mod( 'beyond_gotham_link_hover_' . $mode, $defaults[ $mode ]['link_hover'] ),
-        'button_background' => get_theme_mod( 'beyond_gotham_button_background_' . $mode, $defaults[ $mode ]['button_background'] ),
-        'button_text'       => get_theme_mod( 'beyond_gotham_button_text_' . $mode, $defaults[ $mode ]['button_text'] ),
-        'quote_background'  => get_theme_mod( 'beyond_gotham_quote_background_' . $mode, $defaults[ $mode ]['quote_background'] ),
+    $settings_map = array(
+        'background'        => array( 'id' => 'background_color' ),
+        'text_color'        => array( 'id' => 'text_color' ),
+        'primary'           => array( 'id' => 'primary_color', 'legacy' => 'accent' ),
+        'secondary'         => array( 'id' => 'secondary_color' ),
+        'cta_accent'        => array( 'id' => 'cta_accent_color', 'legacy' => 'accent' ),
+        'header_background' => array( 'id' => 'header_background_color' ),
+        'footer_background' => array( 'id' => 'footer_background_color' ),
+        'link'              => array( 'id' => 'link_color' ),
+        'link_hover'        => array( 'id' => 'link_hover_color' ),
+        'button_background' => array( 'id' => 'button_background_color' ),
+        'button_text'       => array( 'id' => 'button_text_color' ),
+        'quote_background'  => array( 'id' => 'quote_background_color' ),
     );
 
-    $palette = array_map( 'sanitize_hex_color', $palette );
+    $palette = array();
 
-    foreach ( $palette as $key => $value ) {
-        if ( ! $value && isset( $defaults[ $mode ][ $key ] ) ) {
-            $palette[ $key ] = $defaults[ $mode ][ $key ];
+    foreach ( $settings_map as $key => $config ) {
+        $default = isset( $defaults[ $mode ][ $key ] ) ? $defaults[ $mode ][ $key ] : '';
+        $setting_id = 'beyond_gotham_' . $config['id'] . '_' . $mode;
+
+        $value = sanitize_hex_color( get_theme_mod( $setting_id ) );
+
+        if ( ! $value && ! empty( $config['legacy'] ) ) {
+            $legacy_id = 'beyond_gotham_' . $config['legacy'] . '_' . $mode;
+            $legacy    = sanitize_hex_color( get_theme_mod( $legacy_id ) );
+
+            if ( $legacy ) {
+                $value = $legacy;
+            }
         }
+
+        if ( ! $value ) {
+            $value = sanitize_hex_color( $default );
+        }
+
+        $palette[ $key ] = $value ? $value : $default;
     }
+
+    // Backwards compatibility aliases.
+    $palette['accent'] = isset( $palette['primary'] ) ? $palette['primary'] : ( isset( $defaults[ $mode ]['accent'] ) ? $defaults[ $mode ]['accent'] : '' );
+    $palette['text']   = isset( $palette['text_color'] ) ? $palette['text_color'] : ( isset( $defaults[ $mode ]['text_color'] ) ? $defaults[ $mode ]['text_color'] : '' );
 
     return $palette;
 }

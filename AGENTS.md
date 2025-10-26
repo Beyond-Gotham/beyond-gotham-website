@@ -51,6 +51,8 @@ Diese Datei dokumentiert die modularen Komponenten ("Agents") des WordPress-Them
 |-------|-------|
 | `inc/customizer/loader.php` | Scannt automatisiert alle Module in `inc/customizer/modules/` und lädt diese bei `customize_register`. Klassenbasiert, mit Fallback-Logging. |
 | `inc/customizer/utils/helpers.php` | Enthält zentrale Helferfunktionen: Sanitizer, Default-Werte, gemeinsame Methoden für Controls & Sections. |
+| `inc/helpers-html.php` | Formatiert HTML-Attribute konsistent für Template-Parts und Customizer-Ausgaben. |
+| `inc/helpers-navigation.php` | Liefert Standard-Argumente für `wp_nav_menu()`, inklusive Fallback-Handling und Attribute für Header-/Footer-Navigationen. |
 
 ### Gutenberg
 | Agent | Zweck |
