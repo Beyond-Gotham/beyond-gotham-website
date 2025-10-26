@@ -49,13 +49,32 @@
         <?php
         $nav_enabled_primary   = function_exists( 'beyond_gotham_nav_location_enabled' ) ? beyond_gotham_nav_location_enabled( 'primary' ) : true;
         $nav_enabled_secondary = function_exists( 'beyond_gotham_nav_location_enabled' ) ? beyond_gotham_nav_location_enabled( 'secondary' ) : true;
+        $is_preview            = function_exists( 'is_customize_preview' ) && is_customize_preview();
 
-        $has_primary_menu   = $nav_enabled_primary && has_nav_menu( 'primary' );
-        $has_secondary_menu = $nav_enabled_secondary && has_nav_menu( 'menu-2' );
+        $nav_state = array(
+            'primary'   => $nav_enabled_primary,
+            'secondary' => $nav_enabled_secondary,
+        );
 
-        if ( $nav_enabled_primary || $nav_enabled_secondary ) :
-            ?>
-        <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" data-bg-nav-toggle>
+        $nav_any_enabled    = $nav_state['primary'] || $nav_state['secondary'];
+        $has_primary_menu   = has_nav_menu( 'primary' );
+        $has_secondary_menu = has_nav_menu( 'menu-2' );
+
+        $toggle_attributes = array(
+            'class'             => 'site-header__toggle',
+            'type'              => 'button',
+            'aria-expanded'     => 'false',
+            'aria-controls'     => 'primary-navigation',
+            'data-bg-nav-toggle'=> true,
+        );
+
+        if ( ! $nav_any_enabled && ! $is_preview ) {
+            $toggle_attributes['hidden']      = true;
+            $toggle_attributes['aria-hidden'] = 'true';
+        }
+
+        ?>
+        <button<?php echo beyond_gotham_format_html_attributes( $toggle_attributes ); ?>>
             <span class="site-header__toggle-label"><?php esc_html_e( 'Menü', 'beyond_gotham' ); ?></span>
             <span class="site-header__toggle-icon" aria-hidden="true">
                 <span></span>
@@ -63,63 +82,120 @@
                 <span></span>
             </span>
         </button>
-        <?php endif; ?>
 
         <?php
         $custom_social_links      = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
         $socialbar_settings       = function_exists( 'beyond_gotham_get_socialbar_settings' ) ? beyond_gotham_get_socialbar_settings() : array();
         $header_socialbar_active  = ! empty( $socialbar_settings['show_header'] );
-        $customizer_preview       = function_exists( 'is_customize_preview' ) && is_customize_preview();
-        $should_render_socialbar  = $header_socialbar_active || $customizer_preview;
-        ?>
-        <?php if ( $nav_enabled_primary || $nav_enabled_secondary ) : ?>
-        <nav class="site-nav" id="primary-navigation" aria-label="<?php esc_attr_e( 'Hauptnavigation', 'beyond_gotham' ); ?>" data-bg-nav>
-            <?php
-            if ( $nav_enabled_primary ) {
-                if ( $has_primary_menu ) {
-                    wp_nav_menu(
-                        array(
-                            'theme_location' => 'primary',
-                            'menu_class'     => 'site-nav__list',
-                            'container'      => false,
-                            'depth'          => 2,
-                            'fallback_cb'    => false,
-                            'link_before'    => '<span class="site-nav__link-text">',
-                            'link_after'     => '</span>',
-                        )
-                    );
-                } else {
-                    echo '<ul class="site-nav__list"><li class="site-nav__item">' . esc_html__( 'Bitte ein Hauptmenü zuweisen.', 'beyond_gotham' ) . '</li></ul>';
-                }
+        $should_render_socialbar  = $header_socialbar_active || $is_preview;
+
+        $primary_menu_markup = '';
+        if ( $nav_state['primary'] || $is_preview ) {
+            $primary_menu_markup = beyond_gotham_render_menu(
+                'primary',
+                array(
+                    'items_wrap'        => '<ul id="%1$s" class="%2$s">%3$s</ul>',
+                    'render_when_empty' => $is_preview,
+                )
+            );
+
+            if ( '' === trim( $primary_menu_markup ) ) {
+                $primary_menu_markup  = '<ul id="primary-menu" class="site-nav__list site-nav__list--empty" data-empty="true">';
+                $primary_menu_markup .= '<li class="site-nav__item site-nav__item--empty">' . esc_html__( 'Bitte ein Hauptmenü zuweisen.', 'beyond_gotham' ) . '</li>';
+                $primary_menu_markup .= '</ul>';
+            }
+        }
+
+        $secondary_menu_markup    = '';
+        $secondary_should_render  = ( $nav_state['secondary'] && ! $header_socialbar_active ) || $is_preview;
+
+        if ( $secondary_should_render ) {
+            $secondary_menu_markup = beyond_gotham_render_menu(
+                'secondary',
+                array(
+                    'items_wrap'        => '<ul id="%1$s" class="%2$s">%3$s</ul>',
+                    'render_when_empty' => $is_preview,
+                )
+            );
+
+            if ( '' === trim( $secondary_menu_markup ) && $nav_state['secondary'] && ! $header_socialbar_active && ! empty( $custom_social_links ) ) {
+                ob_start();
+                get_template_part(
+                    'template-parts/social-icons',
+                    null,
+                    array(
+                        'context'         => 'header',
+                        'modifiers'       => array( 'compact' ),
+                        'links'           => $custom_social_links,
+                        'wrapper_classes' => array( 'site-nav__social', 'site-nav__social--theme' ),
+                        'aria_label'      => __( 'Social-Media-Links', 'beyond_gotham' ),
+                        'include_empty'   => $is_preview,
+                    )
+                );
+                $secondary_menu_markup = ob_get_clean();
             }
 
-            if ( $nav_enabled_secondary && ! $header_socialbar_active ) {
-                if ( $has_secondary_menu ) {
-                    wp_nav_menu(
-                        array(
-                            'theme_location' => 'menu-2',
-                            'menu_class'     => 'site-nav__social',
-                            'container'      => false,
-                            'depth'          => 1,
-                        )
-                    );
-                } elseif ( ! empty( $custom_social_links ) ) {
-                    get_template_part(
-                        'template-parts/social-icons',
-                        null,
-                        array(
-                            'context'         => 'header',
-                            'modifiers'       => array( 'compact' ),
-                            'links'           => $custom_social_links,
-                            'wrapper_classes' => array( 'site-nav__social', 'site-nav__social--theme' ),
-                            'aria_label'      => __( 'Social-Media-Links', 'beyond_gotham' ),
-                        )
-                    );
-                }
+            if ( '' === trim( $secondary_menu_markup ) && ( $nav_state['secondary'] || $is_preview ) && ! $header_socialbar_active ) {
+                $secondary_menu_markup  = '<ul id="secondary-menu" class="site-nav__social site-nav__social--empty" data-empty="true">';
+                $secondary_menu_markup .= '<li class="site-nav__item site-nav__item--empty">' . esc_html__( 'Bitte ein Sekundärmenü zuweisen.', 'beyond_gotham' ) . '</li>';
+                $secondary_menu_markup .= '</ul>';
             }
-            ?>
+        }
+
+        $nav_attributes = array(
+            'class'                     => 'site-nav',
+            'id'                        => 'primary-navigation',
+            'aria-label'                => __( 'Hauptnavigation', 'beyond_gotham' ),
+            'data-bg-nav'               => true,
+            'data-nav-primary-active'   => $nav_state['primary'] ? 'true' : 'false',
+            'data-nav-secondary-active' => $nav_state['secondary'] ? 'true' : 'false',
+        );
+
+        if ( ! $nav_any_enabled && ! $is_preview ) {
+            $nav_attributes['hidden']      = true;
+            $nav_attributes['aria-hidden'] = 'true';
+        }
+        ?>
+        <nav<?php echo beyond_gotham_format_html_attributes( $nav_attributes ); ?>>
+            <?php if ( $nav_state['primary'] || $is_preview ) : ?>
+                <?php
+                $primary_wrapper_attributes = array(
+                    'class'             => 'site-nav__menu site-nav__menu--primary',
+                    'data-bg-nav-menu'  => 'primary',
+                    'data-nav-enabled'  => $nav_state['primary'] ? 'true' : 'false',
+                    'data-nav-empty'    => $has_primary_menu ? 'false' : 'true',
+                );
+
+                if ( ! $nav_state['primary'] && ! $is_preview ) {
+                    $primary_wrapper_attributes['hidden']      = true;
+                    $primary_wrapper_attributes['aria-hidden'] = 'true';
+                }
+                ?>
+                <div<?php echo beyond_gotham_format_html_attributes( $primary_wrapper_attributes ); ?>>
+                    <?php echo $primary_menu_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ( $nav_state['secondary'] || $is_preview ) : ?>
+                <?php
+                $secondary_wrapper_attributes = array(
+                    'class'              => 'site-nav__menu site-nav__menu--secondary',
+                    'data-bg-nav-menu'   => 'secondary',
+                    'data-nav-enabled'   => $nav_state['secondary'] ? 'true' : 'false',
+                    'data-nav-empty'     => $has_secondary_menu ? 'false' : 'true',
+                    'data-nav-socialbar' => $header_socialbar_active ? 'true' : 'false',
+                );
+
+                if ( ( ! $nav_state['secondary'] || $header_socialbar_active ) && ! $is_preview ) {
+                    $secondary_wrapper_attributes['hidden']      = true;
+                    $secondary_wrapper_attributes['aria-hidden'] = 'true';
+                }
+                ?>
+                <div<?php echo beyond_gotham_format_html_attributes( $secondary_wrapper_attributes ); ?>>
+                    <?php echo $secondary_menu_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </div>
+            <?php endif; ?>
         </nav>
-        <?php endif; ?>
         <?php
         if ( $should_render_socialbar && function_exists( 'beyond_gotham_render_socialbar' ) ) {
             beyond_gotham_render_socialbar( 'header' );
@@ -127,6 +203,20 @@
         ?>
     </div>
 </header>
-<?php if ( $nav_enabled_primary || $nav_enabled_secondary ) : ?>
-<div class="site-nav__overlay" data-bg-nav-overlay aria-hidden="true"></div>
-<?php endif; ?>
+<?php
+$should_render_overlay = $nav_any_enabled || $is_preview;
+
+if ( $should_render_overlay ) {
+    $overlay_attributes = array(
+        'class'              => 'site-nav__overlay',
+        'data-bg-nav-overlay'=> true,
+        'aria-hidden'        => 'true',
+    );
+
+    if ( ! $nav_any_enabled && ! $is_preview ) {
+        $overlay_attributes['hidden'] = true;
+    }
+
+    echo '<div' . beyond_gotham_format_html_attributes( $overlay_attributes ) . '></div>';
+}
+?>

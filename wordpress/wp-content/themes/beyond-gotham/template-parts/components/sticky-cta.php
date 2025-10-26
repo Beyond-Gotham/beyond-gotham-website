@@ -26,44 +26,6 @@ if ( empty( $wrapper_attributes['class'] ) ) {
     $wrapper_attributes['class'] = 'sticky-cta';
 }
 
-$format_attributes = static function ( $attributes ) {
-    if ( empty( $attributes ) || ! is_array( $attributes ) ) {
-        return '';
-    }
-
-    $chunks = array();
-
-    foreach ( $attributes as $name => $value ) {
-        if ( is_int( $name ) ) {
-            $name  = $value;
-            $value = true;
-        }
-
-        if ( ! is_string( $name ) ) {
-            continue;
-        }
-
-        $name = trim( $name );
-
-        if ( '' === $name ) {
-            continue;
-        }
-
-        if ( true === $value ) {
-            $chunks[] = esc_attr( strtolower( $name ) );
-            continue;
-        }
-
-        if ( false === $value || null === $value || '' === $value ) {
-            continue;
-        }
-
-        $chunks[] = sprintf( '%s="%s"', esc_attr( strtolower( $name ) ), esc_attr( $value ) );
-    }
-
-    return $chunks ? ' ' . implode( ' ', $chunks ) : '';
-};
-
 $button = is_array( $data['button'] ) ? $data['button'] : array();
 $button_label = isset( $button['label'] ) && is_string( $button['label'] ) ? $button['label'] : '';
 $button_url   = isset( $button['url'] ) && is_string( $button['url'] ) ? $button['url'] : '';
@@ -90,7 +52,8 @@ if ( $button_url ) {
 }
 
 ?>
-<div<?php echo $format_attributes( $wrapper_attributes ); ?>>
+<?php $wrapper_attribute_string = function_exists( 'beyond_gotham_format_html_attributes' ) ? beyond_gotham_format_html_attributes( $wrapper_attributes ) : ''; ?>
+<div<?php echo $wrapper_attribute_string; ?>>
     <div class="sticky-cta__inner">
         <div class="sticky-cta__content" data-bg-sticky-cta-content>
             <?php if ( '' !== trim( $content ) ) : ?>

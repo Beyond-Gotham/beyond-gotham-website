@@ -974,6 +974,9 @@
     }
 
     var navPreview = (data && data.navLayout) ? data.navLayout : {};
+    setNavLocationEnabled('primary', navLocationState.primary);
+    setNavLocationEnabled('secondary', navLocationState.secondary);
+
     if (typeof navPreview.alignment !== 'undefined') {
         setNavAlignment(navPreview.alignment);
     }
@@ -985,6 +988,17 @@
     }
     if (typeof navPreview.sticky !== 'undefined') {
         setStickyEnabled(navPreview.sticky);
+    }
+    if (typeof navPreview.primaryEnabled !== 'undefined') {
+        setNavLocationEnabled('primary', navPreview.primaryEnabled);
+    }
+    if (typeof navPreview.secondaryEnabled !== 'undefined') {
+        setNavLocationEnabled('secondary', navPreview.secondaryEnabled);
+    }
+    if (typeof navPreview.footerEnabled !== 'undefined') {
+        setFooterNavEnabled(navPreview.footerEnabled);
+    } else if (footerNavNode) {
+        setFooterNavEnabled(footerNavNode.getAttribute('data-nav-enabled'));
     }
 
     var brandingPreview = (data && data.branding) ? data.branding : {};
@@ -1625,6 +1639,14 @@
     });
 
     var navAlignmentClasses = ['nav-align-left', 'nav-align-center', 'nav-align-right', 'nav-align-space-between'];
+    var navContainer = document.querySelector('[data-bg-nav]');
+    var navToggleButton = document.querySelector('[data-bg-nav-toggle]');
+    var navOverlayNode = document.querySelector('[data-bg-nav-overlay]');
+    var footerNavNode = document.querySelector('[data-footer-navigation]');
+    var navLocationState = {
+        primary: navContainer ? navContainer.getAttribute('data-nav-primary-active') === 'true' : true,
+        secondary: navContainer ? navContainer.getAttribute('data-nav-secondary-active') === 'true' : true
+    };
     var stickyEnabledState = bodyEl ? bodyEl.classList.contains('bg-has-sticky-header') : true;
 
     function replaceBodyClass(classNames, activeClass) {
@@ -1647,6 +1669,104 @@
         }
 
         return !!value;
+    }
+
+    function setElementVisibility(node, enabled) {
+        if (!node) {
+            return;
+        }
+
+        if (enabled) {
+            node.removeAttribute('hidden');
+            node.removeAttribute('aria-hidden');
+        } else {
+            node.setAttribute('hidden', 'hidden');
+            node.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function toggleNavMenuNode(menuNode, enabled) {
+        if (!menuNode) {
+            return;
+        }
+
+        setElementVisibility(menuNode, enabled);
+        menuNode.setAttribute('data-nav-enabled', enabled ? 'true' : 'false');
+    }
+
+    function updateNavGlobalVisibility() {
+        var hasAny = navLocationState.primary || navLocationState.secondary;
+
+        if (navToggleButton) {
+            if (hasAny) {
+                navToggleButton.removeAttribute('hidden');
+                navToggleButton.removeAttribute('aria-hidden');
+            } else {
+                navToggleButton.setAttribute('hidden', 'hidden');
+                navToggleButton.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        if (navContainer) {
+            if (hasAny) {
+                navContainer.removeAttribute('hidden');
+                navContainer.removeAttribute('aria-hidden');
+            } else {
+                navContainer.setAttribute('hidden', 'hidden');
+                navContainer.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        if (navOverlayNode) {
+            if (hasAny) {
+                navOverlayNode.removeAttribute('hidden');
+            } else {
+                navOverlayNode.setAttribute('hidden', 'hidden');
+            }
+        }
+    }
+
+    function setNavLocationEnabled(location, value) {
+        var enabled = normalizeBoolean(value);
+
+        if (location !== 'primary' && location !== 'secondary') {
+            return;
+        }
+
+        navLocationState[location] = enabled;
+
+        if (!navContainer) {
+            updateNavGlobalVisibility();
+            return;
+        }
+
+        if (location === 'primary') {
+            navContainer.setAttribute('data-nav-primary-active', enabled ? 'true' : 'false');
+            toggleNavMenuNode(navContainer.querySelector('[data-bg-nav-menu="primary"]'), enabled);
+        } else {
+            navContainer.setAttribute('data-nav-secondary-active', enabled ? 'true' : 'false');
+            toggleNavMenuNode(navContainer.querySelector('[data-bg-nav-menu="secondary"]'), enabled);
+        }
+
+        updateNavGlobalVisibility();
+    }
+
+    function setFooterNavEnabled(value) {
+        var enabled = normalizeBoolean(value);
+
+        if (!footerNavNode) {
+            return;
+        }
+
+        footerNavNode.setAttribute('data-nav-enabled', enabled ? 'true' : 'false');
+
+        if (enabled) {
+            footerNavNode.removeAttribute('hidden');
+            footerNavNode.removeAttribute('aria-hidden');
+        } else {
+            footerNavNode.setAttribute('hidden', 'hidden');
+            footerNavNode.setAttribute('aria-hidden', 'true');
+        }
     }
 
     function dispatchStickyEvent() {
@@ -2038,6 +2158,30 @@
                         setSocialbarVariantColor(variant, type, newValue);
                     });
                 });
+            });
+        });
+
+        api('beyond_gotham_nav_show_primary', function (value) {
+            setNavLocationEnabled('primary', value.get());
+
+            value.bind(function (newValue) {
+                setNavLocationEnabled('primary', newValue);
+            });
+        });
+
+        api('beyond_gotham_nav_show_secondary', function (value) {
+            setNavLocationEnabled('secondary', value.get());
+
+            value.bind(function (newValue) {
+                setNavLocationEnabled('secondary', newValue);
+            });
+        });
+
+        api('beyond_gotham_nav_show_footer', function (value) {
+            setFooterNavEnabled(value.get());
+
+            value.bind(function (newValue) {
+                setFooterNavEnabled(newValue);
             });
         });
 

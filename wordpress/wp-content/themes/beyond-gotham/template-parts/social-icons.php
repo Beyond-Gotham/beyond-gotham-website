@@ -9,6 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! function_exists( 'beyond_gotham_format_html_attributes' ) ) {
+    require_once get_template_directory() . '/inc/helpers-html.php';
+}
+
 $args = isset( $args ) && is_array( $args ) ? $args : array();
 
 $defaults = array(
@@ -114,60 +118,33 @@ if ( ! empty( $args['hidden'] ) ) {
     $attributes['aria-hidden'] = 'true';
 }
 
-$extra_attribute_string = '';
-
-if ( ! empty( $args['wrapper_attributes'] ) ) {
-    if ( is_string( $args['wrapper_attributes'] ) ) {
-        $extra_attribute_string = ' ' . trim( $args['wrapper_attributes'] );
-    } elseif ( is_array( $args['wrapper_attributes'] ) ) {
-        foreach ( $args['wrapper_attributes'] as $attr => $value ) {
-            if ( '' === $attr ) {
-                continue;
-            }
-
-            $attr = sanitize_key( $attr );
-
-            if ( is_bool( $value ) ) {
-                if ( ! $value ) {
-                    continue;
-                }
-
-                $attributes[ $attr ] = true;
-                continue;
-            }
-
-            if ( null === $value ) {
-                continue;
-            }
-
-            $attributes[ $attr ] = $value;
+if ( ! empty( $args['wrapper_attributes'] ) && is_array( $args['wrapper_attributes'] ) ) {
+    foreach ( $args['wrapper_attributes'] as $attr => $value ) {
+        if ( '' === $attr ) {
+            continue;
         }
+
+        if ( is_bool( $value ) ) {
+            if ( ! $value ) {
+                continue;
+            }
+
+            $attributes[ sanitize_key( $attr ) ] = true;
+            continue;
+        }
+
+        if ( null === $value ) {
+            continue;
+        }
+
+        $attributes[ sanitize_key( $attr ) ] = $value;
     }
 }
 
-$attribute_chunks = array();
+$attribute_string = beyond_gotham_format_html_attributes( $attributes );
 
-foreach ( $attributes as $attr => $value ) {
-    if ( true === $value ) {
-        $attribute_chunks[] = esc_attr( $attr );
-        continue;
-    }
-
-    if ( '' === $value ) {
-        continue;
-    }
-
-    $attribute_chunks[] = sprintf( '%s="%s"', esc_attr( $attr ), esc_attr( $value ) );
-}
-
-$attribute_string = '';
-
-if ( ! empty( $attribute_chunks ) ) {
-    $attribute_string = ' ' . implode( ' ', $attribute_chunks );
-}
-
-if ( $extra_attribute_string ) {
-    $attribute_string .= $extra_attribute_string;
+if ( ! empty( $args['wrapper_attributes'] ) && is_string( $args['wrapper_attributes'] ) ) {
+    $attribute_string .= beyond_gotham_format_html_attributes( $args['wrapper_attributes'] );
 }
 
 printf( '<%1$s%2$s>', esc_html( $tag ), $attribute_string );
@@ -187,24 +164,23 @@ foreach ( $items as $item ) {
         'data-network' => $item['network'],
     );
 
-    if ( ! $item['is_mail'] ) {
-        $link_attrs['target'] = '_blank';
-        $link_attrs['rel']    = 'noopener';
-    }
+    if ( empty( $item['is_empty'] ) && ! empty( $item['url'] ) ) {
+        $link_attrs['href'] = esc_url( $item['url'] );
 
-    $link_attribute_parts = array();
-
-    foreach ( $link_attrs as $attr => $value ) {
-        if ( '' === $value ) {
-            continue;
+        if ( empty( $item['is_mail'] ) ) {
+            $link_attrs['target'] = '_blank';
+            $link_attrs['rel']    = 'noopener';
         }
-
-        $link_attribute_parts[] = sprintf( '%s="%s"', esc_attr( $attr ), esc_attr( $value ) );
+    } else {
+        $link_attrs['href']        = '#';
+        $link_attrs['aria-hidden'] = 'true';
+        $link_attrs['tabindex']    = '-1';
+        $link_attrs['hidden']      = 'hidden';
     }
 
-    $link_attribute_parts[] = sprintf( 'href="%s"', esc_url( $item['url'] ) );
+    $link_attribute_string = beyond_gotham_format_html_attributes( $link_attrs );
 
-    printf( '<a %s>', implode( ' ', $link_attribute_parts ) );
+    printf( '<a%1$s>', $link_attribute_string );
     echo '<span class="social-icons__icon" aria-hidden="true">';
     echo $item['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     echo '</span>';

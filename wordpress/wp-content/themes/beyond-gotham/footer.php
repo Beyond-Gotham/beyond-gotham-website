@@ -17,23 +17,51 @@
         <div class="footer-center">
             <?php
             $footer_nav_enabled = function_exists( 'beyond_gotham_nav_location_enabled' ) ? beyond_gotham_nav_location_enabled( 'footer' ) : true;
-            if ( $footer_nav_enabled && has_nav_menu( 'footer' ) ) :
-                $footer_nav_classes    = array( 'footer-navigation', 'is-' . $footer_menu_alignment );
-                $footer_nav_classes    = array_map( 'sanitize_html_class', array_unique( $footer_nav_classes ) );
-                $footer_nav_class      = implode( ' ', $footer_nav_classes );
-            ?>
-                <nav class="<?php echo esc_attr( $footer_nav_class ); ?>" data-footer-alignment="<?php echo esc_attr( $footer_menu_alignment ); ?>" aria-label="<?php esc_attr_e( 'Footer Navigation', 'beyond_gotham' ); ?>">
-                    <?php
-                    wp_nav_menu(
-                        array(
-                            'theme_location' => 'footer',
-                            'menu_id'        => 'footer-menu',
-                            'menu_class'     => 'footer-menu',
-                            'container'      => false,
-                        )
-                    );
-                    ?>
+            $is_preview_footer = function_exists( 'is_customize_preview' ) && is_customize_preview();
+            $footer_has_menu   = has_nav_menu( 'footer' );
+            $footer_nav_markup = '';
+
+            if ( $footer_nav_enabled || $is_preview_footer ) {
+                $footer_nav_markup = beyond_gotham_render_menu(
+                    'footer',
+                    array(
+                        'items_wrap'        => '<ul id="%1$s" class="%2$s">%3$s</ul>',
+                        'render_when_empty' => $is_preview_footer,
+                    )
+                );
+
+                if ( '' === trim( $footer_nav_markup ) && ( $footer_nav_enabled || $is_preview_footer ) ) {
+                    $footer_nav_markup  = '<ul id="footer-menu" class="footer-menu footer-menu--empty" data-empty="true">';
+                    $footer_nav_markup .= '<li class="footer-menu__item footer-menu__item--empty">' . esc_html__( 'Bitte ein Footer-Menü zuweisen.', 'beyond_gotham' ) . '</li>';
+                    $footer_nav_markup .= '</ul>';
+                }
+            }
+
+            $footer_nav_classes = array( 'footer-navigation', 'is-' . $footer_menu_alignment );
+            $footer_nav_classes = array_map( 'sanitize_html_class', array_unique( $footer_nav_classes ) );
+            $footer_nav_class   = implode( ' ', $footer_nav_classes );
+
+            $footer_nav_attributes = array(
+                'class'                 => $footer_nav_class,
+                'data-footer-alignment' => $footer_menu_alignment,
+                'data-footer-navigation'=> 'true',
+                'data-nav-enabled'      => $footer_nav_enabled ? 'true' : 'false',
+                'data-nav-empty'        => $footer_has_menu ? 'false' : 'true',
+                'aria-label'            => __( 'Footer Navigation', 'beyond_gotham' ),
+            );
+
+            if ( ! $footer_nav_enabled && ! $is_preview_footer ) {
+                $footer_nav_attributes['hidden']      = true;
+                $footer_nav_attributes['aria-hidden'] = 'true';
+            }
+
+            if ( $footer_nav_markup ) :
+                ?>
+                <nav<?php echo beyond_gotham_format_html_attributes( $footer_nav_attributes ); ?>>
+                    <?php echo $footer_nav_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 </nav>
+            <?php elseif ( $footer_nav_enabled && ! $footer_has_menu ) : ?>
+                <nav<?php echo beyond_gotham_format_html_attributes( $footer_nav_attributes ); ?>></nav>
             <?php endif; ?>
 
             <div class="footer-darkmode-toggle">

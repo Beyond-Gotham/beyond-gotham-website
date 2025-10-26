@@ -160,7 +160,7 @@
   gap: 1.5rem;
 }
 
-@media (min-width: 880px) {
+@include bp.up(880px) {
   .newsletter {
     grid-template-columns: 1.1fr 1fr;
     align-items: center;
@@ -246,7 +246,7 @@
   transform: translateX(-50%);
 }
 
-@media (max-width: 640px) {
+@include bp.down(640px) {
   [data-bg-cta].cta-fixed {
     left: 50%;
     right: auto;
@@ -256,7 +256,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@include bp.down(768px) {
   .cta,
   .newsletter,
   [data-bg-cta] {

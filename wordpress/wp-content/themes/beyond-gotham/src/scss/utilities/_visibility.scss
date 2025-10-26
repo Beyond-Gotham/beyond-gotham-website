@@ -1,11 +1,13 @@
+@use "../base/breakpoints" as bp;
+
 .bg-meta--hide-desktop {
-  @media (min-width: 768px) {
+  @include bp.up('tablet') {
     display: none !important;
   }
 }
 
 .bg-meta--hide-mobile {
-  @media (max-width: 767.98px) {
+  @include bp.down('tablet') {
     display: none !important;
   }
 }

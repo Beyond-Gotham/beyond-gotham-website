@@ -38,10 +38,7 @@
 }
 
 .bg-shop-results .products {
-  @include bp.auto-grid(260px, var(--grid-gap, 24px));
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  --grid-min-size: 240px;
 }
 
 .bg-shop-card {

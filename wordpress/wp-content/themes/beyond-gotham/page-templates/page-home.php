@@ -327,44 +327,6 @@ get_header();
     <?php
     $cta_layout_settings = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
 
-    $format_attributes = static function ( $attrs ) {
-        if ( empty( $attrs ) || ! is_array( $attrs ) ) {
-            return '';
-        }
-
-        $chunks = array();
-
-        foreach ( $attrs as $name => $value ) {
-            if ( is_int( $name ) ) {
-                $name  = $value;
-                $value = true;
-            }
-
-            if ( ! is_string( $name ) ) {
-                continue;
-            }
-
-            $name = trim( $name );
-
-            if ( '' === $name || ! preg_match( '/^[a-zA-Z0-9_:-]+$/', $name ) ) {
-                continue;
-            }
-
-            if ( true === $value ) {
-                $chunks[] = esc_attr( strtolower( $name ) );
-                continue;
-            }
-
-            if ( false === $value || null === $value || '' === $value ) {
-                continue;
-            }
-
-            $chunks[] = sprintf( '%s="%s"', esc_attr( strtolower( $name ) ), esc_attr( $value ) );
-        }
-
-        return $chunks ? ' ' . implode( ' ', $chunks ) : '';
-    };
-
     $landing_cta_wrapper = beyond_gotham_build_cta_wrapper_attributes(
         array(
             'layout_settings' => $cta_layout_settings,
@@ -383,7 +345,7 @@ get_header();
     }
     ?>
     <section class="bg-section bg-section--accent" id="landing-cta">
-        <div<?php echo $format_attributes( $landing_attributes ); ?>>
+        <div<?php echo beyond_gotham_format_html_attributes( $landing_attributes ); ?>>
             <?php
             get_template_part(
                 'template-parts/components/cta-content',
@@ -433,7 +395,7 @@ get_header();
             $newsletter_attributes['style'] = $newsletter_wrapper['style'];
         }
         ?>
-        <div<?php echo $format_attributes( $newsletter_attributes ); ?>>
+        <div<?php echo beyond_gotham_format_html_attributes( $newsletter_attributes ); ?>>
             <?php
             get_template_part(
                 'template-parts/components/cta-content',

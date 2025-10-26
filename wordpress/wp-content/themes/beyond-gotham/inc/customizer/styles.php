@@ -25,38 +25,40 @@ require_once __DIR__ . '/utils/typography.php';
  * @return string
  */
 function beyond_gotham_get_customizer_css() {
-	$defaults_by_mode = array(
-		'light' => array(
-			'primary'           => '#33d1ff',
-			'secondary'         => '#1aa5d1',
-			'background'        => '#f4f6fb',
-			'text'              => '#0f172a',
-			'text_dark'         => '#050608',
-			'cta_accent'        => '#33d1ff',
-			'header_background' => '#ffffff',
-			'footer_background' => '#f4f6fb',
-			'link'              => '#0f172a',
-			'link_hover'        => '#1aa5d1',
-			'button_background' => '#33d1ff',
-			'button_text'       => '#050608',
-			'quote_background'  => '#e6edf7',
-		),
-		'dark'  => array(
-			'primary'           => '#33d1ff',
-			'secondary'         => '#1aa5d1',
-			'background'        => '#0f1115',
-			'text'              => '#e7eaee',
-			'text_dark'         => '#050608',
-			'cta_accent'        => '#33d1ff',
-			'header_background' => '#0b0d12',
-			'footer_background' => '#050608',
-			'link'              => '#33d1ff',
-			'link_hover'        => '#1aa5d1',
-			'button_background' => '#33d1ff',
-			'button_text'       => '#050608',
-			'quote_background'  => '#161b2a',
-		),
-	);
+        $color_defaults = beyond_gotham_get_color_defaults();
+
+        $defaults_by_mode = array(
+                'light' => array(
+                        'primary'           => $color_defaults['light']['primary'],
+                        'secondary'         => $color_defaults['light']['secondary'],
+                        'background'        => $color_defaults['light']['background'],
+                        'text'              => $color_defaults['light']['text_color'],
+                        'text_dark'         => '#050608',
+                        'cta_accent'        => $color_defaults['light']['cta_accent'],
+                        'header_background' => $color_defaults['light']['header_background'],
+                        'footer_background' => $color_defaults['light']['footer_background'],
+                        'link'              => $color_defaults['light']['link'],
+                        'link_hover'        => $color_defaults['light']['link_hover'],
+                        'button_background' => $color_defaults['light']['button_background'],
+                        'button_text'       => $color_defaults['light']['button_text'],
+                        'quote_background'  => $color_defaults['light']['quote_background'],
+                ),
+                'dark'  => array(
+                        'primary'           => $color_defaults['dark']['primary'],
+                        'secondary'         => $color_defaults['dark']['secondary'],
+                        'background'        => $color_defaults['dark']['background'],
+                        'text'              => $color_defaults['dark']['text_color'],
+                        'text_dark'         => '#050608',
+                        'cta_accent'        => $color_defaults['dark']['cta_accent'],
+                        'header_background' => $color_defaults['dark']['header_background'],
+                        'footer_background' => $color_defaults['dark']['footer_background'],
+                        'link'              => $color_defaults['dark']['link'],
+                        'link_hover'        => $color_defaults['dark']['link_hover'],
+                        'button_background' => $color_defaults['dark']['button_background'],
+                        'button_text'       => $color_defaults['dark']['button_text'],
+                        'quote_background'  => $color_defaults['dark']['quote_background'],
+                ),
+        );
 
 	$mod_map = array(
 		'primary'           => 'primary_color',
