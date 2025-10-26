@@ -10,7 +10,20 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! class_exists( 'WP_Customize_Control' ) ) {
-	return;
+        $control_file = ABSPATH . WPINC . '/class-wp-customize-control.php';
+
+        if ( ! file_exists( $control_file ) ) {
+                $alternate    = ABSPATH . WPINC . '/customize/class-wp-customize-control.php';
+                $control_file = file_exists( $alternate ) ? $alternate : $control_file;
+        }
+
+        if ( file_exists( $control_file ) ) {
+                require_once $control_file;
+        }
+}
+
+if ( ! class_exists( 'WP_Customize_Control' ) ) {
+        return;
 }
 
 // =============================================================================
