@@ -1,11 +1,12 @@
+@use "../base/breakpoints" as bp;
+
 /* -------------------------------------------------------------------------- */
 /* Archive & 404                                                              */
 /* -------------------------------------------------------------------------- */
 
 .archive {
   padding: 4rem 1.5rem 6rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  @include bp.container(1200px);
 }
 
 .archive__header {
@@ -26,10 +27,10 @@
 
 .archive__layout {
   display: grid;
-  gap: 2.5rem;
+  gap: var(--grid-gap, 24px);
 }
 
-@media (min-width: 1080px) {
+@include bp.up('desktop') {
   .archive__layout {
     grid-template-columns: minmax(0, 1fr) 300px;
     gap: 3rem;
@@ -38,6 +39,8 @@
 
 .archive__grid {
   margin-bottom: 2.5rem;
+  @include bp.auto-grid(260px);
+  gap: var(--grid-gap, 24px);
 }
 
 .archive-widget {

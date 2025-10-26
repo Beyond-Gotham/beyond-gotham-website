@@ -318,36 +318,77 @@ get_header();
 
     <?php
     $cta_layout_settings = function_exists( 'beyond_gotham_get_cta_layout_settings' ) ? beyond_gotham_get_cta_layout_settings() : array();
-    $cta_layout_classes  = isset( $cta_layout_settings['class_list'] ) ? array_map( 'sanitize_html_class', (array) $cta_layout_settings['class_list'] ) : array();
-    $cta_layout_style    = '';
 
-    if ( ! empty( $cta_layout_settings['style_map'] ) && is_array( $cta_layout_settings['style_map'] ) ) {
-        $cta_style_chunks = array();
+    $format_attributes = static function ( $attrs ) {
+        if ( empty( $attrs ) || ! is_array( $attrs ) ) {
+            return '';
+        }
 
-        foreach ( $cta_layout_settings['style_map'] as $property => $value ) {
-            $property = is_string( $property ) ? trim( $property ) : '';
-            $value    = is_string( $value ) ? trim( $value ) : '';
+        $chunks = array();
 
-            if ( '' === $property || '' === $value ) {
+        foreach ( $attrs as $name => $value ) {
+            if ( is_int( $name ) ) {
+                $name  = $value;
+                $value = true;
+            }
+
+            if ( ! is_string( $name ) ) {
                 continue;
             }
 
-            $cta_style_chunks[] = $property . ': ' . $value . ';';
+            $name = trim( $name );
+
+            if ( '' === $name || ! preg_match( '/^[a-zA-Z0-9_:-]+$/', $name ) ) {
+                continue;
+            }
+
+            if ( true === $value ) {
+                $chunks[] = esc_attr( strtolower( $name ) );
+                continue;
+            }
+
+            if ( false === $value || null === $value || '' === $value ) {
+                continue;
+            }
+
+            $chunks[] = sprintf( '%s="%s"', esc_attr( strtolower( $name ) ), esc_attr( $value ) );
         }
 
-        if ( ! empty( $cta_style_chunks ) ) {
-            $cta_layout_style = ' style="' . esc_attr( implode( ' ', $cta_style_chunks ) ) . '"';
-        }
+        return $chunks ? ' ' . implode( ' ', $chunks ) : '';
+    };
+
+    $landing_cta_wrapper = beyond_gotham_build_cta_wrapper_attributes(
+        array(
+            'layout_settings' => $cta_layout_settings,
+            'base_classes'    => array( 'cta' ),
+        )
+    );
+
+    $landing_attributes = array(
+        'class'           => $landing_cta_wrapper['class'],
+        'data-bg-animate' => true,
+        'data-bg-cta'     => true,
+    );
+
+    if ( ! empty( $landing_cta_wrapper['style'] ) ) {
+        $landing_attributes['style'] = $landing_cta_wrapper['style'];
     }
     ?>
     <section class="bg-section bg-section--accent" id="landing-cta">
-        <?php
-        $landing_cta_classes = array_merge( array( 'cta' ), $cta_layout_classes );
-        ?>
-        <div class="<?php echo esc_attr( implode( ' ', array_unique( $landing_cta_classes ) ) ); ?>" data-bg-animate data-bg-cta<?php echo $cta_layout_style; ?>>
-            <h2 class="cta__title"><?php esc_html_e( 'Bereit für die nächste Kohorte?', 'beyond_gotham' ); ?></h2>
-            <p class="cta__lead"><?php esc_html_e( 'Sichere dir deinen Platz und kombiniere journalistisches Handwerk mit taktischer Einsatzkompetenz.', 'beyond_gotham' ); ?></p>
-            <a class="bg-button bg-button--primary" href="<?php echo esc_url( home_url( '/kurse/' ) ); ?>"><?php esc_html_e( 'Alle Kurse ansehen', 'beyond_gotham' ); ?></a>
+        <div<?php echo $format_attributes( $landing_attributes ); ?>>
+            <?php
+            get_template_part(
+                'template-parts/components/cta-content',
+                null,
+                array(
+                    'variant'      => 'cta',
+                    'title'        => __( 'Bereit für die nächste Kohorte?', 'beyond_gotham' ),
+                    'text'         => __( 'Sichere dir deinen Platz und kombiniere journalistisches Handwerk mit taktischer Einsatzkompetenz.', 'beyond_gotham' ),
+                    'button_label' => __( 'Alle Kurse ansehen', 'beyond_gotham' ),
+                    'button_url'   => home_url( '/kurse/' ),
+                )
+            );
+            ?>
         </div>
     </section>
 
@@ -360,27 +401,49 @@ get_header();
         $cta_text_clean   = trim( wp_strip_all_tags( $cta_text ) );
         $cta_label_clean  = trim( $cta_label );
         $cta_is_empty     = ( '' === $cta_text_clean ) && ( '' === $cta_label_clean );
-        $cta_attributes   = $cta_is_empty ? ' hidden aria-hidden="true"' : '';
-        $cta_classes      = array( 'newsletter' );
+        $newsletter_wrapper = beyond_gotham_build_cta_wrapper_attributes(
+            array(
+                'layout_settings' => $cta_layout_settings,
+                'base_classes'    => array( 'newsletter' ),
+                'extra_classes'   => $cta_is_empty ? array( 'newsletter--empty' ) : array(),
+                'is_empty'        => $cta_is_empty,
+            )
+        );
+
+        $newsletter_attributes = array(
+            'class'           => $newsletter_wrapper['class'],
+            'data-bg-animate' => true,
+            'data-bg-cta'     => true,
+        );
 
         if ( $cta_is_empty ) {
-            $cta_classes[] = 'newsletter--empty';
+            $newsletter_attributes['hidden']      = true;
+            $newsletter_attributes['aria-hidden'] = 'true';
         }
 
-        $cta_classes = array_merge( $cta_classes, $cta_layout_classes );
-
-        $cta_class_string = implode( ' ', array_unique( array_map( 'sanitize_html_class', $cta_classes ) ) );
+        if ( ! empty( $newsletter_wrapper['style'] ) ) {
+            $newsletter_attributes['style'] = $newsletter_wrapper['style'];
+        }
         ?>
-        <div class="<?php echo esc_attr( $cta_class_string ); ?>" data-bg-animate data-bg-cta<?php echo $cta_attributes; ?><?php echo $cta_layout_style; ?>>
-            <div class="newsletter__content">
-                <h2 class="newsletter__title"><?php esc_html_e( 'Newsletter & Einsatzbriefing', 'beyond_gotham' ); ?></h2>
-                <p class="newsletter__text" data-bg-cta-text><?php echo $cta_text; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
-            </div>
-            <div class="newsletter__form newsletter__actions">
-                <a class="bg-button bg-button--primary" data-bg-cta-button<?php echo $cta_url ? ' href="' . esc_url( $cta_url ) . '"' : ' aria-disabled="true"'; ?>>
-                    <?php echo esc_html( $cta_label ); ?>
-                </a>
-            </div>
+        <div<?php echo $format_attributes( $newsletter_attributes ); ?>>
+            <?php
+            get_template_part(
+                'template-parts/components/cta-content',
+                null,
+                array(
+                    'variant'           => 'newsletter',
+                    'title'             => __( 'Newsletter & Einsatzbriefing', 'beyond_gotham' ),
+                    'title_class'       => 'newsletter__title',
+                    'text'              => $cta_text,
+                    'text_class'        => 'newsletter__text',
+                    'text_attributes'   => array( 'data-bg-cta-text' => true ),
+                    'button_label'      => $cta_label,
+                    'button_url'        => $cta_url,
+                    'button_class'      => 'bg-button bg-button--primary',
+                    'button_attributes' => array( 'data-bg-cta-button' => true ),
+                )
+            );
+            ?>
         </div>
     </section>
 </main>

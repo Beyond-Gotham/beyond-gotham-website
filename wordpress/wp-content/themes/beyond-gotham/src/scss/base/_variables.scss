@@ -39,6 +39,16 @@ html {
   --gradient-primary-start: #0b1d2a;
   --gradient-primary-end: #143852;
   --cta-shadow-rgb: 11, 29, 42;
+  --grid-gap: 24px;
+  --font-family-body: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-family-heading: "Merriweather", "Georgia", "Times New Roman", serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --line-height-body: 1.6;
+  --content-max-width: 1080px;
   --header-background: rgba(var(--surface-glass-rgb), 0.92);
   --header-border: rgba(var(--surface-shadow-rgb), 0.08);
   --header-toggle-border: rgba(var(--surface-shadow-rgb), 0.2);

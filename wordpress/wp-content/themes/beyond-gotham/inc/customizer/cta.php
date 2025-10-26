@@ -78,9 +78,9 @@ function beyond_gotham_get_cta_settings() {
  * @return array
  */
 function beyond_gotham_get_cta_layout_settings() {
-	$defaults = beyond_gotham_get_cta_layout_defaults();
+        $defaults = beyond_gotham_get_cta_layout_defaults();
 
-	$width          = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_width', $defaults['width'] ) );
+        $width          = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_width', $defaults['width'] ) );
 	$height         = beyond_gotham_sanitize_positive_float( get_theme_mod( 'beyond_gotham_cta_height', $defaults['height'] ) );
 	$position       = beyond_gotham_sanitize_cta_position( get_theme_mod( 'beyond_gotham_cta_position', $defaults['position'] ) );
 	$alignment      = beyond_gotham_sanitize_cta_alignment( get_theme_mod( 'beyond_gotham_cta_alignment', $defaults['alignment'] ) );
@@ -137,8 +137,86 @@ function beyond_gotham_get_cta_layout_settings() {
 		'mobile_height_css'  => $mobile_height_css,
 		'mobile_padding_css' => $mobile_padding_css,
 		'class_list'         => array_values( array_unique( array_filter( array_map( 'sanitize_html_class', $classes ) ) ) ),
-		'style_map'          => $style_map,
-	);
+                'style_map'          => $style_map,
+        );
+}
+
+/**
+ * Build shared CTA wrapper attributes.
+ *
+ * Re-usable in template parts to keep markup generation idempotent.
+ *
+ * @param array $args {
+ *     Optional arguments.
+ *
+ *     @type array    $layout_settings Layout configuration as returned by
+ *                                     beyond_gotham_get_cta_layout_settings().
+ *     @type string[] $base_classes    Classes that should always be applied.
+ *     @type string[] $extra_classes   Additional classes appended to the wrapper.
+ *     @type bool     $is_empty        Whether the CTA is currently empty.
+ * }
+ * @return array {
+ *     Prepared attributes for CTA wrapper elements.
+ *
+ *     @type string $class Concatenated class string.
+ *     @type string $style Inline style string (without attribute name).
+ * }
+ */
+function beyond_gotham_build_cta_wrapper_attributes( array $args = array() ) {
+        $defaults = array(
+                'layout_settings' => null,
+                'base_classes'    => array( 'cta' ),
+                'extra_classes'   => array(),
+                'is_empty'        => false,
+        );
+
+        $args = wp_parse_args( $args, $defaults );
+
+        $layout_settings = $args['layout_settings'];
+
+        if ( null === $layout_settings ) {
+                $layout_settings = beyond_gotham_get_cta_layout_settings();
+        }
+
+        $class_list = array_map( 'sanitize_html_class', (array) $args['base_classes'] );
+
+        if ( isset( $layout_settings['class_list'] ) && is_array( $layout_settings['class_list'] ) ) {
+                $class_list = array_merge( $class_list, array_map( 'sanitize_html_class', $layout_settings['class_list'] ) );
+        }
+
+        if ( ! empty( $args['extra_classes'] ) ) {
+                $class_list = array_merge( $class_list, array_map( 'sanitize_html_class', (array) $args['extra_classes'] ) );
+        }
+
+        if ( ! empty( $args['is_empty'] ) ) {
+                $class_list[] = 'cta--empty';
+        }
+
+        $class_list = array_values( array_filter( array_unique( $class_list ) ) );
+
+        $style_map = array();
+
+        if ( isset( $layout_settings['style_map'] ) && is_array( $layout_settings['style_map'] ) ) {
+                $style_map = $layout_settings['style_map'];
+        }
+
+        $style_chunks = array();
+
+        foreach ( $style_map as $property => $value ) {
+                $property = is_string( $property ) ? trim( $property ) : '';
+                $value    = is_string( $value ) ? trim( $value ) : '';
+
+                if ( '' === $property || '' === $value ) {
+                        continue;
+                }
+
+                $style_chunks[] = $property . ': ' . $value . ';';
+        }
+
+        return array(
+                'class' => implode( ' ', $class_list ),
+                'style' => implode( ' ', $style_chunks ),
+        );
 }
 
 // =============================================================================

@@ -66,9 +66,11 @@
         <?php endif; ?>
 
         <?php
-        $custom_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
-        $socialbar_settings = function_exists( 'beyond_gotham_get_socialbar_settings' ) ? beyond_gotham_get_socialbar_settings() : array();
-        $header_socialbar_active = ! empty( $socialbar_settings['show_header'] );
+        $custom_social_links      = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
+        $socialbar_settings       = function_exists( 'beyond_gotham_get_socialbar_settings' ) ? beyond_gotham_get_socialbar_settings() : array();
+        $header_socialbar_active  = ! empty( $socialbar_settings['show_header'] );
+        $customizer_preview       = function_exists( 'is_customize_preview' ) && is_customize_preview();
+        $should_render_socialbar  = $header_socialbar_active || $customizer_preview;
         ?>
         <?php if ( $nav_enabled_primary || $nav_enabled_secondary ) : ?>
         <nav class="site-nav" id="primary-navigation" aria-label="<?php esc_attr_e( 'Hauptnavigation', 'beyond_gotham' ); ?>" data-bg-nav>
@@ -119,7 +121,7 @@
         </nav>
         <?php endif; ?>
         <?php
-        if ( $header_socialbar_active && function_exists( 'beyond_gotham_render_socialbar' ) ) {
+        if ( $should_render_socialbar && function_exists( 'beyond_gotham_render_socialbar' ) ) {
             beyond_gotham_render_socialbar( 'header' );
         }
         ?>
