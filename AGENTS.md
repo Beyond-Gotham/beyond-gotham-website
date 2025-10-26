@@ -3,6 +3,8 @@
 ## Zweck
 Diese Datei dokumentiert die modularen Komponenten ("Agents") des WordPress-Themes **Beyond Gotham**. Sie dient als technische Übersicht für Entwickler:innen, die das Theme erweitern, warten oder refaktorisieren wollen. Jeder Agent ist für eine klar definierte Teilverantwortung zuständig, insbesondere im Bereich des Customizers, der Gutenberg-Kompatibilität, der Theme-Konfiguration und -Funktionalität.
 
+👉 Ergänzende Übersicht: Siehe **[docs/Entwicklungsfahrplan.md](../docs/Entwicklungsfahrplan.md)** für den vollständigen technischen Entwicklungsplan des Themes.
+
 ## Architekturprinzipien
 - **Modularisierung**: Alle Theme-Komponenten (Customizer, CPTs, Blöcke, etc.) sind in getrennten Dateien und Klassen gekapselt.
 - **Single Responsibility**: Jede Datei / Klasse verfolgt genau einen Zweck.
@@ -16,56 +18,57 @@ Diese Datei dokumentiert die modularen Komponenten ("Agents") des WordPress-Them
 ### Theme-Setup
 | Agent | Zweck |
 |-------|-------|
-| `functions.php` | Globales Setup: Theme-Supports, Menü-Registrierung, Hooks, globale Hilfsfunktionen, WooCommerce-Kompatibilität, Asset-Loading |
-| `inc/post-meta.php` | Zentrale Verwaltung und Ausgabe von Beitragsmetadaten; liefert Struktur für Customizer-Modul „Post Meta“ |
-| `inc/custom-post-types.php` | Registrierung von CPTs (Kurse, Dozent:innen, Anmeldungen) und Taxonomien; Definition von Meta-Feldern |
-| `inc/enrollment-form.php` | AJAX-Anmeldeformular + Validierung + E-Mail-Versand (Shortcode-basiert) |
-| `inc/rest-api.php` | Erweiterung der WP REST API (z.B. mit Custom Feldern) |
-| `inc/blocks.php` | Registrierung eigener Gutenberg-Blöcke (block.json basiert)
+| `functions.php` | Globales Setup des Themes: Registrierung von Theme-Supports (z. B. Thumbnails, Custom Logos), Navigationsmenüs, WooCommerce-Kompatibilität, Lade-Logik für Scripts und Styles. Enthält auch zentrale Hilfsfunktionen. |
+| `inc/post-meta.php` | Verwaltung und Ausgabe der Beitragsmetadaten im Frontend. Stellt gleichzeitig Schnittstellen für den Customizer bereit (Modul „Post Meta“). |
+| `inc/custom-post-types.php` | Registriert die Custom Post Types (Kurse, Dozent:innen, Anmeldungen) inklusive zugehöriger Taxonomien. Definiert außerdem Meta-Felder für Editor und REST API. |
+| `inc/enrollment-form.php` | Stellt ein AJAX-basiertes Formularsystem bereit (Shortcode-gesteuert), inklusive Validierung, Wartelistenverwaltung und E-Mail-Handling. |
+| `inc/rest-api.php` | Erweiterung der WordPress REST API um Custom Fields und Zusatzendpunkte (z. B. Kurs-Metadaten). |
+| `inc/blocks.php` | Bindeglied zwischen den Block-Ordnern im Theme und WordPress: registriert eigene Gutenberg-Blöcke per `block.json`. |
 
 ### Customizer Modules (geladen über `inc/customizer/loader.php`)
 | Agent | Zweck |
 |-------|-------|
-| `modules/cta.php` → `cta.php` | CTA-Boxen (Standard + Sticky); Text, Link, Sichtbarkeit, Layout |
-| `modules/footer.php` → `footer.php` | Footer-Claim, Social-Icons im Footer |
-| `modules/social.php` → `social.php` | Social-Profile-URLs + Sichtbarkeiten (Header, Footer, mobil) |
-| `modules/social-sharing.php` → `social-sharing.php` | Teilen-Buttons unter Inhalten: Netzwerke + Kontextsteuerung |
-| `modules/post-meta.php` → `post-meta.php` | Sichtbarkeit / Reihenfolge / Inhalt von Beitragsmetadaten (Autor, Tags etc.) |
-| `modules/navigation.php` → `navigation.php` | Sichtbarkeit von Menüs, Sticky Header, Ausrichtung & Abstand der Navigation |
-| `modules/branding.php` → `branding.php` | Textlogo statt Grafik, Zusatzfavicon-Einstellungen |
-| `modules/layout.php` → `layout.php` | Max. Seitenbreite, Container-Abstände (in Arbeit/erweiterbar) |
-| `modules/styles.php` → `styles.php` + `utils/colors.php`, `typography.php` | Farbschema & Typografie via CSS-Variablen; Light/Dark-Mode-basierte Präfixe |
-| `modules/performance.php` | Heartbeat, Lazyload etc. – Performance-Optimierung mit Plugin-Kompatibilität |
+| `modules/cta.php` → `cta.php` | Verwaltung aller CTA-Boxen (z. B. über Footer oder mobil sticky). Steuerung von Text, Linkziel, Sichtbarkeit und Layout im Customizer. |
+| `modules/footer.php` → `footer.php` | Steuert Footer-Inhalte wie Copyright, Sichtbarkeit des Menüs, Position der CTA-Box, sowie Social-Bar-Einstellungen. |
+| `modules/social.php` → `social.php` | Verwaltung der Social-Media-Links (Header, Footer, mobil sticky). Sichtbarkeitsregeln & Icon-Auswahl. |
+| `modules/social-sharing.php` → `social-sharing.php` | Konfigurierbare Share-Buttons (z. B. unter Artikeln) – soziale Netzwerke, Position, Kontextsteuerung. |
+| `modules/post-meta.php` → `post-meta.php` | Steuerung der Beitrags-Metainhalte: Sichtbarkeit, Reihenfolge, Anzeige von Autor, Tags, Kategorien, Kommentare, Lesezeit etc. |
+| `modules/navigation.php` → `navigation.php` | Optionen für Menüs: Ausrichtung (horizontal/vertikal), Sticky-Verhalten, Menüpositionen (Header, Mobile, Footer). |
+| `modules/branding.php` → `branding.php` | Textlogo-Option, Bildlogo, responsives Verhalten, Positionierung, favicon-Erweiterung. |
+| `modules/layout.php` → `layout.php` | Containerbreiten, Abstände, responsives Verhalten – steuerbar nach Breakpoint. Erweiterung für grid-basierte Layouts geplant. |
+| `modules/styles.php` → `styles.php` + `utils/colors.php`, `typography.php` | Farbsteuerung über CSS-Variablen für Light/Dark Mode, inklusive Preview und Customizer Controls. Schriftauswahl & Typografie-Voreinstellungen. |
+| `modules/performance.php` | Performance-Tweaks wie Heartbeat-Abschaltung, Lazyload-Optionen. Kompatibel mit externen Plugins. |
 
 ### Utility & Loader
 | Agent | Zweck |
 |-------|-------|
-| `inc/customizer/loader.php` | Klassenbasierter Customizer-Loader: Scannt `modules/`, lädt sie und ruft deren `register()`-Methode beim Hook `customize_register` auf |
-| `inc/customizer/utils/helpers.php` | Sanitizer, Defaults, Helper für alle Module |
+| `inc/customizer/loader.php` | Scannt automatisiert alle Module in `inc/customizer/modules/` und lädt diese bei `customize_register`. Klassenbasiert, mit Fallback-Logging. |
+| `inc/customizer/utils/helpers.php` | Enthält zentrale Helferfunktionen: Sanitizer, Default-Werte, gemeinsame Methoden für Controls & Sections. |
 
 ### Gutenberg
 | Agent | Zweck |
 |-------|-------|
-| `blocks/highlight-box/` | Eigenes Gutenberg-Blockmodul (Teaser-Box mit CTA); definiert in `block.json` |
-| `blocks/course-teaser/` | Gutenberg-Block für Kursteaser; JSON-basiert + eigene Assets |
+| `blocks/highlight-box/` | Custom Block: visuell hervorgehobene Box mit Titel, Text, CTA-Link. Integriert Styles und Icons. |
+| `blocks/course-teaser/` | Gutenberg-Kursteaser-Block (für Weiterbildungsbereich), JSON-basiert mit dynamischen PHP-Rückgaben und Style-Vererbung. |
 
 ---
 
 ## Empfehlungen
-- **Keine parallele Einbindung**: Nur noch Loader-basiertes Laden der Customizer-Module verwenden, `customizer.php` ist veraltet.
-- **Präfixe vereinheitlichen**: Alle Funktionen sollten mit `beyond_gotham_` beginnen.
-- **Customizer erweitern**: Module für SEO, Block-Styling, Kommentar-Steuerung könnten folgen.
-- **Redundanzen prüfen**: Social-Menü vs. Customizer-Links; CTA-HTML mehrfach vorhanden – vereinheitlichen.
-- **Theme.json perspektivisch prüfen**: Für volle Block-Editor-Kompatibilität langfristig sinnvoll.
+- **Code-Duplizierung vermeiden**: Social-Bar-Icons, CTA-Markup und Navigation wurden mehrfach implementiert. Diese Elemente sollten zentralisiert werden (z. B. via `template-parts/components/`).
+- **Customizer-Vereinheitlichung**: Positionierung (top, center, bottom), Sichtbarkeit, Größe, Farben, Modus (Light/Dark) sollten global steuerbar sein – inkl. Preview via `postMessage`.
+- **Dark/Light Mode erweitern**: Mehr Controls, getrennte Farbpaletten für beide Modi, automatischer Modus via `prefers-color-scheme`.
+- **Beitragskarten/Loops modularisieren**: Grid/List-Umschaltung via Customizer; responsives Verhalten definieren.
+- **Theme.json evaluieren**: Für langfristige Gutenberg-Kompatibilität – Styles, Supports, Presets, Farbdefinitionen, Fonts, etc.
+- **Typografie konsolidieren**: Definierte Font Sizes, Line Height, responsive Type Scale über CSS Variablen & Gutenberg Presets.
 
 ---
 
 ## Status
 **Theme-Version:** 0.1.0  
 **Stand:** Oktober 2025  
-**Modularisierungsgrad:** >90% (Customizer vollständig modularisiert, Blöcke modular, einige Helper historisch gewachsen)
+**Modularisierungsgrad:** >90% (Customizer vollständig modularisiert, Blöcke modular, Helper teilweise historisch)
 
 ---
 
 ## Ziel
-Diese AGENTS.md ermöglicht es Entwickler:innen, sich schnell in die Beyond-Gotham-Codebasis einzuarbeiten und gezielt bestehende Module zu erweitern oder neue hinzuzufügen – immer im Sinne eines modularen, gut konfigurierbaren und wartbaren WordPress-Themes.
+Diese `AGENTS.md` ermöglicht es Entwickler:innen, sich schnell in die Beyond-Gotham-Codebasis einzuarbeiten, wiederverwendbare Module gezielt zu finden und neue Features konsistent umzusetzen. Sie dient als zentrale Entwicklungsreferenz für Wartung, Erweiterung und Review-Prozesse.
