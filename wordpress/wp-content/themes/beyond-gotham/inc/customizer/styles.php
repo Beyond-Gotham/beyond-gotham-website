@@ -236,26 +236,25 @@ function beyond_gotham_get_customizer_css() {
         $layout_css .= 'body.brand-text-only .site-logo{display:none;}body.brand-text-only .site-title{display:inline-block;}';
         $layout_css .= 'img.bg-has-lqip{filter:blur(12px);transition:filter .3s ease;}img.bg-has-lqip.bg-lqip-loaded{filter:none;}';
 
-        // Body Typography
-        $body_rules = array();
+        // Typography variables.
+        $typography_root_rules = array();
 
-	if ( isset( $presets[ $body_font_key ] ) ) {
-		$body_rules[] = 'font-family: ' . $presets[ $body_font_key ]['stack'] . ';';
-	}
+        if ( isset( $presets[ $body_font_key ] ) ) {
+                $typography_root_rules[] = '--font-family-body:' . $presets[ $body_font_key ]['stack'] . ';';
+        }
 
-	$body_rules[] = 'font-size: ' . $font_size_value . $font_unit . ';';
-	$body_rules[] = 'line-height: ' . $line_height_value . ';';
+        if ( isset( $presets[ $heading_key ] ) ) {
+                $typography_root_rules[] = '--font-family-heading:' . $presets[ $heading_key ]['stack'] . ';';
+        }
 
-	if ( ! empty( $body_rules ) ) {
-		$css .= 'body {' . implode( ' ', $body_rules ) . '}';
-	}
+        $typography_root_rules[] = '--font-size-base:' . $font_size_value . $font_unit . ';';
+        $typography_root_rules[] = '--line-height-body:' . $line_height_value . ';';
 
-	$css .= $layout_css;
+        if ( ! empty( $typography_root_rules ) ) {
+                $css .= ':root{' . implode( '', $typography_root_rules ) . '}';
+        }
 
-	// Heading Typography
-	if ( isset( $presets[ $heading_key ] ) ) {
-		$css .= 'h1, h2, h3, h4, h5, h6 {font-family: ' . $presets[ $heading_key ]['stack'] . ';}';
-	}
+        $css .= $layout_css;
 
 	/**
 	 * Filter the generated customizer CSS.

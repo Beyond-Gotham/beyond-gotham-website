@@ -1,11 +1,12 @@
+@use "../base/breakpoints" as bp;
+
 /* -------------------------------------------------------------------------- */
 /* Courses                                                                    */
 /* -------------------------------------------------------------------------- */
 
 .courses {
   padding: 4rem 1.5rem 6rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  @include bp.container(1200px);
 }
 
 .courses__header {
@@ -38,7 +39,7 @@
   gap: 1.5rem;
 }
 
-@media (min-width: 768px) {
+@include bp.up('tablet') {
   .courses-filter {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: end;
@@ -75,14 +76,7 @@
 }
 
 .course-grid {
-  display: grid;
-  gap: 1.75rem;
-}
-
-@media (min-width: 960px) {
-  .course-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  @include bp.auto-grid(280px, 1.75rem);
 }
 
 .course-card {

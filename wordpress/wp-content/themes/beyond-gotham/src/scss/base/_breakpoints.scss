@@ -1,0 +1,46 @@
+@use "sass:map";
+
+$bg-breakpoints: (
+  'mobile': 0,
+  'tablet': 600px,
+  'desktop': 960px,
+  'wide': 1280px
+);
+
+@mixin up($breakpoint) {
+  $value: map.get($bg-breakpoints, $breakpoint);
+  @if $value == null {
+    @warn 'Unknown breakpoint: #{$breakpoint}';
+  } @else if $value == 0 {
+    @content;
+  } @else {
+    @media (min-width: $value) {
+      @content;
+    }
+  }
+}
+
+@mixin between($lower, $upper) {
+  $min: map.get($bg-breakpoints, $lower);
+  $max: map.get($bg-breakpoints, $upper);
+
+  @if $min == null or $max == null {
+    @warn 'Unknown breakpoint range: #{$lower} - #{$upper}';
+  } @else {
+    @media (min-width: $min) and (max-width: $max - 1) {
+      @content;
+    }
+  }
+}
+
+@mixin container($max-width: var(--content-max-width, 1080px)) {
+  width: min(100%, $max-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@mixin auto-grid($min-width: 260px, $gap: var(--grid-gap, 24px)) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($min-width, 1fr));
+  gap: $gap;
+}

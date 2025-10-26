@@ -1,0 +1,71 @@
+@use "../base/breakpoints" as bp;
+
+.bg-shop-page {
+  padding: 4rem 1.5rem 6rem;
+  @include bp.container(1200px);
+  display: grid;
+  gap: var(--grid-gap, 24px);
+}
+
+.bg-shop-header {
+  display: grid;
+  gap: 1rem;
+  text-align: center;
+}
+
+.bg-shop-title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+}
+
+.bg-shop-layout {
+  display: grid;
+  gap: var(--grid-gap, 24px);
+}
+
+@include bp.up('desktop') {
+  .bg-shop-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.bg-shop-sidebar {
+  background: var(--bg-panel);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.08);
+  border-radius: 18px;
+  padding: 1.5rem;
+}
+
+.bg-shop-results .products {
+  @include bp.auto-grid(260px, var(--grid-gap, 24px));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bg-shop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--bg-panel);
+  border: 1px solid rgba(var(--surface-tint-rgb), 0.08);
+  border-radius: 18px;
+  padding: 1.5rem;
+  height: 100%;
+}
+
+.bg-shop-card__media img {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.bg-shop-card__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.bg-shop-pagination {
+  margin-top: 2.5rem;
+  text-align: center;
+}

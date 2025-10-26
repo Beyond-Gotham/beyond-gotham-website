@@ -258,6 +258,95 @@
         applySocialbarStyles();
     }
 
+    function toggleSocialbarLocation(location, isVisible) {
+        var selector = '.socialbar[data-location="' + location + '"]';
+        getNodes(selector).forEach(function (node) {
+            if (isVisible) {
+                node.removeAttribute('hidden');
+                node.removeAttribute('aria-hidden');
+                node.classList.remove('is-preview-hidden');
+            } else {
+                node.setAttribute('hidden', 'hidden');
+                node.setAttribute('aria-hidden', 'true');
+                node.classList.add('is-preview-hidden');
+            }
+        });
+    }
+
+    function toggleHeaderSocialFallback(hideFallback) {
+        getNodes('.site-nav__social--theme').forEach(function (node) {
+            if (hideFallback) {
+                node.setAttribute('hidden', 'hidden');
+                node.setAttribute('aria-hidden', 'true');
+            } else {
+                node.removeAttribute('hidden');
+                node.removeAttribute('aria-hidden');
+            }
+        });
+    }
+
+    function updateSocialLink(network, rawValue) {
+        if (!network) {
+            return;
+        }
+
+        var value = typeof rawValue === 'string' ? rawValue.trim() : '';
+
+        if (network === 'email' && value) {
+            if (value.indexOf('mailto:') !== 0) {
+                value = 'mailto:' + value;
+            }
+        }
+
+        var hasUrl = value.length > 0;
+        var isMail = hasUrl && value.indexOf('mailto:') === 0;
+        var selectors = [
+            '.socialbar__link[data-network="' + network + '"]',
+            '.social-icons__link[data-network="' + network + '"]'
+        ];
+
+        selectors.forEach(function (selector) {
+            getNodes(selector).forEach(function (link) {
+                var container = link.closest('.socialbar__item');
+
+                if (hasUrl) {
+                    link.setAttribute('href', value);
+                    if (!isMail) {
+                        link.setAttribute('target', '_blank');
+                        link.setAttribute('rel', 'noopener');
+                    } else {
+                        link.removeAttribute('target');
+                        link.removeAttribute('rel');
+                    }
+                    link.removeAttribute('aria-hidden');
+                    link.removeAttribute('tabindex');
+                    link.removeAttribute('hidden');
+
+                    if (container) {
+                        container.classList.remove('socialbar__item--empty');
+                        container.removeAttribute('data-empty');
+                        container.removeAttribute('hidden');
+                        container.removeAttribute('aria-hidden');
+                    }
+                } else {
+                    link.removeAttribute('href');
+                    link.removeAttribute('target');
+                    link.removeAttribute('rel');
+                    link.setAttribute('aria-hidden', 'true');
+                    link.setAttribute('tabindex', '-1');
+                    link.setAttribute('hidden', 'hidden');
+
+                    if (container) {
+                        container.classList.add('socialbar__item--empty');
+                        container.setAttribute('data-empty', 'true');
+                        container.setAttribute('hidden', 'hidden');
+                        container.setAttribute('aria-hidden', 'true');
+                    }
+                }
+            });
+        });
+    }
+
     function setSocialbarSurfaceBackground(value) {
         if (value === null || typeof value === 'undefined') {
             socialbarState.surface.background = null;
@@ -1802,6 +1891,41 @@
             applyChoiceClass(el, CTA_ALIGNMENT_CLASSES, alignmentClass);
         });
     }
+
+        api('beyond_gotham_show_socialbar_header', function (value) {
+            var isVisible = !!value.get();
+            toggleSocialbarLocation('header', isVisible);
+            toggleHeaderSocialFallback(isVisible);
+
+            value.bind(function (newValue) {
+                var visible = !!newValue;
+                toggleSocialbarLocation('header', visible);
+                toggleHeaderSocialFallback(visible);
+            });
+        });
+
+        api('beyond_gotham_show_socialbar_mobile', function (value) {
+            toggleSocialbarLocation('mobile', !!value.get());
+
+            value.bind(function (newValue) {
+                toggleSocialbarLocation('mobile', !!newValue);
+            });
+        });
+
+        var SOCIAL_NETWORK_SETTINGS = ['github', 'linkedin', 'mastodon', 'twitter', 'facebook', 'instagram', 'tiktok', 'youtube', 'telegram', 'email'];
+
+        SOCIAL_NETWORK_SETTINGS.forEach(function (network) {
+            var settingId = network === 'email' ? 'beyond_gotham_social_email' : 'beyond_gotham_social_' + network;
+
+            api(settingId, function (setting) {
+                updateSocialLink(network, setting.get());
+
+                setting.bind(function (newValue) {
+                    updateSocialLink(network, newValue);
+                });
+            });
+        });
+
         api('beyond_gotham_socialbar_style_variant', function (value) {
             setSocialbarVariant(value.get());
 
