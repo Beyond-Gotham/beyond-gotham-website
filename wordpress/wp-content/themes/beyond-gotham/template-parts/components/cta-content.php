@@ -18,6 +18,7 @@ $defaults = array(
         'title_class'       => 'cta__title',
         'title_attributes'  => array(),
         'text'              => '',
+        'text_tag'          => 'p',
         'text_class'        => 'cta__lead',
         'text_attributes'   => array(),
         'button_label'      => '',
@@ -75,6 +76,9 @@ $variant = in_array( $data['variant'], array( 'cta', 'newsletter' ), true ) ? $d
 $title   = is_string( $data['title'] ) ? trim( $data['title'] ) : '';
 $text    = is_string( $data['text'] ) ? $data['text'] : '';
 
+$text_tag = is_string( $data['text_tag'] ) ? strtolower( $data['text_tag'] ) : 'p';
+$text_tag = preg_match( '/^[a-z0-9:-]+$/', $text_tag ) ? $text_tag : 'p';
+
 $title_tag = is_string( $data['title_tag'] ) && preg_match( '/^h[1-6]$/', strtolower( $data['title_tag'] ) ) ? strtolower( $data['title_tag'] ) : 'h2';
 
 $title_attributes = array_merge(
@@ -106,16 +110,21 @@ if ( $button_url ) {
 
         $is_mail_link = 0 === strpos( $button_url, 'mailto:' );
 
-        if ( $data['button_target'] ) {
-                $button_attributes['target'] = $data['button_target'];
+        $button_target = is_string( $data['button_target'] ) ? trim( $data['button_target'] ) : '';
+        $button_rel    = is_string( $data['button_rel'] ) ? trim( $data['button_rel'] ) : '';
+
+        if ( $button_target && preg_match( '/^_[a-z0-9-]+$/i', $button_target ) ) {
+                $button_attributes['target'] = $button_target;
         } elseif ( ! $is_mail_link ) {
                 $button_attributes['target'] = '_blank';
         }
 
         if ( ! $is_mail_link ) {
-                if ( $data['button_rel'] ) {
-                        $button_attributes['rel'] = $data['button_rel'];
-                } else {
+                $target = isset( $button_attributes['target'] ) ? $button_attributes['target'] : '';
+
+                if ( $button_rel ) {
+                        $button_attributes['rel'] = $button_rel;
+                } elseif ( '_self' !== $target ) {
                         $button_attributes['rel'] = 'noopener';
                 }
         } else {
@@ -162,7 +171,7 @@ if ( $render_title ) {
 }
 
 if ( $render_text ) {
-        printf( '<p%1$s>%2$s</p>', $format_attributes( $text_attributes ), wp_kses_post( $text ) );
+        printf( '<%1$s%2$s>%3$s</%1$s>', esc_html( $text_tag ), $format_attributes( $text_attributes ), wp_kses_post( $text ) );
 }
 
 if ( $render_button ) {

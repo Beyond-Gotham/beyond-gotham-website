@@ -1,3 +1,5 @@
+@use "../base/breakpoints" as bp;
+
 .bg-site {
   background: var(--bg);
 }
@@ -11,19 +13,19 @@
   gap: 1.75rem;
 }
 
-@media (min-width: 768px) {
+@include bp.up('tablet') {
   .bg-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 960px) {
+@include bp.up('desktop') {
   .bg-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1280px) {
+@include bp.up('wide') {
   .bg-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }

@@ -357,6 +357,7 @@ function beyond_gotham_customize_preview_js() {
                         'uiLayout'            => $ui_layout,
                         'navLayout'           => $nav_preview,
                         'branding'            => $branding_data,
+                        'socialbar'           => function_exists( 'beyond_gotham_get_socialbar_preview_data' ) ? beyond_gotham_get_socialbar_preview_data() : array(),
                         'performance'         => $performance_data,
                         'seo'                 => $seo_data,
                         'defaults'             => $color_defaults,

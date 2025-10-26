@@ -32,7 +32,7 @@
                             'class'    => 'bg-card__image',
                             'loading'  => 'lazy',
                             'decoding' => 'async',
-                            'sizes'    => '(min-width: 960px) 320px, (min-width: 600px) 50vw, 100vw',
+                        'sizes'    => '(min-width: 1024px) 320px, (min-width: 768px) 50vw, 100vw',
                         )
                     );
                 } else {

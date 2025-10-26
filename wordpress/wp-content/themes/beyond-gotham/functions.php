@@ -54,56 +54,6 @@ if ( ! function_exists( 'beyond_gotham_theme_setup' ) ) {
         add_theme_support( 'wp-block-styles' );
         add_theme_support( 'align-wide' );
         add_theme_support( 'responsive-embeds' );
-        add_theme_support(
-            'editor-color-palette',
-            array(
-                array(
-                    'name'  => __( 'Gotham Midnight', 'beyond_gotham' ),
-                    'slug'  => 'gotham-midnight',
-                    'color' => '#0b1d2a',
-                ),
-                array(
-                    'name'  => __( 'Skyline Gray', 'beyond_gotham' ),
-                    'slug'  => 'skyline-gray',
-                    'color' => '#4c5b68',
-                ),
-                array(
-                    'name'  => __( 'Signal Yellow', 'beyond_gotham' ),
-                    'slug'  => 'signal-yellow',
-                    'color' => '#f2b705',
-                ),
-                array(
-                    'name'  => __( 'Beacon Red', 'beyond_gotham' ),
-                    'slug'  => 'beacon-red',
-                    'color' => '#d43a3a',
-                ),
-            )
-        );
-        add_theme_support(
-            'editor-font-sizes',
-            array(
-                array(
-                    'name' => __( 'Small', 'beyond_gotham' ),
-                    'size' => 14,
-                    'slug' => 'small',
-                ),
-                array(
-                    'name' => __( 'Default', 'beyond_gotham' ),
-                    'size' => 16,
-                    'slug' => 'default',
-                ),
-                array(
-                    'name' => __( 'Large', 'beyond_gotham' ),
-                    'size' => 20,
-                    'slug' => 'large',
-                ),
-                array(
-                    'name' => __( 'Display', 'beyond_gotham' ),
-                    'size' => 32,
-                    'slug' => 'display',
-                ),
-            )
-        );
         add_theme_support( 'woocommerce' );
 
         register_nav_menus( array(
@@ -561,7 +511,7 @@ function beyond_gotham_render_sticky_cta_bar() {
 
     $attributes = array(
         'class'             => implode( ' ', array_map( 'sanitize_html_class', array_unique( $classes ) ) ),
-        'data-bg-sticky-cta'=> 'true',
+        'data-bg-sticky-cta' => 'true',
         'data-active'       => ! empty( $settings['active'] ) ? 'true' : 'false',
         'data-enabled'      => ! empty( $settings['enabled'] ) ? 'true' : 'false',
         'data-delay'        => isset( $settings['delay_ms'] ) ? (string) (int) $settings['delay_ms'] : '0',
@@ -579,7 +529,7 @@ function beyond_gotham_render_sticky_cta_bar() {
     );
 
     if ( empty( $settings['enabled'] ) ) {
-        $attributes['hidden'] = 'hidden';
+        $attributes['hidden'] = true;
     }
 
     $style_rules = array();
@@ -604,60 +554,41 @@ function beyond_gotham_render_sticky_cta_bar() {
         $attributes['style'] = implode( ' ', $style_rules );
     }
 
-    $attribute_strings = array();
-    foreach ( $attributes as $name => $value ) {
-        if ( '' === $value && 'class' !== $name && 'style' !== $name ) {
-            continue;
-        }
-
-        if ( 'hidden' === $name && 'hidden' === $value ) {
-            $attribute_strings[] = 'hidden';
-            continue;
-        }
-
-        $attribute_strings[] = sprintf( '%s="%s"', esc_attr( $name ), esc_attr( $value ) );
-    }
-
     $button_label = apply_filters( 'beyond_gotham_sticky_cta_button_label', __( 'Jetzt informieren', 'beyond_gotham' ), $settings );
     $button_label = is_string( $button_label ) ? $button_label : '';
 
-    $button_attrs = array(
-        'class'                    => 'sticky-cta__button',
-        'data-bg-sticky-cta-button'=> 'true',
+    $button_attributes = array(
+        'data-bg-sticky-cta-button' => true,
     );
 
     if ( $has_link && ! empty( $settings['link'] ) ) {
-        $button_attrs['href'] = esc_url( $settings['link'] );
+        $button_attributes['href'] = $settings['link'];
     } else {
-        $button_attrs['aria-disabled'] = 'true';
-        $button_attrs['tabindex']      = '-1';
-        $button_attrs['hidden']        = 'hidden';
+        $button_attributes['aria-disabled'] = 'true';
+        $button_attributes['tabindex']      = '-1';
+        $button_attributes['hidden']        = true;
     }
 
-    $button_attr_strings = array();
-    foreach ( $button_attrs as $name => $value ) {
-        if ( 'hidden' === $name && 'hidden' === $value ) {
-            $button_attr_strings[] = 'hidden';
-            continue;
-        }
+    $wrapper_attributes = $attributes;
 
-        $button_attr_strings[] = sprintf( '%s="%s"', esc_attr( $name ), esc_attr( $value ) );
+    if ( empty( $settings['enabled'] ) ) {
+        $wrapper_attributes['hidden'] = true;
     }
 
-    echo '<div ' . implode( ' ', $attribute_strings ) . '>';
-    echo '<div class="sticky-cta__inner">';
-    echo '<div class="sticky-cta__content" data-bg-sticky-cta-content>';
-
-    if ( $has_content && ! empty( $settings['content'] ) ) {
-        echo $settings['content']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-    }
-
-    echo '</div>';
-
-    echo '<a ' . implode( ' ', $button_attr_strings ) . '>' . esc_html( $button_label ) . '</a>';
-    echo '<button type="button" class="sticky-cta__close" data-bg-sticky-cta-close aria-label="' . esc_attr__( 'CTA schließen', 'beyond_gotham' ) . '"><span class="sticky-cta__close-icon" aria-hidden="true">&times;</span></button>';
-    echo '</div>';
-    echo '</div>';
+    get_template_part(
+        'template-parts/components/sticky-cta',
+        null,
+        array(
+            'wrapper_attributes' => $wrapper_attributes,
+            'content'            => $has_content ? $settings['content'] : '',
+            'button'             => array(
+                'label'      => $button_label,
+                'url'        => $has_link ? $settings['link'] : '',
+                'attributes' => $button_attributes,
+            ),
+            'close_label'        => __( 'CTA schließen', 'beyond_gotham' ),
+        )
+    );
 }
 add_action( 'wp_footer', 'beyond_gotham_render_sticky_cta_bar', 15 );
 

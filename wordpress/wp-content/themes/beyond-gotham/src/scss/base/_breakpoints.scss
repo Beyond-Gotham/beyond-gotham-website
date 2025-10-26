@@ -1,10 +1,13 @@
 @use "sass:map";
+@use "sass:list";
 
 $bg-breakpoints: (
   'mobile': 0,
-  'tablet': 600px,
-  'desktop': 960px,
-  'wide': 1280px
+  'phablet': 480px,
+  'tablet': 768px,
+  'desktop': 1024px,
+  'wide': 1280px,
+  'ultra': 1440px
 );
 
 @mixin up($breakpoint) {
@@ -20,6 +23,21 @@ $bg-breakpoints: (
   }
 }
 
+@mixin down($breakpoint) {
+  $value: map.get($bg-breakpoints, $breakpoint);
+
+  @if $value == null {
+    @warn 'Unknown breakpoint: #{$breakpoint}';
+  } @else if $value == 0 {
+    @content;
+  } @else {
+    $max: $value - 0.02px;
+    @media (max-width: $max) {
+      @content;
+    }
+  }
+}
+
 @mixin between($lower, $upper) {
   $min: map.get($bg-breakpoints, $lower);
   $max: map.get($bg-breakpoints, $upper);
@@ -27,8 +45,43 @@ $bg-breakpoints: (
   @if $min == null or $max == null {
     @warn 'Unknown breakpoint range: #{$lower} - #{$upper}';
   } @else {
-    @media (min-width: $min) and (max-width: $max - 1) {
+    $computed-max: $max - 0.02px;
+    @media (min-width: $min) and (max-width: $computed-max) {
       @content;
+    }
+  }
+}
+
+@mixin only($breakpoint) {
+  $value: map.get($bg-breakpoints, $breakpoint);
+
+  @if $value == null {
+    @warn 'Unknown breakpoint: #{$breakpoint}';
+  } @else {
+    $keys: map.keys($bg-breakpoints);
+    $index: list.index($keys, $breakpoint);
+
+    @if $index == null {
+      @warn 'Unknown breakpoint: #{$breakpoint}';
+    } @else {
+      $next-index: $index + 1;
+      $next-value: if($next-index <= list.length($keys), map.get($bg-breakpoints, list.nth($keys, $next-index)), null);
+
+      @if $next-value == null {
+        @include up($breakpoint) {
+          @content;
+        }
+      } @else if $value == 0 {
+        $max: $next-value - 0.02px;
+        @media (max-width: $max) {
+          @content;
+        }
+      } @else {
+        $max: $next-value - 0.02px;
+        @media (min-width: $value) and (max-width: $max) {
+          @content;
+        }
+      }
     }
   }
 }

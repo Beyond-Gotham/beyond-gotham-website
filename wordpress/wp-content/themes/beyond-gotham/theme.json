@@ -6,18 +6,25 @@
       "custom": true,
       "defaultPalette": false,
       "palette": [
-        { "slug": "background", "name": "Surface Background", "color": "var(--bg, #f4f6fb)" },
-        { "slug": "foreground", "name": "Primary Text", "color": "var(--fg, #0f172a)" },
-        { "slug": "primary", "name": "Primary Accent", "color": "var(--accent, #33d1ff)" },
-        { "slug": "secondary", "name": "Secondary Accent", "color": "var(--accent-alt, #1aa5d1)" },
-        { "slug": "muted", "name": "Muted Surface", "color": "var(--bg-muted, #e6edf7)" },
-        { "slug": "link", "name": "Link", "color": "var(--color-link, #0f172a)" },
-        { "slug": "link-hover", "name": "Link Hover", "color": "var(--color-link-hover, #1aa5d1)" }
+        { "slug": "gotham-midnight", "name": "Gotham Midnight", "color": "#0b1d2a" },
+        { "slug": "skyline-gray", "name": "Skyline Gray", "color": "#4c5b68" },
+        { "slug": "signal-yellow", "name": "Signal Yellow", "color": "#f2b705" },
+        { "slug": "beacon-red", "name": "Beacon Red", "color": "#d43a3a" },
+        { "slug": "primary", "name": "Primary Accent", "color": "#33d1ff" },
+        { "slug": "secondary", "name": "Secondary Accent", "color": "#1aa5d1" },
+        { "slug": "surface", "name": "Surface Background", "color": "#f4f6fb" },
+        { "slug": "surface-dark", "name": "Surface Background (Dark)", "color": "#0f1115" },
+        { "slug": "foreground", "name": "Primary Text", "color": "#0f172a" },
+        { "slug": "foreground-dark", "name": "Primary Text (Dark)", "color": "#e7eaee" },
+        { "slug": "muted", "name": "Muted Surface", "color": "#e6edf7" },
+        { "slug": "muted-dark", "name": "Muted Surface (Dark)", "color": "#161b2a" },
+        { "slug": "link", "name": "Link", "color": "#0f172a" },
+        { "slug": "link-hover", "name": "Link Hover", "color": "#1aa5d1" }
       ]
     },
     "layout": {
-      "contentSize": "min(100%, var(--content-max-width, 1080px))",
-      "wideSize": "min(100%, var(--content-max-width, 1280px))"
+      "contentSize": "1080px",
+      "wideSize": "1280px"
     },
     "spacing": {
       "units": ["px", "rem", "em", "%", "vw", "vh"],
@@ -39,11 +46,10 @@
         }
       ],
       "fontSizes": [
-        { "slug": "xs", "name": "XS", "size": "var(--font-size-xs, 0.75rem)" },
-        { "slug": "sm", "name": "Small", "size": "var(--font-size-sm, 0.875rem)" },
-        { "slug": "base", "name": "Base", "size": "var(--font-size-base, 1rem)" },
-        { "slug": "lg", "name": "Large", "size": "var(--font-size-lg, 1.25rem)" },
-        { "slug": "xl", "name": "XL", "size": "var(--font-size-xl, 1.75rem)" }
+        { "slug": "small", "name": "Small", "size": "0.875rem" },
+        { "slug": "default", "name": "Default", "size": "1rem" },
+        { "slug": "large", "name": "Large", "size": "1.25rem" },
+        { "slug": "display", "name": "Display", "size": "2rem" }
       ],
       "lineHeight": true
     }
