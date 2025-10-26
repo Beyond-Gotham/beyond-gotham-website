@@ -9,6 +9,12 @@
 - Erweiterte Customizer-Module für Navigation, Branding und Layout (Menü-Toggles, Logo-Varianten, Container-/Spacing-Skala).
 - Neues Performance-Modul mit Lazy Loading (Bilder/iFrames), LQIP-Blur, Script-Strategien und Heartbeat-Tuning.
 - Neues SEO-Modul mit Titel-Formaten, Meta-Description-Fallbacks, Open-Graph-Basis und Schema.org JSON-LD inkl. Breadcrumbs.
+- Sticky-CTA-Partial (`template-parts/components/sticky-cta.php`) mit zentralisiertem Markup und Customizer-Hooks.
+
+### Changed
+- Header-, Struktur- und Landing-Styles verwenden die Breakpoint-Mixins (`bp.up`, `bp.down`, …) für konsistente Grids.
+- Socialbar-SCSS deckt Varianten/Icon-Stile via Klassen & `data-*`-Attribute ab; Sticky-CTA-Attribute harmonisieren mit der Customizer-Vorschau.
+
 ### Removed
 - Removed legacy social-icon block from footer (black field with GitHub icon). Cleaned up related CSS and Customizer references.
 

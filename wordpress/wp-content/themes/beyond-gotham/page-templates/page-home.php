@@ -89,20 +89,28 @@ get_header();
                 <h2 class="landing-social__title" id="landing-social-title"><?php esc_html_e( 'Stay Connected', 'beyond_gotham' ); ?></h2>
                 <p class="landing-social__intro"><?php esc_html_e( 'Folgen Sie unseren Einsatz- und Recherche-Updates auf allen Kanälen.', 'beyond_gotham' ); ?></p>
             </div>
-            <?php if ( has_nav_menu( 'menu-2' ) ) : ?>
-                <?php
-                wp_nav_menu(
+            <?php
+            $landing_social_links = function_exists( 'beyond_gotham_get_social_links' ) ? beyond_gotham_get_social_links() : array();
+
+            if ( ! empty( $landing_social_links ) ) {
+                get_template_part(
+                    'template-parts/social-icons',
+                    null,
                     array(
-                        'theme_location' => 'menu-2',
-                        'menu_class'     => 'landing-social__menu',
-                        'container'      => false,
-                        'depth'          => 1,
+                        'context'         => 'landing',
+                        'links'           => $landing_social_links,
+                        'wrapper_classes' => array( 'landing-social__icons' ),
+                        'modifiers'       => array( 'landing' ),
+                        'aria_label'      => __( 'Beyond Gotham Social Media', 'beyond_gotham' ),
+                        'tag'             => 'nav',
                     )
                 );
+            } else {
                 ?>
-            <?php else : ?>
                 <p class="landing-social__notice"><?php esc_html_e( 'Füge deine Social Links im Menü-Manager hinzu, um sie hier anzuzeigen.', 'beyond_gotham' ); ?></p>
-            <?php endif; ?>
+                <?php
+            }
+            ?>
         </div>
     </section>
 
@@ -188,7 +196,7 @@ get_header();
                                             'class'         => 'bg-card__image',
                                             'loading'       => 'lazy',
                                             'decoding'      => 'async',
-                                            'sizes'         => '(min-width: 960px) 320px, (min-width: 600px) 50vw, 100vw',
+                                            'sizes'         => '(min-width: 1024px) 320px, (min-width: 768px) 50vw, 100vw',
                                             'fetchpriority' => 'auto',
                                         )
                                     );

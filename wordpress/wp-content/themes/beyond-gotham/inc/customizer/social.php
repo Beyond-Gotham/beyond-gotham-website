@@ -19,10 +19,10 @@ defined( 'ABSPATH' ) || exit;
  * @return array
  */
 function beyond_gotham_get_social_links() {
-	$networks = array(
-		'github',
-		'linkedin',
-		'mastodon',
+        $networks = array(
+                'github',
+                'linkedin',
+                'mastodon',
 		'twitter',
 		'facebook',
 		'instagram',
@@ -55,7 +55,72 @@ function beyond_gotham_get_social_links() {
 	 *
 	 * @param array $links Social network links.
 	 */
-	return apply_filters( 'beyond_gotham_social_links', $links );
+        return apply_filters( 'beyond_gotham_social_links', $links );
+}
+
+/**
+ * Retrieve available socialbar variant choices.
+ *
+ * @return string[]
+ */
+function beyond_gotham_get_socialbar_variant_choices() {
+        return array( 'minimal', 'boxed', 'pill', 'labelled' );
+}
+
+/**
+ * Retrieve available icon style choices for the socialbar.
+ *
+ * @return string[]
+ */
+function beyond_gotham_get_socialbar_icon_style_choices() {
+        return array( 'default', 'monochrom', 'farbig', 'invertiert' );
+}
+
+/**
+ * Retrieve color keys used for socialbar variants.
+ *
+ * @return string[]
+ */
+function beyond_gotham_get_socialbar_color_types() {
+        return array( 'background', 'hover', 'icon' );
+}
+
+/**
+ * Sanitize socialbar variant selection.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_socialbar_variant( $value ) {
+        $value    = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+        $allowed  = beyond_gotham_get_socialbar_variant_choices();
+
+        if ( 'default' === $value ) {
+                $value = 'minimal';
+        }
+
+        if ( in_array( $value, $allowed, true ) ) {
+                return $value;
+        }
+
+        return 'minimal';
+}
+
+/**
+ * Sanitize socialbar icon style selection.
+ *
+ * @param string $value Raw value.
+ * @return string
+ */
+function beyond_gotham_sanitize_socialbar_icon_style( $value ) {
+        $value   = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+        $allowed = beyond_gotham_get_socialbar_icon_style_choices();
+
+        if ( in_array( $value, $allowed, true ) ) {
+                return $value;
+        }
+
+        return 'default';
 }
 
 /**
@@ -64,12 +129,39 @@ function beyond_gotham_get_social_links() {
  * @return array
  */
 function beyond_gotham_get_socialbar_settings() {
-	return array(
-		'show_header'    => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_header', false ),
-		'show_mobile'    => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_mobile', true ),
-		'icon_style'     => sanitize_text_field( get_theme_mod( 'beyond_gotham_socialbar_icon_style', 'default' ) ),
-		'style_variant'  => sanitize_text_field( get_theme_mod( 'beyond_gotham_socialbar_style', 'default' ) ),
-	);
+        $variant_mod = get_theme_mod( 'beyond_gotham_socialbar_style_variant', null );
+
+        if ( null === $variant_mod ) {
+                $variant_mod = get_theme_mod( 'beyond_gotham_socialbar_style', 'minimal' );
+        }
+
+        $icon_style = beyond_gotham_sanitize_socialbar_icon_style( get_theme_mod( 'beyond_gotham_socialbar_icon_style', 'default' ) );
+        $variant    = beyond_gotham_sanitize_socialbar_variant( $variant_mod );
+
+        $surface_background = sanitize_hex_color( get_theme_mod( 'beyond_gotham_socialbar_background_color' ) );
+        $surface_icon       = sanitize_hex_color( get_theme_mod( 'beyond_gotham_socialbar_icon_color' ) );
+
+        $variant_colors = array();
+        foreach ( beyond_gotham_get_socialbar_variant_choices() as $variant_key ) {
+                foreach ( beyond_gotham_get_socialbar_color_types() as $type ) {
+                        $option_id = 'beyond_gotham_socialbar_' . $variant_key . '_' . $type . '_color';
+                        $color     = sanitize_hex_color( get_theme_mod( $option_id ) );
+
+                        $variant_colors[ $variant_key ][ $type ] = $color ? $color : '';
+                }
+        }
+
+        return array(
+                'show_header'    => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_header', false ),
+                'show_mobile'    => (bool) get_theme_mod( 'beyond_gotham_show_socialbar_mobile', true ),
+                'icon_style'     => $icon_style,
+                'style_variant'  => $variant,
+                'surface'        => array(
+                        'background' => $surface_background ? $surface_background : '',
+                        'icon'       => $surface_icon ? $surface_icon : '',
+                ),
+                'variants'       => $variant_colors,
+        );
 }
 
 /**
@@ -102,7 +194,7 @@ function beyond_gotham_get_social_icon_svgs() {
  * @param string $location Social bar location. Accepts 'header' or 'mobile'.
  */
 function beyond_gotham_render_socialbar( $location = 'header' ) {
-	static $rendered_locations = array();
+        static $rendered_locations = array();
 
 	$allowed_locations = array( 'header', 'mobile' );
 
@@ -149,11 +241,11 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
         $wrapper_classes = array( 'socialbar', 'socialbar--' . $location );
 
         if ( ! empty( $settings['icon_style'] ) ) {
-                $wrapper_classes[] = 'socialbar--icon-' . $settings['icon_style'];
+                $wrapper_classes[] = 'socialbar--icon-' . sanitize_html_class( $settings['icon_style'] );
         }
 
         if ( ! empty( $settings['style_variant'] ) ) {
-                $wrapper_classes[] = 'socialbar--' . $settings['style_variant'];
+                $wrapper_classes[] = 'socialbar--' . sanitize_html_class( $settings['style_variant'] );
         }
 
         $wrapper_attributes = array(
@@ -161,6 +253,46 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
                 'data-bg-socialbar'=> $location,
                 'data-location'    => $location,
         );
+
+        if ( ! empty( $settings['style_variant'] ) ) {
+                $wrapper_attributes['data-variant'] = sanitize_html_class( $settings['style_variant'] );
+        }
+
+        if ( ! empty( $settings['icon_style'] ) && 'default' !== $settings['icon_style'] ) {
+                $wrapper_attributes['data-icon-style'] = sanitize_html_class( $settings['icon_style'] );
+        }
+
+        $style_rules = array();
+
+        if ( ! empty( $settings['surface']['background'] ) ) {
+                $style_rules[] = '--socialbar-surface: ' . $settings['surface']['background'] . ';';
+        }
+
+        if ( ! empty( $settings['surface']['icon'] ) ) {
+                $style_rules[] = '--socialbar-icon: ' . $settings['surface']['icon'] . ';';
+        }
+
+        $active_variant = isset( $settings['style_variant'] ) ? $settings['style_variant'] : 'minimal';
+
+        if ( isset( $settings['variants'][ $active_variant ] ) && is_array( $settings['variants'][ $active_variant ] ) ) {
+                $variant_colors = $settings['variants'][ $active_variant ];
+
+                if ( ! empty( $variant_colors['background'] ) ) {
+                        $style_rules[] = '--socialbar-bg: ' . $variant_colors['background'] . ';';
+                }
+
+                if ( ! empty( $variant_colors['hover'] ) ) {
+                        $style_rules[] = '--socialbar-hover: ' . $variant_colors['hover'] . ';';
+                }
+
+                if ( ! empty( $variant_colors['icon'] ) ) {
+                        $style_rules[] = '--socialbar-icon: ' . $variant_colors['icon'] . ';';
+                }
+        }
+
+        if ( ! empty( $style_rules ) ) {
+                $wrapper_attributes['style'] = implode( ' ', $style_rules );
+        }
 
         if ( isset( $location_enabled[ $location ] ) && ! $location_enabled[ $location ] ) {
                 $wrapper_attributes['hidden']                = true;
@@ -268,7 +400,23 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
 
         echo '</ul>';
 
-	$rendered_locations[ $location ] = true;
+        $rendered_locations[ $location ] = true;
+}
+
+/**
+ * Provide socialbar settings for the Customizer preview script.
+ *
+ * @return array
+ */
+function beyond_gotham_get_socialbar_preview_data() {
+        $settings = beyond_gotham_get_socialbar_settings();
+
+        return array(
+                'variant'   => isset( $settings['style_variant'] ) ? $settings['style_variant'] : 'minimal',
+                'surface'   => isset( $settings['surface'] ) ? $settings['surface'] : array(),
+                'variants'  => isset( $settings['variants'] ) ? $settings['variants'] : array(),
+                'iconStyle' => isset( $settings['icon_style'] ) ? $settings['icon_style'] : 'default',
+        );
 }
 
 /**
@@ -330,18 +478,174 @@ function beyond_gotham_register_social_customizer( WP_Customize_Manager $wp_cust
                 )
         );
 
-	$wp_customize->add_control(
-		'beyond_gotham_show_socialbar_mobile_control',
-		array(
-			'label'    => __( 'Sticky-Social-Bar auf Mobilgeräten anzeigen?', 'beyond_gotham' ),
-			'section'  => 'beyond_gotham_social_media',
-			'settings' => 'beyond_gotham_show_socialbar_mobile',
-			'type'     => 'checkbox',
-		)
-	);
+        $wp_customize->add_control(
+                'beyond_gotham_show_socialbar_mobile_control',
+                array(
+                        'label'    => __( 'Sticky-Social-Bar auf Mobilgeräten anzeigen?', 'beyond_gotham' ),
+                        'section'  => 'beyond_gotham_social_media',
+                        'settings' => 'beyond_gotham_show_socialbar_mobile',
+                        'type'     => 'checkbox',
+                )
+        );
 
-	// Social Network URLs
-	$networks = array(
+        // Socialbar appearance settings.
+        $wp_customize->add_control(
+                new Beyond_Gotham_Customize_Heading_Control(
+                        $wp_customize,
+                        'beyond_gotham_socialbar_style_heading',
+                        array(
+                                'label'       => __( 'Darstellung & Farben', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_social_media',
+                                'description' => __( 'Passe Layout und Farben der Social-Bar an.', 'beyond_gotham' ),
+                        )
+                )
+        );
+
+        $wp_customize->add_setting(
+                'beyond_gotham_socialbar_style_variant',
+                array(
+                        'default'           => 'minimal',
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_socialbar_variant',
+                        'transport'         => 'postMessage',
+                )
+        );
+
+        $wp_customize->add_control(
+                'beyond_gotham_socialbar_style_variant',
+                array(
+                        'label'   => __( 'Darstellungsvariante', 'beyond_gotham' ),
+                        'section' => 'beyond_gotham_social_media',
+                        'type'    => 'select',
+                        'choices' => array(
+                                'minimal'  => __( 'Minimal', 'beyond_gotham' ),
+                                'boxed'    => __( 'Boxed', 'beyond_gotham' ),
+                                'pill'     => __( 'Pill', 'beyond_gotham' ),
+                                'labelled' => __( 'Mit Label', 'beyond_gotham' ),
+                        ),
+                )
+        );
+
+        $wp_customize->add_setting(
+                'beyond_gotham_socialbar_icon_style',
+                array(
+                        'default'           => 'default',
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'beyond_gotham_sanitize_socialbar_icon_style',
+                        'transport'         => 'postMessage',
+                )
+        );
+
+        $wp_customize->add_control(
+                'beyond_gotham_socialbar_icon_style',
+                array(
+                        'label'   => __( 'Icon-Stil', 'beyond_gotham' ),
+                        'section' => 'beyond_gotham_social_media',
+                        'type'    => 'select',
+                        'choices' => array(
+                                'default'    => __( 'Themefarben', 'beyond_gotham' ),
+                                'monochrom'  => __( 'Monochrom', 'beyond_gotham' ),
+                                'farbig'     => __( 'Markenfarben', 'beyond_gotham' ),
+                                'invertiert' => __( 'Invertiert', 'beyond_gotham' ),
+                        ),
+                )
+        );
+
+        $wp_customize->add_setting(
+                'beyond_gotham_socialbar_background_color',
+                array(
+                        'default'           => '',
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'sanitize_hex_color',
+                        'transport'         => 'postMessage',
+                )
+        );
+
+        $wp_customize->add_control(
+                new WP_Customize_Color_Control(
+                        $wp_customize,
+                        'beyond_gotham_socialbar_background_color',
+                        array(
+                                'label'       => __( 'Oberflächenfarbe', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_social_media',
+                                'settings'    => 'beyond_gotham_socialbar_background_color',
+                                'description' => __( 'Grundfarbe der Social-Bar.', 'beyond_gotham' ),
+                        )
+                )
+        );
+
+        $wp_customize->add_setting(
+                'beyond_gotham_socialbar_icon_color',
+                array(
+                        'default'           => '',
+                        'type'              => 'theme_mod',
+                        'sanitize_callback' => 'sanitize_hex_color',
+                        'transport'         => 'postMessage',
+                )
+        );
+
+        $wp_customize->add_control(
+                new WP_Customize_Color_Control(
+                        $wp_customize,
+                        'beyond_gotham_socialbar_icon_color',
+                        array(
+                                'label'       => __( 'Icon-Farbe (Oberfläche)', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_social_media',
+                                'settings'    => 'beyond_gotham_socialbar_icon_color',
+                        )
+                )
+        );
+
+        $variant_labels = array(
+                'minimal'  => __( 'Minimal', 'beyond_gotham' ),
+                'boxed'    => __( 'Boxed', 'beyond_gotham' ),
+                'pill'     => __( 'Pill', 'beyond_gotham' ),
+                'labelled' => __( 'Mit Label', 'beyond_gotham' ),
+        );
+
+        $color_labels = array(
+                'background' => __( 'Hintergrund', 'beyond_gotham' ),
+                'hover'      => __( 'Hover', 'beyond_gotham' ),
+                'icon'       => __( 'Icon', 'beyond_gotham' ),
+        );
+
+        foreach ( beyond_gotham_get_socialbar_variant_choices() as $variant_key ) {
+                foreach ( beyond_gotham_get_socialbar_color_types() as $color_type ) {
+                        $setting_id = 'beyond_gotham_socialbar_' . $variant_key . '_' . $color_type . '_color';
+
+                        $wp_customize->add_setting(
+                                $setting_id,
+                                array(
+                                        'default'           => '',
+                                        'type'              => 'theme_mod',
+                                        'sanitize_callback' => 'sanitize_hex_color',
+                                        'transport'         => 'postMessage',
+                                )
+                        );
+
+                        $label = sprintf(
+                                /* translators: 1: Variant label, 2: color label */
+                                __( '%1$s · %2$s', 'beyond_gotham' ),
+                                isset( $variant_labels[ $variant_key ] ) ? $variant_labels[ $variant_key ] : ucfirst( $variant_key ),
+                                isset( $color_labels[ $color_type ] ) ? $color_labels[ $color_type ] : ucfirst( $color_type )
+                        );
+
+                        $wp_customize->add_control(
+                                new WP_Customize_Color_Control(
+                                        $wp_customize,
+                                        $setting_id,
+                                        array(
+                                                'label'    => $label,
+                                                'section'  => 'beyond_gotham_social_media',
+                                                'settings' => $setting_id,
+                                        )
+                                )
+                        );
+                }
+        }
+
+        // Social Network URLs
+        $networks = array(
 		'github'    => array(
 			'label'       => __( 'GitHub URL', 'beyond_gotham' ),
 			'placeholder' => 'https://github.com/beyondgotham',

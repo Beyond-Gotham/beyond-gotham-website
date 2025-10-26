@@ -24,6 +24,13 @@ Diese Datei dokumentiert die modularen Komponenten ("Agents") des WordPress-Them
 | `inc/enrollment-form.php` | Stellt ein AJAX-basiertes Formularsystem bereit (Shortcode-gesteuert), inklusive Validierung, Wartelistenverwaltung und E-Mail-Handling. |
 | `inc/rest-api.php` | Erweiterung der WordPress REST API um Custom Fields und Zusatzendpunkte (z. B. Kurs-Metadaten). |
 | `inc/blocks.php` | Bindeglied zwischen den Block-Ordnern im Theme und WordPress: registriert eigene Gutenberg-Blöcke per `block.json`. |
+| `theme.json` | Zentrale Gutenberg-Konfiguration (Farben, Typografie, Layoutgrößen). Spiegelt Customizer-Defaults wider und ersetzt die Legacy-`add_theme_support`-Palette/Font-Registrierungen. |
+
+### Template Components
+| Component | Zweck |
+|-----------|-------|
+| `template-parts/components/cta-content.php` | Wiederverwendbares CTA-/Newsletter-Markup für Footer-, Sticky- und Inline-Boxen mit optionalen Social-Icons. |
+| `template-parts/components/sticky-cta.php` | Kapselt die Sticky-CTA-Leiste inklusive Close-Button und bindet sich an Customizer/Preview-Selektoren (`data-bg-sticky-cta-*`). |
 
 ### Customizer Modules (geladen über `inc/customizer/loader.php`)
 | Agent | Zweck |
@@ -60,6 +67,8 @@ Diese Datei dokumentiert die modularen Komponenten ("Agents") des WordPress-Them
 - **Beitragskarten/Loops modularisieren**: Grid/List-Umschaltung via Customizer; responsives Verhalten definieren.
 - **Theme.json evaluieren**: Für langfristige Gutenberg-Kompatibilität – Styles, Supports, Presets, Farbdefinitionen, Fonts, etc.
 - **Typografie konsolidieren**: Definierte Font Sizes, Line Height, responsive Type Scale über CSS Variablen & Gutenberg Presets.
+- **Breakpoint-Mixins verwenden**: Nutze die Helfer aus `src/scss/base/_breakpoints.scss` (`bp.up`, `bp.down`, `bp.only`, `bp.between`) statt manueller `@media`-Queries.
+- **Socialbar-Varianten berücksichtigen**: Icon-Stile und Varianten arbeiten über Klassen (`socialbar--*`) und Datenattribute (`data-variant`, `data-icon-style`) für den Customizer. Styles sollten beide Selektoren bedienen.
 
 ---
 

@@ -115,6 +115,7 @@
 
     var SOCIALBAR_SELECTOR = '.socialbar[data-location]';
     var SOCIALBAR_VARIANTS = ['minimal', 'boxed', 'pill', 'labelled'];
+    var SOCIALBAR_ICON_STYLES = ['default', 'monochrom', 'farbig', 'invertiert'];
     var SOCIALBAR_VARIANT_CLASSES = SOCIALBAR_VARIANTS.map(function (variant) {
         return 'socialbar--' + variant;
     });
@@ -125,8 +126,33 @@
             background: null,
             icon: null
         },
-        variants: {}
+        variants: {},
+        iconStyle: 'default'
     };
+
+    if (data && data.socialbar) {
+        if (data.socialbar.variant) {
+            socialbarState.variant = sanitizeSocialbarVariant(data.socialbar.variant);
+        }
+
+        if (data.socialbar.surface) {
+            if (data.socialbar.surface.background) {
+                socialbarState.surface.background = data.socialbar.surface.background;
+            }
+
+            if (data.socialbar.surface.icon) {
+                socialbarState.surface.icon = data.socialbar.surface.icon;
+            }
+        }
+
+        if (data.socialbar.variants) {
+            socialbarState.variants = data.socialbar.variants;
+        }
+
+        if (data.socialbar.iconStyle) {
+            socialbarState.iconStyle = sanitizeSocialbarIconStyle(data.socialbar.iconStyle);
+        }
+    }
 
     function sanitizeHexColor(value) {
         if (typeof value !== 'string') {
@@ -160,6 +186,20 @@
         return 'minimal';
     }
 
+    function sanitizeSocialbarIconStyle(value) {
+        if (typeof value !== 'string') {
+            return 'default';
+        }
+
+        var normalized = value.trim().toLowerCase();
+
+        if (SOCIALBAR_ICON_STYLES.indexOf(normalized) !== -1) {
+            return normalized;
+        }
+
+        return 'default';
+    }
+
     function getSocialbarElements() {
         return getNodes(SOCIALBAR_SELECTOR);
     }
@@ -191,6 +231,32 @@
 
             node.classList.add(className);
             node.setAttribute('data-variant', variant);
+        });
+    }
+
+    function applySocialbarIconStyle(style) {
+        var nodes = getSocialbarElements();
+
+        if (!nodes.length) {
+            return;
+        }
+
+        var normalized = sanitizeSocialbarIconStyle(style);
+
+        nodes.forEach(function (node) {
+            SOCIALBAR_ICON_STYLES.forEach(function (candidate) {
+                if (candidate === 'default') {
+                    return;
+                }
+
+                node.classList.remove('socialbar--icon-' + candidate);
+            });
+
+            if (normalized && normalized !== 'default') {
+                node.classList.add('socialbar--icon-' + normalized);
+            }
+
+            node.setAttribute('data-icon-style', normalized);
         });
     }
 
@@ -257,6 +323,9 @@
         applySocialbarVariantClasses(socialbarState.variant);
         applySocialbarStyles();
     }
+
+    setSocialbarVariant(socialbarState.variant);
+    applySocialbarIconStyle(socialbarState.iconStyle);
 
     function toggleSocialbarLocation(location, isVisible) {
         var selector = '.socialbar[data-location="' + location + '"]';
@@ -1931,6 +2000,14 @@
 
             value.bind(function (newValue) {
                 setSocialbarVariant(newValue);
+            });
+        });
+
+        api('beyond_gotham_socialbar_icon_style', function (value) {
+            applySocialbarIconStyle(value.get());
+
+            value.bind(function (newValue) {
+                applySocialbarIconStyle(newValue);
             });
         });
 
