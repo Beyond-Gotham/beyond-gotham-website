@@ -132,16 +132,32 @@ get_header();
             <section class="product-section product-cta" aria-labelledby="product-cta-title">
                 <div class="product-section__inner">
                     <div class="product-cta__content">
-                        <h2 id="product-cta-title" class="product-section__title"><?php esc_html_e( 'Bereit für eine individuelle Demo?', 'beyond-gotham' ); ?></h2>
-                        <p><?php echo esc_html__( 'Unser Team stellt das InfoTerminal gerne in einem persönlichen Gespräch vor und zeigt, wie sich das System in Ihre Abläufe integrieren lässt.', 'beyond-gotham' ); ?></p>
-                    </div>
-                    <div class="product-cta__actions">
-                        <a class="product-cta__button" href="<?php echo esc_url( home_url( '/kontakt' ) ); ?>">
-                            <?php echo esc_html__( 'Kontakt aufnehmen', 'beyond-gotham' ); ?>
-                        </a>
-                        <a class="product-cta__secondary" href="mailto:info@beyondgotham.org">
-                            <?php echo esc_html__( 'Direkt eine Nachricht senden', 'beyond-gotham' ); ?>
-                        </a>
+                        <?php
+                        get_template_part(
+                            'template-parts/components/cta-content',
+                            null,
+                            array(
+                                'variant'           => 'cta',
+                                'title'             => esc_html__( 'Bereit für eine individuelle Demo?', 'beyond-gotham' ),
+                                'title_tag'         => 'h2',
+                                'title_class'       => 'product-section__title',
+                                'title_attributes'  => array( 'id' => 'product-cta-title' ),
+                                'text'              => esc_html__( 'Unser Team stellt das InfoTerminal gerne in einem persönlichen Gespräch vor und zeigt, wie sich das System in Ihre Abläufe integrieren lässt.', 'beyond-gotham' ),
+                                'text_tag'          => 'p',
+                                'text_class'        => 'product-cta__text',
+                                'button_label'      => esc_html__( 'Kontakt aufnehmen', 'beyond-gotham' ),
+                                'button_url'        => home_url( '/kontakt' ),
+                                'button_class'      => 'product-cta__button bg-button bg-button--primary',
+                                'button_target'     => '_self',
+                                'button_rel'        => '',
+                                'after_content'     => sprintf(
+                                    '<a class="product-cta__secondary" href="%1$s">%2$s</a>',
+                                    esc_url( 'mailto:info@beyondgotham.org' ),
+                                    esc_html__( 'Direkt eine Nachricht senden', 'beyond-gotham' )
+                                ),
+                            )
+                        );
+                        ?>
                     </div>
                 </div>
             </section>

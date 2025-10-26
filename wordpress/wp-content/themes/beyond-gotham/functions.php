@@ -219,6 +219,158 @@ function beyond_gotham_detect_social_network( $url ) {
     return sanitize_title( str_replace( 'www.', '', $host ) );
 }
 
+if ( ! function_exists( 'beyond_gotham_prepare_social_icon_items' ) ) {
+    /**
+     * Prepare normalized social icon data for template rendering.
+     *
+     * @param array|null $links Optional associative array of network => url pairs.
+     * @param array      $args  Optional arguments.
+     *
+     * @return array[]
+     */
+    function beyond_gotham_prepare_social_icon_items( $links = null, $args = array() ) {
+        if ( null === $links && function_exists( 'beyond_gotham_get_social_links' ) ) {
+            $links = beyond_gotham_get_social_links();
+        }
+
+        if ( ! is_array( $links ) ) {
+            $links = array();
+        }
+
+        $defaults = array(
+            'include_empty' => false,
+            'order'         => array(),
+        );
+
+        $args = wp_parse_args( $args, $defaults );
+
+        $icons = function_exists( 'beyond_gotham_get_social_icon_svgs' ) ? beyond_gotham_get_social_icon_svgs() : array();
+
+        if ( empty( $icons ) || ! is_array( $icons ) ) {
+            return array();
+        }
+
+        $labels = array(
+            'github'    => __( 'GitHub', 'beyond_gotham' ),
+            'linkedin'  => __( 'LinkedIn', 'beyond_gotham' ),
+            'mastodon'  => __( 'Mastodon', 'beyond_gotham' ),
+            'twitter'   => __( 'X (Twitter)', 'beyond_gotham' ),
+            'facebook'  => __( 'Facebook', 'beyond_gotham' ),
+            'instagram' => __( 'Instagram', 'beyond_gotham' ),
+            'tiktok'    => __( 'TikTok', 'beyond_gotham' ),
+            'youtube'   => __( 'YouTube', 'beyond_gotham' ),
+            'telegram'  => __( 'Telegram', 'beyond_gotham' ),
+            'email'     => __( 'E-Mail', 'beyond_gotham' ),
+        );
+
+        $order = array();
+
+        if ( ! empty( $args['order'] ) ) {
+            foreach ( (array) $args['order'] as $value ) {
+                $key = sanitize_key( $value );
+
+                if ( '' !== $key ) {
+                    $order[] = $key;
+                }
+            }
+        }
+
+        $normalized_links = array();
+
+        foreach ( $links as $network => $url ) {
+            if ( ! is_string( $network ) ) {
+                continue;
+            }
+
+            $key = sanitize_key( $network );
+
+            if ( '' === $key ) {
+                continue;
+            }
+
+            $normalized_links[ $key ] = is_string( $url ) ? trim( $url ) : '';
+
+            if ( ! in_array( $key, $order, true ) ) {
+                $order[] = $key;
+            }
+        }
+
+        if ( empty( $order ) ) {
+            $order = array_keys( $icons );
+        } else {
+            // Append any remaining icon keys to ensure consistent ordering when previewing empty states.
+            foreach ( array_keys( $icons ) as $icon_key ) {
+                if ( ! in_array( $icon_key, $order, true ) ) {
+                    $order[] = $icon_key;
+                }
+            }
+        }
+
+        $include_empty = ! empty( $args['include_empty'] );
+        $items         = array();
+
+        foreach ( $order as $network ) {
+            $url      = isset( $normalized_links[ $network ] ) ? $normalized_links[ $network ] : '';
+            $url      = is_string( $url ) ? trim( $url ) : '';
+            $is_empty = '' === $url;
+
+            if ( $is_empty && ! $include_empty ) {
+                continue;
+            }
+
+            $slug = $network;
+
+            if ( ! $is_empty ) {
+                $detected = beyond_gotham_detect_social_network( $url );
+
+                if ( $detected ) {
+                    $slug = $detected;
+                }
+            }
+
+            if ( ! isset( $icons[ $slug ] ) ) {
+                if ( isset( $icons[ $network ] ) ) {
+                    $slug = $network;
+                } elseif ( $is_empty ) {
+                    continue;
+                } else {
+                    continue;
+                }
+            }
+
+            $label_key = isset( $labels[ $slug ] ) ? $slug : $network;
+            $label     = isset( $labels[ $label_key ] ) ? $labels[ $label_key ] : ucfirst( $label_key );
+            $is_mail   = false;
+
+            if ( ! $is_empty ) {
+                if ( 'email' === $slug && 0 !== strpos( $url, 'mailto:' ) ) {
+                    $url = 'mailto:' . ltrim( $url );
+                }
+
+                $is_mail = 0 === strpos( $url, 'mailto:' );
+            }
+
+            $items[] = array(
+                'network'  => $network,
+                'slug'     => $slug,
+                'url'      => $url,
+                'label'    => $label,
+                'icon'     => $icons[ $slug ],
+                'is_mail'  => $is_mail,
+                'is_empty' => $is_empty,
+            );
+        }
+
+        /**
+         * Filter the prepared social icon items.
+         *
+         * @param array $items Prepared icon data.
+         * @param array $args  Arguments used for preparation.
+         */
+        return apply_filters( 'beyond_gotham_social_icon_items', $items, $args );
+    }
+}
+
 /**
  * Adjust navigation link attributes for accessibility and styling.
  *

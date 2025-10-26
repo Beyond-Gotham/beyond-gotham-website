@@ -206,8 +206,35 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
 		return;
 	}
 
-	$links    = beyond_gotham_get_social_links();
-	$settings = beyond_gotham_get_socialbar_settings();
+        $links    = beyond_gotham_get_social_links();
+        $settings = beyond_gotham_get_socialbar_settings();
+
+        $format_attributes = static function( $attributes ) {
+                if ( empty( $attributes ) || ! is_array( $attributes ) ) {
+                        return array();
+                }
+
+                $chunks = array();
+
+                foreach ( $attributes as $attr => $value ) {
+                        if ( '' === $attr ) {
+                                continue;
+                        }
+
+                        if ( true === $value ) {
+                                $chunks[] = esc_attr( $attr );
+                                continue;
+                        }
+
+                        if ( null === $value || '' === $value ) {
+                                continue;
+                        }
+
+                        $chunks[] = sprintf( '%s="%s"', esc_attr( $attr ), esc_attr( $value ) );
+                }
+
+                return $chunks;
+        };
 
         $is_preview       = function_exists( 'is_customize_preview' ) && is_customize_preview();
         $location_enabled = array(
@@ -223,20 +250,27 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
                 return;
         }
 
-        $labels = array(
-                'github'    => __( 'GitHub', 'beyond_gotham' ),
-                'linkedin'  => __( 'LinkedIn', 'beyond_gotham' ),
-                'mastodon'  => __( 'Mastodon', 'beyond_gotham' ),
-                'twitter'   => __( 'X (Twitter)', 'beyond_gotham' ),
-                'facebook'  => __( 'Facebook', 'beyond_gotham' ),
-		'instagram' => __( 'Instagram', 'beyond_gotham' ),
-		'tiktok'    => __( 'TikTok', 'beyond_gotham' ),
-		'youtube'   => __( 'YouTube', 'beyond_gotham' ),
-		'telegram'  => __( 'Telegram', 'beyond_gotham' ),
-		'email'     => __( 'E-Mail', 'beyond_gotham' ),
-	);
+        $icon_order = array_keys( beyond_gotham_get_social_icon_svgs() );
 
-	$icons = beyond_gotham_get_social_icon_svgs();
+        if ( empty( $icon_order ) ) {
+                $icon_order = array_keys( $links );
+        }
+
+        $items = function_exists( 'beyond_gotham_prepare_social_icon_items' )
+                ? beyond_gotham_prepare_social_icon_items(
+                        $links,
+                        array(
+                                'include_empty' => $is_preview,
+                                'order'         => $icon_order,
+                        )
+                )
+                : array();
+
+        $items = apply_filters( 'beyond_gotham_socialbar_items', $items, $location, $settings );
+
+        if ( empty( $items ) && ! $is_preview ) {
+                return;
+        }
 
         $wrapper_classes = array( 'socialbar', 'socialbar--' . $location );
 
@@ -248,8 +282,11 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
                 $wrapper_classes[] = 'socialbar--' . sanitize_html_class( $settings['style_variant'] );
         }
 
+        $wrapper_classes = apply_filters( 'beyond_gotham_socialbar_wrapper_classes', $wrapper_classes, $location, $settings );
+        $wrapper_classes = array_map( 'sanitize_html_class', array_unique( array_filter( $wrapper_classes ) ) );
+
         $wrapper_attributes = array(
-                'class'            => implode( ' ', array_map( 'sanitize_html_class', array_unique( $wrapper_classes ) ) ),
+                'class'            => implode( ' ', $wrapper_classes ),
                 'data-bg-socialbar'=> $location,
                 'data-location'    => $location,
         );
@@ -304,96 +341,89 @@ function beyond_gotham_render_socialbar( $location = 'header' ) {
                 $wrapper_attributes['data-customize-preview'] = 'true';
         }
 
-        $attribute_chunks = array();
+        $wrapper_attributes = apply_filters( 'beyond_gotham_socialbar_wrapper_attributes', $wrapper_attributes, $location, $settings, $items );
 
-        foreach ( $wrapper_attributes as $attr => $value ) {
-                if ( true === $value ) {
-                        $attribute_chunks[] = esc_attr( $attr );
+        $attribute_chunks = $format_attributes( $wrapper_attributes );
+
+        echo '<ul';
+
+        if ( ! empty( $attribute_chunks ) ) {
+                echo ' ' . implode( ' ', $attribute_chunks );
+        }
+
+        echo '>';
+
+        foreach ( $items as $item ) {
+                if ( empty( $item['icon'] ) ) {
                         continue;
                 }
 
-                if ( '' === $value ) {
+                $slug         = isset( $item['slug'] ) ? sanitize_html_class( $item['slug'] ) : '';
+                $network_attr = isset( $item['network'] ) ? sanitize_html_class( $item['network'] ) : $slug;
+
+                if ( '' === $slug && '' === $network_attr ) {
                         continue;
                 }
 
-                $attribute_chunks[] = sprintf( '%s="%s"', esc_attr( $attr ), esc_attr( $value ) );
-        }
+                if ( '' === $slug ) {
+                        $slug = $network_attr;
+                }
 
-        echo '<ul ' . implode( ' ', $attribute_chunks ) . '>';
-
-        $networks_to_render = array_keys( $links );
-
-        if ( $is_preview ) {
-                $networks_to_render = array_unique( array_merge( $networks_to_render, array_keys( $icons ) ) );
-        }
-
-        foreach ( $networks_to_render as $network ) {
-                $label       = isset( $labels[ $network ] ) ? $labels[ $network ] : ucfirst( $network );
-                $icon        = isset( $icons[ $network ] ) ? $icons[ $network ] : '';
-                $url         = isset( $links[ $network ] ) ? $links[ $network ] : '';
-                $is_empty    = '' === $url;
-                $network_slug = $is_empty ? $network : ( beyond_gotham_detect_social_network( $url ) ?: $network );
-                $item_classes = array( 'socialbar__item', 'socialbar__item--' . $network_slug );
-
+                $item_classes = array( 'socialbar__item', 'socialbar__item--' . $slug );
                 $item_attributes = array();
 
-                if ( $is_empty ) {
-                        $item_classes[]            = 'socialbar__item--empty';
-                        $item_attributes['hidden'] = true;
+                if ( ! empty( $item['is_empty'] ) ) {
+                        $item_classes[]                 = 'socialbar__item--empty';
+                        $item_attributes['hidden']      = true;
                         $item_attributes['aria-hidden'] = 'true';
-                        $item_attributes['data-empty'] = 'true';
+                        $item_attributes['data-empty']  = 'true';
                 }
 
-                echo '<li class="' . esc_attr( implode( ' ', array_map( 'sanitize_html_class', $item_classes ) ) ) . '"';
+                $item_classes = apply_filters( 'beyond_gotham_socialbar_item_classes', $item_classes, $item, $location, $settings );
+                $item_classes = array_map( 'sanitize_html_class', array_filter( $item_classes ) );
 
-                foreach ( $item_attributes as $attr => $value ) {
-                        if ( true === $value ) {
-                                echo ' ' . esc_attr( $attr );
-                                continue;
-                        }
+                $item_attributes = apply_filters( 'beyond_gotham_socialbar_item_attributes', $item_attributes, $item, $location, $settings );
+                $item_attribute_chunks = $format_attributes( $item_attributes );
 
-                        echo ' ' . esc_attr( $attr ) . '="' . esc_attr( $value ) . '"';
+                echo '<li class="' . esc_attr( implode( ' ', $item_classes ) ) . '"';
+
+                if ( ! empty( $item_attribute_chunks ) ) {
+                        echo ' ' . implode( ' ', $item_attribute_chunks );
                 }
 
                 echo '>';
 
                 $link_attributes = array(
                         'class'        => 'socialbar__link',
-                        'data-network' => $network_slug,
+                        'data-network' => $network_attr,
                 );
 
-                if ( ! $is_empty ) {
-                        $link_attributes['href'] = esc_url( $url );
+                if ( empty( $item['is_empty'] ) && ! empty( $item['url'] ) ) {
+                        $link_attributes['href'] = esc_url( $item['url'] );
 
-                        $is_mail = 0 === strpos( $url, 'mailto:' );
-
-                        if ( ! $is_mail ) {
+                        if ( empty( $item['is_mail'] ) ) {
                                 $link_attributes['target'] = '_blank';
                                 $link_attributes['rel']    = 'noopener';
                         }
                 } else {
-                        $link_attributes['href']       = '#';
+                        $link_attributes['href']        = '#';
                         $link_attributes['aria-hidden'] = 'true';
-                        $link_attributes['tabindex']   = '-1';
+                        $link_attributes['tabindex']    = '-1';
+                        $link_attributes['hidden']      = 'hidden';
                 }
 
-                $link_attribute_parts = array();
+                $link_attributes = apply_filters( 'beyond_gotham_socialbar_link_attributes', $link_attributes, $item, $location, $settings );
+                $link_attribute_parts = $format_attributes( $link_attributes );
 
-                foreach ( $link_attributes as $attr => $value ) {
-                        if ( '' === $value ) {
-                                continue;
-                        }
+                echo '<a';
 
-                        $link_attribute_parts[] = sprintf( '%s="%s"', esc_attr( $attr ), esc_attr( $value ) );
+                if ( ! empty( $link_attribute_parts ) ) {
+                        echo ' ' . implode( ' ', $link_attribute_parts );
                 }
 
-                echo '<a ' . implode( ' ', $link_attribute_parts ) . '>';
-
-                if ( $icon ) {
-                        echo '<span class="socialbar__icon" aria-hidden="true">' . $icon . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                }
-
-                echo '<span class="socialbar__label">' . esc_html( $label ) . '</span>';
+                echo '>';
+                echo '<span class="socialbar__icon" aria-hidden="true">' . $item['icon'] . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                echo '<span class="socialbar__label">' . esc_html( $item['label'] ) . '</span>';
                 echo '</a>';
                 echo '</li>';
         }
