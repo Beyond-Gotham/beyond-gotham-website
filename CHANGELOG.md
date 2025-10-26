@@ -14,6 +14,8 @@
 ### Changed
 - Header-, Struktur- und Landing-Styles verwenden die Breakpoint-Mixins (`bp.up`, `bp.down`, …) für konsistente Grids.
 - Socialbar-SCSS deckt Varianten/Icon-Stile via Klassen & `data-*`-Attribute ab; Sticky-CTA-Attribute harmonisieren mit der Customizer-Vorschau.
+- Socialbar-Renderer nutzt den zentralen Icon-Helper und erweitert Wrapper-/Link-Attribute um Filter für Preview-Hooks.
+- InfoTerminal-CTA setzt auf das `cta-content`-Partial und konsolidiert damit Button- und Link-Markup.
 
 ### Removed
 - Removed legacy social-icon block from footer (black field with GitHub icon). Cleaned up related CSS and Customizer references.

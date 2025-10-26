@@ -20,76 +20,46 @@ $defaults = array(
     'hidden'             => false,
     'aria_label'         => __( 'Social media links', 'beyond_gotham' ),
     'tag'                => 'div',
+    'include_empty'      => false,
 );
 
 $args = wp_parse_args( $args, $defaults );
 
-$links = $args['links'];
+$links          = $args['links'];
+$include_empty  = ! empty( $args['include_empty'] );
 
 if ( null === $links && function_exists( 'beyond_gotham_get_social_links' ) ) {
     $links = beyond_gotham_get_social_links();
 }
 
-if ( empty( $links ) || ! is_array( $links ) ) {
+if ( ! is_array( $links ) ) {
+    $links = array();
+}
+
+if ( empty( $links ) && ! $include_empty ) {
     return;
 }
 
 $links = apply_filters( 'beyond_gotham_social_icons', $links, $args );
 
-if ( empty( $links ) || ! is_array( $links ) ) {
+if ( ! is_array( $links ) ) {
+    $links = array();
+}
+
+if ( empty( $links ) && ! $include_empty ) {
     return;
 }
 
-$icons = function_exists( 'beyond_gotham_get_social_icon_svgs' ) ? beyond_gotham_get_social_icon_svgs() : array();
-
-if ( empty( $icons ) || ! is_array( $icons ) ) {
-    return;
-}
-
-$labels = array(
-    'github'   => __( 'GitHub', 'beyond_gotham' ),
-    'linkedin' => __( 'LinkedIn', 'beyond_gotham' ),
-    'mastodon' => __( 'Mastodon', 'beyond_gotham' ),
-    'twitter'  => __( 'X (Twitter)', 'beyond_gotham' ),
-    'facebook' => __( 'Facebook', 'beyond_gotham' ),
-    'instagram' => __( 'Instagram', 'beyond_gotham' ),
-    'tiktok'    => __( 'TikTok', 'beyond_gotham' ),
-    'youtube'   => __( 'YouTube', 'beyond_gotham' ),
-    'telegram'  => __( 'Telegram', 'beyond_gotham' ),
-    'email'    => __( 'E-Mail', 'beyond_gotham' ),
-);
-
-$items = array();
-
-foreach ( $links as $network => $url ) {
-    if ( empty( $url ) ) {
-        continue;
-    }
-
-    $slug = $network;
-
-    if ( function_exists( 'beyond_gotham_detect_social_network' ) ) {
-        $detected = beyond_gotham_detect_social_network( $url );
-        if ( $detected ) {
-            $slug = $detected;
-        }
-    }
-
-    if ( ! isset( $icons[ $slug ] ) ) {
-        continue;
-    }
-
-    $label_key = isset( $labels[ $slug ] ) ? $slug : $network;
-    $label     = isset( $labels[ $label_key ] ) ? $labels[ $label_key ] : ucfirst( $label_key );
-    $is_mail   = 0 === strpos( $url, 'mailto:' );
-
-    $items[] = array(
-        'url'    => $url,
-        'slug'   => $slug,
-        'label'  => $label,
-        'is_mail'=> $is_mail,
-    );
-}
+$order = array_keys( $links );
+$items          = function_exists( 'beyond_gotham_prepare_social_icon_items' )
+    ? beyond_gotham_prepare_social_icon_items(
+        $links,
+        array(
+            'include_empty' => $include_empty,
+            'order'         => $order,
+        )
+    )
+    : array();
 
 if ( empty( $items ) ) {
     return;
@@ -203,11 +173,18 @@ if ( $extra_attribute_string ) {
 printf( '<%1$s%2$s>', esc_html( $tag ), $attribute_string );
 
 foreach ( $items as $item ) {
+    if ( ! empty( $item['is_empty'] ) ) {
+        continue;
+    }
+
+    if ( empty( $item['icon'] ) || empty( $item['url'] ) ) {
+        continue;
+    }
+
     $link_attrs = array(
-        'href'         => $item['url'],
         'class'        => 'social-icons__link',
         'aria-label'   => $item['label'],
-        'data-network' => $item['slug'],
+        'data-network' => $item['network'],
     );
 
     if ( ! $item['is_mail'] ) {
@@ -222,16 +199,14 @@ foreach ( $items as $item ) {
             continue;
         }
 
-        if ( 'href' === $attr ) {
-            $value = esc_url( $value );
-        }
-
         $link_attribute_parts[] = sprintf( '%s="%s"', esc_attr( $attr ), esc_attr( $value ) );
     }
 
+    $link_attribute_parts[] = sprintf( 'href="%s"', esc_url( $item['url'] ) );
+
     printf( '<a %s>', implode( ' ', $link_attribute_parts ) );
     echo '<span class="social-icons__icon" aria-hidden="true">';
-    echo $icons[ $item['slug'] ]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    echo $item['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     echo '</span>';
     echo '<span class="screen-reader-text">' . esc_html( $item['label'] ) . '</span>';
     echo '</a>';
