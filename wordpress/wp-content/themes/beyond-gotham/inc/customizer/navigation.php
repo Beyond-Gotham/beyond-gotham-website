@@ -52,15 +52,14 @@ function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_
                 )
         );
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_navigation_locations_heading',
-                        array(
-                                'label'       => __( 'Menü-Positionen', 'beyond_gotham' ),
-                                'description' => __( 'Aktiviere oder deaktiviere registrierte Menüpositionen.', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_navigation',
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_navigation_locations_heading',
+                array(
+                        'label'       => __( 'Menü-Positionen', 'beyond_gotham' ),
+                        'description' => __( 'Aktiviere oder deaktiviere registrierte Menüpositionen.', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
                 )
         );
 
@@ -126,15 +125,14 @@ function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_
                 )
         );
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_navigation_alignment_heading',
-                        array(
-                                'label'       => __( 'Ausrichtung & Layout', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_navigation',
-                                'description' => __( 'Passe die horizontale Ausrichtung und Abstände der Navigation an. Änderungen werden live angezeigt.', 'beyond_gotham' ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_navigation_alignment_heading',
+                array(
+                        'label'       => __( 'Ausrichtung & Layout', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
+                        'description' => __( 'Passe die horizontale Ausrichtung und Abstände der Navigation an. Änderungen werden live angezeigt.', 'beyond_gotham' ),
                 )
         );
 
@@ -214,14 +212,13 @@ function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_
                 )
         );
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_navigation_behavior_heading',
-                        array(
-                                'label'   => __( 'Verhalten', 'beyond_gotham' ),
-                                'section' => 'beyond_gotham_navigation',
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_navigation_behavior_heading',
+                array(
+                        'label'   => __( 'Verhalten', 'beyond_gotham' ),
+                        'section' => 'beyond_gotham_navigation',
                 )
         );
 
@@ -246,20 +243,19 @@ function beyond_gotham_register_navigation_customizer( WP_Customize_Manager $wp_
                 )
         );
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Info_Control(
-                        $wp_customize,
-                        'beyond_gotham_navigation_manage_info',
-                        array(
-                                'label'       => __( 'Menüs verwalten', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_navigation',
-                                'notice_type' => 'info',
-                                'description' => sprintf(
-                                        /* translators: %s: Link to nav menus panel */
-                                        __( 'Du kannst Inhalte der Menüs direkt im Bereich %s anpassen.', 'beyond_gotham' ),
-                                        '<a href="javascript:wp.customize.panel(\'nav_menus\').focus();">' . __( 'Menüs', 'beyond_gotham' ) . '</a>'
-                                ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Info_Control',
+                'beyond_gotham_navigation_manage_info',
+                array(
+                        'label'       => __( 'Menüs verwalten', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_navigation',
+                        'notice_type' => 'info',
+                        'description' => sprintf(
+                                /* translators: %s: Link to nav menus panel */
+                                __( 'Du kannst Inhalte der Menüs direkt im Bereich %s anpassen.', 'beyond_gotham' ),
+                                '<a href="javascript:wp.customize.panel(\'nav_menus\').focus();">' . __( 'Menüs', 'beyond_gotham' ) . '</a>'
+                        ),
                 )
         );
 }

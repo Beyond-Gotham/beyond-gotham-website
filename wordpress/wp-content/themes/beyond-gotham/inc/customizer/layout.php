@@ -71,15 +71,14 @@ function beyond_gotham_register_layout_customizer( WP_Customize_Manager $wp_cust
                 )
         );
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_layout_container_heading',
-                        array(
-                                'label'       => __( 'Container-Breiten', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_layout',
-                                'description' => __( 'Definiere maximale Breiten für unterschiedliche Viewports. Diese Werte steuern `max-width` und CSS-Variablen.', 'beyond_gotham' ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_layout_container_heading',
+                array(
+                        'label'       => __( 'Container-Breiten', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_layout',
+                        'description' => __( 'Definiere maximale Breiten für unterschiedliche Viewports. Diese Werte steuern `max-width` und CSS-Variablen.', 'beyond_gotham' ),
                 )
         );
 
@@ -114,15 +113,14 @@ function beyond_gotham_register_layout_customizer( WP_Customize_Manager $wp_cust
                 );
         }
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_layout_spacing_heading',
-                        array(
-                                'label'       => __( 'Spacing & Grid', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_layout',
-                                'description' => __( 'Definiere eine globale Abstands-Skala und den Grid-Gap. Werte werden als CSS-Variablen ausgegeben.', 'beyond_gotham' ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_layout_spacing_heading',
+                array(
+                        'label'       => __( 'Spacing & Grid', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_layout',
+                        'description' => __( 'Definiere eine globale Abstands-Skala und den Grid-Gap. Werte werden als CSS-Variablen ausgegeben.', 'beyond_gotham' ),
                 )
         );
 
@@ -182,15 +180,14 @@ function beyond_gotham_register_layout_customizer( WP_Customize_Manager $wp_cust
                 )
         );
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_layout_breakpoints_heading',
-                        array(
-                                'label'       => __( 'Aktive Breakpoints', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_layout',
-                                'description' => __( 'Deaktiviere Breakpoints, wenn z. B. ein mobiles Einspaltenlayout gewünscht ist.', 'beyond_gotham' ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_layout_breakpoints_heading',
+                array(
+                        'label'       => __( 'Aktive Breakpoints', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_layout',
+                        'description' => __( 'Deaktiviere Breakpoints, wenn z. B. ein mobiles Einspaltenlayout gewünscht ist.', 'beyond_gotham' ),
                 )
         );
 

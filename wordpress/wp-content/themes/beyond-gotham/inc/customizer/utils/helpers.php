@@ -200,6 +200,35 @@ function beyond_gotham_sanitize_id_list( $value ) {
         return array_values( array_filter( array_map( 'absint', $value ) ) );
 }
 
+// =============================================================================
+// Customizer Control Helpers
+// =============================================================================
+
+if ( ! function_exists( 'beyond_gotham_customize_add_control' ) ) {
+        /**
+         * Safely add a custom control instance if the class is available.
+         *
+         * @param WP_Customize_Manager $wp_customize Customizer instance.
+         * @param string               $control_class Fully qualified control class name.
+         * @param string               $control_id    Control identifier.
+         * @param array                $args          Optional control arguments.
+         * @return void
+         */
+        function beyond_gotham_customize_add_control( WP_Customize_Manager $wp_customize, $control_class, $control_id, array $args = array() ) {
+                if ( ! class_exists( $control_class ) ) {
+                        return;
+                }
+
+                $wp_customize->add_control(
+                        new $control_class(
+                                $wp_customize,
+                                $control_id,
+                                $args
+                        )
+                );
+        }
+}
+
 /**
  * Sanitize a list of post IDs ensuring numeric uniqueness.
  *

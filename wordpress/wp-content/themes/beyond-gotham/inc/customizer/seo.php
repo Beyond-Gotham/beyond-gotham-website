@@ -104,20 +104,19 @@ function beyond_gotham_register_seo_customizer( WP_Customize_Manager $wp_customi
         );
 
         if ( ! empty( $plugins ) ) {
-                $wp_customize->add_control(
-                        new Beyond_Gotham_Customize_Info_Control(
-                                $wp_customize,
-                                'beyond_gotham_seo_plugin_notice',
-                                array(
-                                        'label'       => __( 'Externes SEO-Plugin aktiv', 'beyond_gotham' ),
-                                        'section'     => 'beyond_gotham_seo',
-                                        'notice_type' => 'warning',
-                                        'description' => sprintf(
-                                                /* translators: %s plugin list */
-                                                __( 'Folgende Erweiterungen sind aktiv: %s. Theme-eigene Meta-Ausgaben werden deaktiviert, um Konflikte zu vermeiden.', 'beyond_gotham' ),
-                                                esc_html( implode( ', ', $plugins ) )
-                                        ),
-                                )
+                beyond_gotham_customize_add_control(
+                        $wp_customize,
+                        'Beyond_Gotham_Customize_Info_Control',
+                        'beyond_gotham_seo_plugin_notice',
+                        array(
+                                'label'       => __( 'Externes SEO-Plugin aktiv', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_seo',
+                                'notice_type' => 'warning',
+                                'description' => sprintf(
+                                        /* translators: %s plugin list */
+                                        __( 'Folgende Erweiterungen sind aktiv: %s. Theme-eigene Meta-Ausgaben werden deaktiviert, um Konflikte zu vermeiden.', 'beyond_gotham' ),
+                                        esc_html( implode( ', ', $plugins ) )
+                                ),
                         )
                 );
         }

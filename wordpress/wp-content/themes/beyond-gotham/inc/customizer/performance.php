@@ -102,20 +102,19 @@ function beyond_gotham_register_performance_customizer( WP_Customize_Manager $wp
         );
 
         if ( ! empty( $conflicts ) ) {
-                $wp_customize->add_control(
-                        new Beyond_Gotham_Customize_Info_Control(
-                                $wp_customize,
-                                'beyond_gotham_performance_conflict_notice',
-                                array(
-                                        'label'       => __( 'Externe Optimierung erkannt', 'beyond_gotham' ),
-                                        'section'     => 'beyond_gotham_performance',
-                                        'notice_type' => 'warning',
-                                        'description' => sprintf(
-                                                /* translators: %s plugin list */
-                                                __( 'Die folgenden Plugins verwalten bereits Performance-Optimierungen: %s. Theme-interne Optionen werden automatisch konservativ gehalten.', 'beyond_gotham' ),
-                                                esc_html( implode( ', ', $conflicts ) )
-                                        ),
-                                )
+                beyond_gotham_customize_add_control(
+                        $wp_customize,
+                        'Beyond_Gotham_Customize_Info_Control',
+                        'beyond_gotham_performance_conflict_notice',
+                        array(
+                                'label'       => __( 'Externe Optimierung erkannt', 'beyond_gotham' ),
+                                'section'     => 'beyond_gotham_performance',
+                                'notice_type' => 'warning',
+                                'description' => sprintf(
+                                        /* translators: %s plugin list */
+                                        __( 'Die folgenden Plugins verwalten bereits Performance-Optimierungen: %s. Theme-interne Optionen werden automatisch konservativ gehalten.', 'beyond_gotham' ),
+                                        esc_html( implode( ', ', $conflicts ) )
+                                ),
                         )
                 );
         }
