@@ -54,15 +54,14 @@ function beyond_gotham_register_branding_customizer( WP_Customize_Manager $wp_cu
         );
 
         // Heading: Logos.
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_branding_logo_heading',
-                        array(
-                                'label'       => __( 'Logo-Varianten', 'beyond_gotham' ),
-                                'description' => __( 'Du kannst separate Logos für helle und dunkle Hintergründe hinterlegen.', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_branding',
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_branding_logo_heading',
+                array(
+                        'label'       => __( 'Logo-Varianten', 'beyond_gotham' ),
+                        'description' => __( 'Du kannst separate Logos für helle und dunkle Hintergründe hinterlegen.', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_branding',
                 )
         );
 
@@ -115,15 +114,14 @@ function beyond_gotham_register_branding_customizer( WP_Customize_Manager $wp_cu
         );
 
         // Heading: Darstellung.
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_branding_display_heading',
-                        array(
-                                'label'       => __( 'Darstellung', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_branding',
-                                'description' => __( 'Steuere Größe und Verhalten des Logos im Header.', 'beyond_gotham' ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_branding_display_heading',
+                array(
+                        'label'       => __( 'Darstellung', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_branding',
+                        'description' => __( 'Steuere Größe und Verhalten des Logos im Header.', 'beyond_gotham' ),
                 )
         );
 
@@ -224,15 +222,14 @@ function beyond_gotham_register_branding_customizer( WP_Customize_Manager $wp_cu
         );
 
         // Heading: Favicon.
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_branding_favicon_heading',
-                        array(
-                                'label'       => __( 'Favicon & Site Icon', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_branding',
-                                'description' => __( 'WordPress Site Icons werden priorisiert. Optional kannst du ein alternatives Favicon definieren.', 'beyond_gotham' ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_branding_favicon_heading',
+                array(
+                        'label'       => __( 'Favicon & Site Icon', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_branding',
+                        'description' => __( 'WordPress Site Icons werden priorisiert. Optional kannst du ein alternatives Favicon definieren.', 'beyond_gotham' ),
                 )
         );
 
@@ -279,20 +276,19 @@ function beyond_gotham_register_branding_customizer( WP_Customize_Manager $wp_cu
                 )
         );
 
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Info_Control(
-                        $wp_customize,
-                        'beyond_gotham_branding_site_icon_notice',
-                        array(
-                                'label'       => __( 'Site Icon Hinweis', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_branding',
-                                'notice_type' => 'info',
-                                'description' => sprintf(
-                                        /* translators: %s: Link to site identity section */
-                                        __( 'Site Icons lassen sich unter %s pflegen. Lade dort bevorzugt dein Favicon hoch.', 'beyond_gotham' ),
-                                        '<a href="javascript:wp.customize.section(\'title_tagline\').focus();">' . __( 'Website-Identität', 'beyond_gotham' ) . '</a>'
-                                ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Info_Control',
+                'beyond_gotham_branding_site_icon_notice',
+                array(
+                        'label'       => __( 'Site Icon Hinweis', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_branding',
+                        'notice_type' => 'info',
+                        'description' => sprintf(
+                                /* translators: %s: Link to site identity section */
+                                __( 'Site Icons lassen sich unter %s pflegen. Lade dort bevorzugt dein Favicon hoch.', 'beyond_gotham' ),
+                                '<a href="javascript:wp.customize.section(\'title_tagline\').focus();">' . __( 'Website-Identität', 'beyond_gotham' ) . '</a>'
+                        ),
                 )
         );
 }

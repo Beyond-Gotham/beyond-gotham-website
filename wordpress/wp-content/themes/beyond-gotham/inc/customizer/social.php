@@ -478,15 +478,14 @@ function beyond_gotham_register_social_customizer( WP_Customize_Manager $wp_cust
         );
 
         // Socialbar appearance settings.
-        $wp_customize->add_control(
-                new Beyond_Gotham_Customize_Heading_Control(
-                        $wp_customize,
-                        'beyond_gotham_socialbar_style_heading',
-                        array(
-                                'label'       => __( 'Darstellung & Farben', 'beyond_gotham' ),
-                                'section'     => 'beyond_gotham_social_media',
-                                'description' => __( 'Passe Layout und Farben der Social-Bar an.', 'beyond_gotham' ),
-                        )
+        beyond_gotham_customize_add_control(
+                $wp_customize,
+                'Beyond_Gotham_Customize_Heading_Control',
+                'beyond_gotham_socialbar_style_heading',
+                array(
+                        'label'       => __( 'Darstellung & Farben', 'beyond_gotham' ),
+                        'section'     => 'beyond_gotham_social_media',
+                        'description' => __( 'Passe Layout und Farben der Social-Bar an.', 'beyond_gotham' ),
                 )
         );
 
