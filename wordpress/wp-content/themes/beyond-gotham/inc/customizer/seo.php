@@ -457,7 +457,19 @@ function beyond_gotham_seo_filter_document_title( $title ) {
                 return $title;
         }
 
-        $current = $title ? $title : wp_get_document_title();
+        $current = is_string( $title ) ? trim( $title ) : '';
+
+        if ( '' === $current ) {
+                if ( is_singular() ) {
+                        $current = single_post_title( '', false );
+                } elseif ( is_home() || is_front_page() ) {
+                        $current = $site;
+                }
+        }
+
+        if ( '' === $current ) {
+                $current = $site;
+        }
 
         switch ( $settings['title_format'] ) {
                 case 'site_post':
